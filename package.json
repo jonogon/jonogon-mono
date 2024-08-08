@@ -1,0 +1,22 @@
+{
+  "name": "@jonogon/mono",
+  "version": "0.0.1",
+  "description": "The citizen petition platform for Bangladesh 2.0",
+  "keywords": [
+    "citizen",
+    "petition",
+    "platform",
+    "bangladesh"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "dependencies": {
+    "turbo": "2.0.12"
+  },
+  "license": "MIT",
+  "volta": {
+    "node": "22.6.0"
+  }
+}
