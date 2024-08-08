@@ -2,6 +2,7 @@
   "name": "@jonogon/mono",
   "version": "0.0.1",
   "description": "The citizen petition platform for Bangladesh 2.0",
+  "packageManager": "pnpm@9.7.0",
   "keywords": [
     "citizen",
     "petition",
@@ -10,7 +11,8 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build"
+    "build": "turbo run build",
+    "shell:mono": "docker compose exec mono bash"
   },
   "dependencies": {
     "turbo": "2.0.12"

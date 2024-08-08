@@ -8,7 +8,7 @@ export const env = createEnv({
         // Useful for Railway
         PORT: z
             .string()
-            .default(`${12001}`)
+            .default('12001')
             .transform((s) => parseInt(s))
             .pipe(z.number()),
 

@@ -1,14 +1,21 @@
 {
     "$schema": "https://turbo.build/schema.json",
+
     "tasks": {
         "build": {
             "dependsOn": ["^build"],
             "outputs": ["dist/**"]
         },
         "dev": {
+            // always build before starting
+            // dev servers
             "dependsOn": ["build"],
+
             "persistent": true,
             "cache": false
         }
-    }
+    },
+
+    // required for development mode
+    "globalPassThroughEnv": ["*"]
 }

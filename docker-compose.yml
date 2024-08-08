@@ -1,0 +1,36 @@
+name: jonogon-mono
+services:
+  mono:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /mono
+    command: pnpm run dev
+
+    environment:
+      NODE_ENV: development
+
+      # `jonogon-core` port
+      PORT: 12001
+
+    ports:
+      # `jonogon-core` HTTP port
+      - target: 12001
+        published: 12001
+        protocol: tcp
+
+      # `jonogon-core` debugger port
+      - target: 14001
+        published: 14001
+        protocol: tcp
+
+      # `jonogon-web` HTTP port
+      - target: 12002
+        published: 12002
+        protocol: tcp
+
+    volumes:
+      - source: .
+        target: /mono
+        type: bind
+

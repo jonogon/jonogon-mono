@@ -30,7 +30,7 @@
     "@types/pg": "8.11.6",
     "concurrently": "8.2.2",
     "linkemon": "0.2.0",
-    "nodemon": "3.1.4",
+    "nodemon": "2.0.22",
     "trpc-playground": "1.0.4",
     "typescript": "5.5.4"
   },
