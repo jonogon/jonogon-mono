@@ -5,7 +5,7 @@
   "main": "./dist/index.mjs",
   "scripts": {
     "start": "node .",
-    "start:watch": "linkemon --inspect=0.0.0.0:140001 .",
+    "start:watch": "linkemon --inspect=0.0.0.0:14001 .",
     "build": "tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "dev": "concurrently pnpm:build:watch pnpm:start:watch"
