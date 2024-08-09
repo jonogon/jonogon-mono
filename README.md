@@ -45,3 +45,36 @@ docker compose run --rm -w /mono/misc/migrator mono pnpm run migration up
 ```bash
 docker compose up --build --remove-orphans
 ```
+
+### Migrations
+Database migrations are done via [node-pg-migrate](https://salsita.github.io/node-pg-migrate/). The migrator tool
+can be found in `/misc/migrator`.
+
+#### Create Migration
+
+```bash
+# `--no-deps` because creating migrations does not require the database containers
+docker compose run --rm --no-deps -w /mono/misc/migrator mono pnpm run migration create $MIGRATION_FILE_NAME
+```
+
+#### Run Migrations
+
+If containers are not running (i.e. you did not run `docker compose up` in another terminal):
+
+```bash
+# up
+docker compose run --rm --no-deps -w /mono/misc/migrator mono pnpm run migration up
+
+# down
+docker compose run --rm --no-deps -w /mono/misc/migrator mono pnpm run migration down
+```
+
+If your containers are running:
+
+```bash
+# up
+docker compose exec -w /mono/misc/migrator mono pnpm run migration up
+
+# down
+docker compose exec -w /mono/misc/migrator mono pnpm run migration down
+```
