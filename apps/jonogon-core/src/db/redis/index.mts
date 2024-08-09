@@ -1,5 +1,5 @@
 import {Redis} from 'ioredis';
-import {env} from '../../../env.mjs';
+import {env} from '../../env.mjs';
 
 export async function createRedisConnection(options?: {
     url?: string;

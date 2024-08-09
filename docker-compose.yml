@@ -11,6 +11,8 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres # useful for `misc/migrator`
       PORT: 12001 # `jonogon-core` port
+      COMMON_HMAC_SECRET: tomato-is-a-fruititable
+      COMMON_ENCRYPTION_SECRET: tomtato-is-an-actual-plant
 
     ports:
       - target: 12001 # `jonogon-core` HTTP port

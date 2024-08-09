@@ -78,3 +78,15 @@ docker compose exec -w /mono/misc/migrator mono pnpm run migration up
 # down
 docker compose exec -w /mono/misc/migrator mono pnpm run migration down
 ```
+
+### Postgres
+
+#### Codegen for kysely
+
+```bash
+# if your containers are not running
+docker compose run --rm -w /mono/apps/jonogon-core mono pnpm run kysely:codegen
+
+# if your containers are running
+docker compose exec -w /mono/apps/jonogon-core mono pnpm run kysely:codegen
+```

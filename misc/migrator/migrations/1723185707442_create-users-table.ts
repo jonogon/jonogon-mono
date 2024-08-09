@@ -14,9 +14,22 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         picture: {
             type: 'text',
         },
-        phone_number: {
+        phone_number_hmac: {
             type: 'text',
             unique: true,
+            notNull: true,
+        },
+        encrypted_phone_number: {
+            type: 'text',
+            notNull: true,
+        },
+        phone_number_encryption_key_salt: {
+            type: 'text',
+            notNull: true,
+        },
+        phone_number_encryption_iv: {
+            type: 'text',
+            notNull: true,
         },
         created_at: {
             type: 'timestamp',
