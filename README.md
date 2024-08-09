@@ -63,10 +63,10 @@ If containers are not running (i.e. you did not run `docker compose up` in anoth
 
 ```bash
 # up
-docker compose run --rm --no-deps -w /mono/misc/migrator mono pnpm run migration up
+docker compose run --rm -w /mono/misc/migrator mono pnpm run migration up
 
 # down
-docker compose run --rm --no-deps -w /mono/misc/migrator mono pnpm run migration down
+docker compose run --rm -w /mono/misc/migrator mono pnpm run migration down
 ```
 
 If your containers are running:
