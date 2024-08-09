@@ -34,7 +34,13 @@ cd jonogon-mono
 docker compose run --rm mono pnpm install
 ```
 
-#### Run
+#### Run Migrations
+
+```bash
+docker compose run --rm -w /mono/misc/migrator mono pnpm run migration up
+```
+
+#### Start
 
 ```bash
 docker compose up --build --remove-orphans

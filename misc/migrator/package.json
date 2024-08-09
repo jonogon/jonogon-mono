@@ -1,0 +1,17 @@
+{
+    "name": "@banglacuts/pg-migrator",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index",
+    "scripts": {
+        "migration": "pnpm node-pg-migrate -j ts --tsconfig ./tsconfig.json"
+    },
+    "dependencies": {
+        "node-pg-migrate": "7.6.1",
+        "pg": "8.12.0",
+        "ts-node": "10.9.2"
+    },
+    "volta": {
+        "node": "22.6.0"
+    }
+}
