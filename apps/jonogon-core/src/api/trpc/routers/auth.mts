@@ -264,6 +264,9 @@ export const authRouter = router({
                 encoding: 'hex',
             });
 
+            // TODO: expire the redis key after the refresh token expires
+            //       instead of 60 days from now
+
             await ctx.services.redisConnection.setex(
                 `refresh-token:${refreshTokenDigest}:is-invalidated`,
                 60 * 25 * 60 * 60, // 60 days from now (temporarily)
