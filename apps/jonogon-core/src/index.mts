@@ -6,6 +6,9 @@ import {httpContextCreatorFactory} from './api/trpc/context.mjs';
 import {registerHTTPRoutes} from './api/http/index.mjs';
 import {registerWSHandlers} from './api/websocket/index.mjs';
 import {logger} from './logger.mjs';
+import {createServices} from './services.mjs';
+
+const services = await createServices();
 
 const expressApp = express();
 
@@ -13,7 +16,7 @@ const expressApp = express();
 // server instance between express and ws server
 const server = createServer(expressApp);
 
-const createHTTPContext = await httpContextCreatorFactory();
+const createHTTPContext = await httpContextCreatorFactory(services);
 
 const wsServer = new WebSocketServer({
     server: server,

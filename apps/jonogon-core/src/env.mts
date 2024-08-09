@@ -12,7 +12,7 @@ export const env = createEnv({
             .transform((s) => parseInt(s))
             .pipe(z.number()),
 
-        REDIS_CONNECTION_URI: z.string().default('redis://redis:6379'),
+        REDIS_CONNECTION_URL: z.string().default('redis://redis:6379'),
 
         // For use with PostgreSQL
         PGUSER: z.string().default('postgres'),
