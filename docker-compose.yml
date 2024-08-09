@@ -9,23 +9,19 @@ services:
 
     environment:
       NODE_ENV: development
-
-      # `jonogon-core` port
-      PORT: 12001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres # useful for `misc/migrator`
+      PORT: 12001 # `jonogon-core` port
 
     ports:
-      # `jonogon-core` HTTP port
-      - target: 12001
+      - target: 12001 # `jonogon-core` HTTP port
         published: 12001
         protocol: tcp
 
-      # `jonogon-core` debugger port
-      - target: 14001
+      - target: 14001 # `jonogon-core` debugger port
         published: 14001
         protocol: tcp
 
-      # `jonogon-web` HTTP port
-      - target: 12002
+      - target: 12002 # `jonogon-web` HTTP port
         published: 12002
         protocol: tcp
 
@@ -34,3 +30,39 @@ services:
         target: /mono
         type: bind
 
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16.4-alpine3.20
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - target: 5432
+        published: 5433 # changed; in case you have a local postgres running
+        protocol: tcp
+    volumes:
+      - target: /var/lib/postgresql/data
+        source: postgres-data
+        type: volume
+
+  redis:
+    image: bitnami/redis:6.2
+    environment:
+      ALLOW_EMPTY_PASSWORD: yes
+    ports:
+      - target: 6379
+        published: 6380 # changed; in case you have a local redis running
+        protocol: tcp
+    volumes:
+      - target: /bitnami/redis/data
+        source: redis-data
+        type: volume
+
+volumes:
+  # named volumes; they aren't removed on `docker compose down`
+  postgres-data:
+  redis-data:
