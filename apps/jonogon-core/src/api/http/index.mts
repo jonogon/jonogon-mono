@@ -1,12 +1,12 @@
 import {type Express} from 'express';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import {ContextCreator} from '../trpc/context.mjs';
+import {TContextCreator} from '../trpc/context.mjs';
 import {appRouter} from '../trpc/routers/index.mjs';
 import {env} from '../../env.mjs';
 
 export async function registerHTTPRoutes(
     expressApp: Express,
-    createContext: ContextCreator,
+    createContext: TContextCreator,
 ) {
     const app = expressApp;
 
