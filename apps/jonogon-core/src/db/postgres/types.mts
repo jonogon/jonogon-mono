@@ -26,11 +26,11 @@ export interface Petitions {
   created_at: Generated<Timestamp>;
   created_by: Int8;
   description: string | null;
+  formalized_at: Timestamp | null;
+  formalized_by: Int8 | null;
   id: Generated<Int8>;
   location: string | null;
   moderated_by: Int8 | null;
-  promoted_at: Timestamp | null;
-  promoted_by: Int8 | null;
   rejected_at: Timestamp | null;
   rejection_reason: string | null;
   submitted_at: Timestamp | null;
