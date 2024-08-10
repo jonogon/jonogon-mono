@@ -1,6 +1,6 @@
 {
-    "name": "@banglacuts/pg-migrator",
-    "version": "1.0.0",
+    "name": "@jonogon/migrator",
+    "version": "0.0.1",
     "private": true,
     "main": "dist/index",
     "scripts": {
