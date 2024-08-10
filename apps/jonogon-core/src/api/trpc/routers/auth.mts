@@ -107,7 +107,7 @@ export const authRouter = router({
             const user = await scope(
                 await ctx.services.postgresQueryBuilder
                     .selectFrom('users')
-                    .select(['id', 'name', 'picture'])
+                    .select(['id', 'name', 'picture', 'is_mod', 'is_admin'])
                     .where('phone_number_hmac', '=', numberHash)
                     .executeTakeFirst(),
             ).let(async (user) => {
@@ -141,7 +141,13 @@ export const authRouter = router({
                                     iv.toString('base64'),
                                 updated_at: new Date(),
                             })
-                            .returning(['id', 'name', 'picture'])
+                            .returning([
+                                'id',
+                                'name',
+                                'picture',
+                                'is_mod',
+                                'is_admin',
+                            ])
                             .executeTakeFirst();
 
                         if (!result) {
@@ -157,6 +163,9 @@ export const authRouter = router({
                 {
                     sub: user.id,
                     exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour
+
+                    is_adm: user.is_admin,
+                    is_mod: user.is_mod,
                 },
                 env.COMMON_HMAC_SECRET,
             );
@@ -167,6 +176,9 @@ export const authRouter = router({
 
                     nbf: Math.ceil(Date.now() / 1000) + 1 * 55 * 60, // not valid until 5 minutes before access_token expiry.
                     exp: Math.ceil(Date.now() / 1000) + 60 * 24 * 60 * 60, // 60 days
+
+                    is_adm: user.is_admin,
+                    is_mod: user.is_mod,
                 },
                 env.COMMON_HMAC_SECRET,
             );
@@ -181,34 +193,33 @@ export const authRouter = router({
                 user: pick(user, ['id', 'name', 'picture']), // to ensure we don't accidentally leak
             };
         }),
-    refreshToken: protectedProcedure
+    refreshToken: publicProcedure
         .input(z.object({refreshToken: z.string()}))
         .mutation(async ({input, ctx}) => {
             const tokenClaims = await returnOf(async () => {
-                const isRefreshTokenValid = jwt.verify(
+                const decodedToken: any = jwt.verify(
                     input.refreshToken,
                     env.COMMON_HMAC_SECRET,
+                    {
+                        ignoreNotBefore: env.NODE_ENV === 'development',
+                    },
                 );
 
-                if (!isRefreshTokenValid) {
+                if (!decodedToken) {
                     throw new TRPCError({
                         code: 'BAD_REQUEST',
                         message: 'invalid refresh token',
                     });
                 }
 
-                const decodedTokenInformation = jwt.decode(input.refreshToken, {
-                    json: true,
-                });
-
-                if (!decodedTokenInformation?.sub) {
+                if (!decodedToken?.sub) {
                     throw new TRPCError({
                         code: 'BAD_REQUEST',
                         message: 'subject not present on token',
                     });
                 }
 
-                return decodedTokenInformation;
+                return decodedToken;
             });
 
             const refreshTokenDigest = await hash(input.refreshToken, {
@@ -230,7 +241,10 @@ export const authRouter = router({
             const accessToken = jwt.sign(
                 {
                     sub: tokenClaims.sub,
-                    exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour
+                    exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour,
+
+                    is_adm: tokenClaims.is_admin,
+                    is_mod: tokenClaims.is_mod,
                 },
                 env.COMMON_HMAC_SECRET,
             );
@@ -241,6 +255,9 @@ export const authRouter = router({
 
                     nbf: Math.ceil(Date.now() / 1000) + 1 * 55 * 60, // not valid until 5 minutes before access_token expiry.
                     exp: Math.ceil(Date.now() / 1000) + 60 * 24 * 60 * 60, // 60 days
+
+                    is_adm: tokenClaims.is_admin,
+                    is_mod: tokenClaims.is_mod,
                 },
                 env.COMMON_HMAC_SECRET,
             );
@@ -250,7 +267,7 @@ export const authRouter = router({
 
             await ctx.services.redisConnection.setex(
                 `refresh-token:${refreshTokenDigest}:is-invalidated`,
-                expiresIn + 60, // a minute after expiry
+                Math.ceil(expiresIn + 60), // a minute after expiry
                 '1',
             );
 
