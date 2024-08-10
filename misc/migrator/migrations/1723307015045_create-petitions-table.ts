@@ -3,33 +3,35 @@ import {ColumnDefinitions, MigrationBuilder} from 'node-pg-migrate';
 export const shorthands: ColumnDefinitions | undefined = undefined;
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-    pgm.createTable('users', {
+    pgm.createTable('petitions', {
         id: {
             type: 'bigserial',
             primaryKey: true,
         },
-        name: {
-            type: 'text',
-        },
-        picture: {
-            type: 'text',
-        },
-        phone_number_hmac: {
-            type: 'text',
-            unique: true,
+        user_id: {
+            type: 'bigint',
             notNull: true,
         },
-        encrypted_phone_number: {
+        title: {
             type: 'text',
-            notNull: true,
         },
-        phone_number_encryption_key_salt: {
+        description: {
             type: 'text',
-            notNull: true,
         },
-        phone_number_encryption_iv: {
+        target: {
             type: 'text',
-            notNull: true,
+        },
+        location: {
+            type: 'text',
+        },
+        approved_at: {
+            type: 'timestamp',
+        },
+        rejected_at: {
+            type: 'timestamp',
+        },
+        rejection_reason: {
+            type: 'text',
         },
         created_at: {
             type: 'timestamp',
@@ -41,9 +43,13 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             notNull: true,
             default: pgm.func('current_timestamp'),
         },
+        _denormalized__vote_count: {
+            type: 'bigint',
+            default: 0,
+        },
     });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-    pgm.dropTable('users');
+    pgm.dropTable('petitions');
 }
