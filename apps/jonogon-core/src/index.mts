@@ -7,10 +7,17 @@ import {registerHTTPRoutes} from './api/http/index.mjs';
 import {registerWSHandlers} from './api/websocket/index.mjs';
 import {logger} from './logger.mjs';
 import {createServices} from './services.mjs';
+import cors from 'cors';
 
 const services = await createServices();
 
 const expressApp = express();
+
+expressApp.use(
+    cors({
+        origin: env.NODE_ENV === 'development' ? '*' : 'https://jonogon.org',
+    }),
+);
 
 // separate HTTP server instance to share
 // server instance between express and ws server
@@ -34,3 +41,5 @@ server.listen(env.PORT, '0.0.0.0', () => {
         port: env.PORT,
     });
 });
+
+export {TAppRouter} from './api/trpc/routers/index.mjs';

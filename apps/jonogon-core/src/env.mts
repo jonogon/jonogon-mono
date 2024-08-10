@@ -15,10 +15,7 @@ export const env = createEnv({
         REDIS_CONNECTION_URL: z.string().default('redis://redis:6379'),
 
         // For use with PostgreSQL
-        PGUSER: z.string().default('postgres'),
-        PGPASSWORD: z.string().default('postgres'),
-        PGHOST: z.string().default('postgres'),
-        PGDATABASE: z.string().default('postgres'),
+        DATABASE_URL: z.string(),
 
         // For use with R2
         CLOUDFLARE_ACCOUNT_ID: z.string().optional(),

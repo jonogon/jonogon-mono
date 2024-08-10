@@ -15,4 +15,4 @@ export const appRouter = router({
     petitions: petitionsRouter,
 });
 
-export type AppRouter = typeof appRouter;
+export type TAppRouter = typeof appRouter;

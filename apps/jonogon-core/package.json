@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "The main REST/TRPC API for jonogon-web.",
   "main": "./dist/index.mjs",
+  "type": "module",
   "scripts": {
     "start": "node .",
     "start:watch": "linkemon --inspect=0.0.0.0:14001 .",

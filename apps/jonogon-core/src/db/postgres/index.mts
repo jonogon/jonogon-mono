@@ -1,4 +1,5 @@
 import pg from 'pg';
+import {env} from '../../env.mjs';
 
 export async function createPostgresPool(options?: {
     connectionString?: string;
@@ -7,5 +8,7 @@ export async function createPostgresPool(options?: {
         ? new pg.Pool({
               connectionString: options.connectionString,
           })
-        : new pg.Pool();
+        : new pg.Pool({
+              connectionString: env.DATABASE_URL,
+          });
 }

@@ -19,9 +19,13 @@ export const authRouter = router({
             }),
         )
         .mutation(async ({input, ctx}) => {
-            const otp = Math.round(Math.random() * 9_999)
-                .toString()
-                .padStart(4, '0');
+            const otp =
+                env.NODE_ENV === 'development' &&
+                input.phoneNumber === '+8801111111111'
+                    ? '1111'
+                    : Math.round(Math.random() * 9_999)
+                          .toString()
+                          .padStart(4, '0');
 
             const numberHash = await hmac(
                 input.phoneNumber,
@@ -135,13 +139,14 @@ export const authRouter = router({
                                     iv.toString('base64'),
                                 updated_at: new Date(),
                             })
+                            .returning(['id'])
                             .executeTakeFirst();
 
-                        if (!result.insertId) {
+                        if (!result) {
                             throw new Error('error creating user');
                         }
 
-                        return Number(result.insertId);
+                        return result.id;
                     }))
                 );
             });
