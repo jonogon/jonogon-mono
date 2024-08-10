@@ -23,7 +23,7 @@ export type TTokenListener = (token: string | null) => void;
 
 export function createTokenManager({
     prefix = 'token-manager',
-    refreshOffset = 1 * 60 * 1000,
+    refreshOffset = 2 * 60 * 1000,
 }: {
     prefix?: string;
     refreshOffset?: number;
@@ -102,11 +102,13 @@ export function createTokenManager({
         }
     }
 
-    async function getToken(): Promise<string | null> {
+    async function getToken(options?: {
+        forceRefresh?: boolean;
+    }): Promise<string | null> {
         const token = await returnOf(async () => {
             const token = window.localStorage.getItem(`${prefix}:token`);
 
-            if (!token) {
+            if (!token || options?.forceRefresh) {
                 return await refreshToken();
             }
 
