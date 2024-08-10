@@ -17,6 +17,7 @@
     "@trpc/server": "10.45.2",
     "bufferutil": "4.0.8",
     "cors": "2.8.5",
+    "es-toolkit": "1.15.1",
     "express": "4.19.2",
     "hasha": "6.0.0",
     "ioredis": "5.4.1",

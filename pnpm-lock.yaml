@@ -26,6 +26,9 @@ importers:
       cors:
         specifier: 2.8.5
         version: 2.8.5
+      es-toolkit:
+        specifier: 1.15.1
+        version: 1.15.1
       express:
         specifier: 4.19.2
         version: 4.19.2
@@ -1661,6 +1664,9 @@ packages:
 
   es-module-lexer@1.5.4:
     resolution: {integrity: sha512-MVNK56NiMrOwitFB7cqDwq0CQutbw+0BvLshJSse0MUNU+y1FC3bUS/AQg7oUng+/wKrrki7JfmwtVHkVfPLlw==}
+
+  es-toolkit@1.15.1:
+    resolution: {integrity: sha512-2rPCylgxxpgZ3jQLyvbm+B9dNAMdHv4S80iabK9njEWxDbObhAPJCQUpqHv8iaOZrfprl3UlWhfxZd7kKSQtbg==}
 
   esbuild@0.18.20:
     resolution: {integrity: sha512-ceqxoedUrcayh7Y7ZX6NdbbDzGROiyVBgC4PriJThBKSVPWnnFHZAkfI1lJT8QFkOwH4qOS2SJkS4wvpGl8BpA==}
@@ -5168,6 +5174,8 @@ snapshots:
   es-errors@1.3.0: {}
 
   es-module-lexer@1.5.4: {}
+
+  es-toolkit@1.15.1: {}
 
   esbuild@0.18.20:
     optionalDependencies:

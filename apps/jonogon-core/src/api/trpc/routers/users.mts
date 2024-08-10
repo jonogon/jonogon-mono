@@ -5,6 +5,7 @@ import {TRPCError} from '@trpc/server';
 import {deriveKey} from '../../../lib/crypto/keys.mjs';
 import {env} from '../../../env.mjs';
 import {decrypt} from '../../../lib/crypto/encryption.mjs';
+import {pick} from 'es-toolkit';
 
 export const userRouter = router({
     getSelf: protectedProcedure.query(async ({ctx}) => {
@@ -28,6 +29,10 @@ export const userRouter = router({
             });
         }
 
+        // TODO: discuss if we should even return the number
+        //       we should probably opt for just returning the last 4 digits
+        //       OR we should just rely on the frontend to stor ethe number at login
+
         const salt = user.phone_number_encryption_key_salt;
         const iv = Buffer.from(user.phone_number_encryption_iv, 'base64');
 
@@ -41,10 +46,7 @@ export const userRouter = router({
 
         return {
             data: {
-                id: user.id,
-                name: user.name,
-                picture: user.picture,
-
+                ...pick(user, ['id', 'name', 'picture']),
                 phone: decryptedPhoneNumber,
             },
         };

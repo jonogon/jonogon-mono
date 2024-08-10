@@ -1,4 +1,5 @@
 import {publicProcedure, router} from '../index.mjs';
+import {protectedProcedure} from '../middleware/protected.mjs';
 import {z} from 'zod';
 import {TRPCError} from '@trpc/server';
 import {hmac} from '../../../lib/crypto/hmac.mjs';
@@ -10,6 +11,7 @@ import {encrypt} from '../../../lib/crypto/encryption.mjs';
 import {returnOf, scope} from 'scope-utilities';
 import jwt from 'jsonwebtoken';
 import {hash} from 'hasha';
+import {pick} from 'es-toolkit';
 
 export const authRouter = router({
     requestOTP: publicProcedure
@@ -102,15 +104,15 @@ export const authRouter = router({
                 });
             }
 
-            const userId = await scope(
+            const user = await scope(
                 await ctx.services.postgresQueryBuilder
                     .selectFrom('users')
-                    .selectAll()
+                    .select(['id', 'name', 'picture'])
                     .where('phone_number_hmac', '=', numberHash)
                     .executeTakeFirst(),
             ).let(async (user) => {
                 return (
-                    user?.id ??
+                    user ??
                     (await returnOf(async () => {
                         // we're kinda serious about not storing
                         // the password in plain text.
@@ -139,21 +141,21 @@ export const authRouter = router({
                                     iv.toString('base64'),
                                 updated_at: new Date(),
                             })
-                            .returning(['id'])
+                            .returning(['id', 'name', 'picture'])
                             .executeTakeFirst();
 
                         if (!result) {
                             throw new Error('error creating user');
                         }
 
-                        return result.id;
+                        return result;
                     }))
                 );
             });
 
             const accessToken = jwt.sign(
                 {
-                    sub: userId,
+                    sub: user.id,
                     exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour
                 },
                 env.COMMON_HMAC_SECRET,
@@ -161,7 +163,7 @@ export const authRouter = router({
 
             const refreshToken = jwt.sign(
                 {
-                    sub: userId,
+                    sub: user.id,
 
                     nbf: Math.ceil(Date.now() / 1000) + 1 * 55 * 60, // not valid until 5 minutes before access_token expiry.
                     exp: Math.ceil(Date.now() / 1000) + 60 * 24 * 60 * 60, // 60 days
@@ -175,9 +177,11 @@ export const authRouter = router({
 
                 refresh_token: refreshToken,
                 refresh_token_validity: 60 * 24 * 60 * 60,
+
+                user: pick(user, ['id', 'name', 'picture']), // to ensure we don't accidentally leak
             };
         }),
-    refreshToken: publicProcedure
+    refreshToken: protectedProcedure
         .input(z.object({refreshToken: z.string()}))
         .mutation(async ({input, ctx}) => {
             const tokenClaims = await returnOf(async () => {
@@ -258,10 +262,9 @@ export const authRouter = router({
                 refresh_token_validity: 60 * 24 * 60 * 60,
             };
         }),
-    invalidateRefreshToken: publicProcedure
+    invalidateRefreshToken: protectedProcedure
         .input(z.object({refreshToken: z.string()}))
         .mutation(async ({input, ctx}) => {
-            // TODO: change this to a protectedProcedure
             // TODO: check if the refresh token is in fact the logged-in user's
 
             const refreshTokenDigest = await hash(input.refreshToken, {
