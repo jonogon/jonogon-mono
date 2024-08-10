@@ -33,6 +33,9 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         rejection_reason: {
             type: 'text',
         },
+        submitted_at: {
+            type: 'timestamp',
+        },
         created_at: {
             type: 'timestamp',
             notNull: true,

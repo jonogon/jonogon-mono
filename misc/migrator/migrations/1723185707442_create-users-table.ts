@@ -14,6 +14,14 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         picture: {
             type: 'text',
         },
+        is_mod: {
+            type: 'boolean',
+            default: false,
+        },
+        is_admin: {
+            type: 'boolean',
+            default: false,
+        },
         phone_number_hmac: {
             type: 'text',
             unique: true,

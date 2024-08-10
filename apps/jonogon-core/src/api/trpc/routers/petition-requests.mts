@@ -1,7 +1,7 @@
 import {publicProcedure, router} from '../index.mjs';
 import {z} from 'zod';
 
-export const petitionsRouter = router({
+export const petitionRequestsRouter = router({
     // CRUD
     list: publicProcedure.query(() => {}),
     get: publicProcedure
