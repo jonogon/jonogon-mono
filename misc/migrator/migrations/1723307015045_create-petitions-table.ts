@@ -8,21 +8,23 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             type: 'bigserial',
             primaryKey: true,
         },
-        user_id: {
-            type: 'bigint',
-            notNull: true,
-        },
         title: {
-            type: 'text',
+            type: 'varchar(256)',
         },
         description: {
             type: 'text',
         },
         target: {
-            type: 'text',
+            type: 'varchar(256)',
         },
         location: {
-            type: 'text',
+            type: 'varchar(256)',
+        },
+        promoted_at: {
+            type: 'timestamp',
+        },
+        promoted_by: {
+            type: 'bigint',
         },
         approved_at: {
             type: 'timestamp',
@@ -33,6 +35,16 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         rejection_reason: {
             type: 'text',
         },
+        moderated_by: {
+            type: 'bigint',
+        },
+        submitted_at: {
+            type: 'timestamp',
+        },
+        created_by: {
+            type: 'bigint',
+            notNull: true,
+        },
         created_at: {
             type: 'timestamp',
             notNull: true,
@@ -42,10 +54,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             type: 'timestamp',
             notNull: true,
             default: pgm.func('current_timestamp'),
-        },
-        _denormalized__vote_count: {
-            type: 'bigint',
-            default: 0,
         },
     });
 }

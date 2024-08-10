@@ -3,20 +3,35 @@ import {ColumnDefinitions, MigrationBuilder} from 'node-pg-migrate';
 export const shorthands: ColumnDefinitions | undefined = undefined;
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-    pgm.createTable('petition_votes', {
+    pgm.createTable('petition_attachments', {
         id: {
             type: 'bigserial',
             primaryKey: true,
         },
-        petition_request_id: {
+        petition_id: {
             type: 'bigint',
             notNull: true,
         },
-        user_id: {
-            type: 'bigint',
+        is_image: {
+            type: 'boolean',
+            notNull: true,
+            default: false,
+        },
+        attachment_name: {
+            type: 'varchar(256)',
             notNull: true,
         },
-        nullified_at: {
+        thumbnail_url: {
+            type: 'varchar(512)',
+        },
+        image_url: {
+            type: 'varchar(512)',
+        },
+        attachment_url: {
+            type: 'varchar(512)',
+            notNull: true,
+        },
+        deleted_at: {
             type: 'timestamp',
         },
         created_at: {
@@ -31,25 +46,16 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         },
     });
 
-    pgm.createIndex('petition_votes', ['petition_request_id', 'user_id'], {
+    pgm.createIndex('petition_attachments', ['petition_id'], {
         unique: true,
-        name: 'petition_votes__by_user_on_petition_request',
-    });
-
-    pgm.createIndex('petition_votes', ['petition_request_id'], {
-        unique: true,
-        name: 'petition_votes__by_petition',
+        name: 'petition_attachments__by_petition',
     });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-    pgm.dropIndex('petition_votes', [], {
-        name: 'petition_votes__by_user_on_petition_request',
+    pgm.dropIndex('petition_attachments', [], {
+        name: 'petition_attachments__by_petition',
     });
 
-    pgm.dropIndex('petition_votes', [], {
-        name: 'petition_votes__by_petition',
-    });
-
-    pgm.dropTable('petition_votes');
+    pgm.dropTable('petition_attachments');
 }

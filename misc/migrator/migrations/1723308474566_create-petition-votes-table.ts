@@ -3,37 +3,24 @@ import {ColumnDefinitions, MigrationBuilder} from 'node-pg-migrate';
 export const shorthands: ColumnDefinitions | undefined = undefined;
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-    pgm.createTable('petition_requests', {
+    pgm.createTable('petition_votes', {
         id: {
             type: 'bigserial',
             primaryKey: true,
+        },
+        petition_id: {
+            type: 'bigint',
+            notNull: true,
         },
         user_id: {
             type: 'bigint',
             notNull: true,
         },
-        title: {
-            type: 'text',
+        vote: {
+            type: 'smallint',
+            notNull: true,
         },
-        description: {
-            type: 'text',
-        },
-        target: {
-            type: 'text',
-        },
-        location: {
-            type: 'text',
-        },
-        approved_at: {
-            type: 'timestamp',
-        },
-        rejected_at: {
-            type: 'timestamp',
-        },
-        rejection_reason: {
-            type: 'text',
-        },
-        submitted_at: {
+        nullified_at: {
             type: 'timestamp',
         },
         created_at: {
@@ -46,17 +33,27 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             notNull: true,
             default: pgm.func('current_timestamp'),
         },
-        _denormalized__upvote_count: {
-            type: 'bigint',
-            default: 0,
-        },
-        _denormalized__downvote_count: {
-            type: 'bigint',
-            default: 0,
-        },
+    });
+
+    pgm.createIndex('petition_votes', ['petition_id', 'user_id'], {
+        unique: true,
+        name: 'petition_votes__by_user_on_petition',
+    });
+
+    pgm.createIndex('petition_votes', ['petition_id'], {
+        unique: true,
+        name: 'petition_votes__by_petition',
     });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-    pgm.dropTable('petition_requests');
+    pgm.dropIndex('petition_request_votes', [], {
+        name: 'petition_votes__by_user_on_petition',
+    });
+
+    pgm.dropIndex('petition_request_votes', [], {
+        name: 'petition_votes__by_petition',
+    });
+
+    pgm.dropTable('petition_votes');
 }

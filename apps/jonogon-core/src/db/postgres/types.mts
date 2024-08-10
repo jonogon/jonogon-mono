@@ -8,54 +8,45 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface PetitionRequests {
-  _denormalized__downvote_count: Generated<Int8 | null>;
-  _denormalized__upvote_count: Generated<Int8 | null>;
-  approved_at: Timestamp | null;
+export interface PetitionAttachments {
+  attachment_name: string;
+  attachment_url: string;
   created_at: Generated<Timestamp>;
-  description: string | null;
+  deleted_at: Timestamp | null;
   id: Generated<Int8>;
-  location: string | null;
-  rejected_at: Timestamp | null;
-  rejection_reason: string | null;
-  target: string | null;
-  title: string | null;
+  image_url: string | null;
+  is_image: Generated<boolean>;
+  petition_id: Int8;
+  thumbnail_url: string | null;
   updated_at: Generated<Timestamp>;
-  user_id: Int8;
-}
-
-export interface PetitionRequestVotes {
-  created_at: Generated<Timestamp>;
-  id: Generated<Int8>;
-  nullified_at: Timestamp | null;
-  petition_request_id: Int8;
-  updated_at: Generated<Timestamp>;
-  user_id: Int8;
-  vote: number;
 }
 
 export interface Petitions {
-  _denormalized__vote_count: Generated<Int8 | null>;
   approved_at: Timestamp | null;
   created_at: Generated<Timestamp>;
+  created_by: Int8;
   description: string | null;
   id: Generated<Int8>;
   location: string | null;
+  moderated_by: Int8 | null;
+  promoted_at: Timestamp | null;
+  promoted_by: Int8 | null;
   rejected_at: Timestamp | null;
   rejection_reason: string | null;
+  submitted_at: Timestamp | null;
   target: string | null;
   title: string | null;
   updated_at: Generated<Timestamp>;
-  user_id: Int8;
 }
 
 export interface PetitionVotes {
   created_at: Generated<Timestamp>;
   id: Generated<Int8>;
   nullified_at: Timestamp | null;
-  petition_request_id: Int8;
+  petition_id: Int8;
   updated_at: Generated<Timestamp>;
   user_id: Int8;
+  vote: number;
 }
 
 export interface Pgmigrations {
@@ -68,6 +59,8 @@ export interface Users {
   created_at: Generated<Timestamp>;
   encrypted_phone_number: string;
   id: Generated<Int8>;
+  is_admin: Generated<boolean | null>;
+  is_mod: Generated<boolean | null>;
   name: string | null;
   phone_number_encryption_iv: string;
   phone_number_encryption_key_salt: string;
@@ -77,8 +70,7 @@ export interface Users {
 }
 
 export interface DB {
-  petition_request_votes: PetitionRequestVotes;
-  petition_requests: PetitionRequests;
+  petition_attachments: PetitionAttachments;
   petition_votes: PetitionVotes;
   petitions: Petitions;
   pgmigrations: Pgmigrations;

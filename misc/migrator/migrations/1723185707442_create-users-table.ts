@@ -9,10 +9,10 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             primaryKey: true,
         },
         name: {
-            type: 'text',
+            type: 'varchar(256)',
         },
         picture: {
-            type: 'text',
+            type: 'varchar(512)',
         },
         is_mod: {
             type: 'boolean',
@@ -23,20 +23,20 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             default: false,
         },
         phone_number_hmac: {
-            type: 'text',
+            type: 'varchar(64)',
             unique: true,
             notNull: true,
         },
         encrypted_phone_number: {
-            type: 'text',
+            type: 'varchar(256)',
             notNull: true,
         },
         phone_number_encryption_key_salt: {
-            type: 'text',
+            type: 'varchar(64)',
             notNull: true,
         },
         phone_number_encryption_iv: {
-            type: 'text',
+            type: 'varchar(64)',
             notNull: true,
         },
         created_at: {
