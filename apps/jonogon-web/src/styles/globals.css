@@ -66,5 +66,6 @@
 
 	body {
 		@apply bg-background text-foreground;
+		@apply container;
 	}
 }
