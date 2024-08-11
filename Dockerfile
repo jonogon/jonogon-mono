@@ -1,3 +1,3 @@
 FROM node:22.6.0-bookworm
 
-RUN corepack enable pnpm
+RUN npm install -g pnpm@9.6.0
