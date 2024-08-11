@@ -6,7 +6,8 @@ export default function Index() {
     const {get} = useTokenManager();
     const authState = useAuthState();
 
-    const {data} = trpc.users.getSelf.useQuery(undefined, {});
+    const {} = trpc.users.getSelf.useQuery(undefined, {});
+    const {data} = trpc.petitions.listPetitionRequests.useQuery({}, {});
 
     useEffect(() => {
         console.log(data);
