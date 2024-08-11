@@ -19,7 +19,7 @@ export const userRouter = router({
                 'phone_number_encryption_key_salt',
                 'phone_number_encryption_iv',
             ])
-            .where('id', '=', ctx.auth.user_id)
+            .where('id', '=', `${ctx.auth.user_id}`)
             .executeTakeFirst();
 
         if (!user) {
@@ -63,7 +63,7 @@ export const userRouter = router({
                 .set({
                     name: input.name,
                 })
-                .where('id', '=', ctx.auth.user_id)
+                .where('id', '=', `${ctx.auth.user_id}`)
                 .executeTakeFirst();
 
             if (!user) {

@@ -32,6 +32,10 @@ services:
         target: /mono
         type: bind
 
+      - source: mono-pnpm-store
+        target: /pnpm-store
+        type: volume
+
     depends_on:
       - postgres
       - redis
@@ -66,5 +70,6 @@ services:
 
 volumes:
   # named volumes; they aren't removed on `docker compose down`
+  mono-pnpm-store:
   postgres-data:
   redis-data:
