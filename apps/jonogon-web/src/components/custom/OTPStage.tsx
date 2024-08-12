@@ -33,7 +33,7 @@ export default function OTPStage({
     return (
         <Card className="flex flex-col gap-4">
             <CardHeader className="flex items-center">
-                <img src="/images/logo.png" alt="logo" className="w-24 h-24" />
+                <img src="/images/logo.svg" alt="logo" className="w-full" />
                 <CardTitle>Please enter OTP</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 items-center w-full">
