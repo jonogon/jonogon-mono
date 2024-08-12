@@ -8,11 +8,10 @@ const ssrSearch = Astro.url.search;
 ---
 
 <MainLayout>
-	<App
-		client:load
-
-		ssrPath={ssrPath}
-		ssrSearch={ssrSearch}
-		hostname={hostname}
-	/>
+    <App
+        client:load
+        ssrPath={ssrPath}
+        ssrSearch={ssrSearch}
+        hostname={hostname}
+    />
 </MainLayout>
