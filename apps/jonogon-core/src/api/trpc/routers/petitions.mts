@@ -307,6 +307,11 @@ export const petitionRouter = router({
                 })
                 .where('id', '=', `${input.id}`)
                 .executeTakeFirst();
+
+            return {
+                input,
+                message: 'submitted',
+            };
         }),
 
     removeAttachment: protectedProcedure
@@ -347,47 +352,84 @@ export const petitionRouter = router({
                 });
             }
 
-            return {input, data: deleted};
+            return {input, data: deleted, message: 'deleted'};
         }),
 
     // Skibidi
     vote: protectedProcedure
         .input(
             z.object({
-                id: z.string(),
+                petition_id: z.string(),
                 vote: z.union([z.literal('up'), z.literal('down')]),
             }),
         )
         .mutation(async ({input, ctx}) => {
-            // check if the user has already voted
-            // if they have, update the vote
-            // if they haven't, create a new vote
+            await ctx.services.postgresQueryBuilder
+                .insertInto('petition_votes')
+                .values({
+                    petition_id: input.petition_id,
+                    user_id: ctx.auth.user_id,
+                    vote: input.vote === 'up' ? 1 : -1,
+                })
+                .onConflict((conflict) =>
+                    conflict
+                        .constraint('petition_votes__by_user_on_petition')
+                        .doUpdateSet({
+                            vote: input.vote === 'up' ? 1 : -1,
+                            updated_at: new Date(),
+                        }),
+                )
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'voted',
+            };
         }),
 
     clearVote: protectedProcedure
         .input(
             z.object({
-                id: z.string(),
+                petition_id: z.string(),
             }),
         )
         .mutation(async ({input, ctx}) => {
-            // check if the user has voted
-            // if they have, remove the vote
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('petition_votes')
+                .where('petition_id', '=', input.petition_id)
+                .where('user_id', '=', `${ctx.auth.user_id}`)
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'vote-cleared',
+            };
         }),
 
     // Admin / Mod
-    approve: publicProcedure
+    approve: protectedProcedure
         .input(
             z.object({
                 id: z.number(),
             }),
         )
         .mutation(async ({input, ctx}) => {
-            // check if the user is an admin
-            // set approved at
+            await ctx.services.postgresQueryBuilder
+                .updateTable('petitions')
+                .set({
+                    approved_at: new Date(),
+                    moderated_by: ctx.auth.user_id,
+                })
+                .where('id', '=', `${input.id}`)
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'approved',
+            };
         }),
 
-    reject: publicProcedure
+    reject: protectedProcedure
         .input(
             z.object({
                 id: z.number(),
@@ -395,18 +437,41 @@ export const petitionRouter = router({
             }),
         )
         .mutation(async ({input, ctx}) => {
-            // check if the user is an admin
-            // set rejected at and rejection reason
+            await ctx.services.postgresQueryBuilder
+                .updateTable('petitions')
+                .set({
+                    rejected_at: new Date(),
+                    rejection_reason: input.reason,
+                    moderated_by: ctx.auth.user_id,
+                })
+                .where('id', '=', `${input.id}`)
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'rejected',
+            };
         }),
 
-    formalize: publicProcedure
+    formalize: protectedProcedure
         .input(
             z.object({
                 id: z.number(),
             }),
         )
         .mutation(async ({input, ctx}) => {
-            // check if the user is an admin
-            // set formalized at
+            await ctx.services.postgresQueryBuilder
+                .updateTable('petitions')
+                .set({
+                    formalized_at: new Date(),
+                    formalized_by: ctx.auth.user_id,
+                })
+                .where('id', '=', `${input.id}`)
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'submitted',
+            };
         }),
 });
