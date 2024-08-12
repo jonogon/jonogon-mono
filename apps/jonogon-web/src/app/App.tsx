@@ -3,6 +3,7 @@ import {TRPCWrapper} from './trpc/Wrapper.tsx';
 import {lazy, Suspense} from 'react';
 import AuthWrapper from './auth/Wrapper.tsx';
 import {RegisterTokenRefresher} from './auth/RegisterTokenRefresher.tsx';
+import './styles/globals.css';
 
 export type TAppProps = {
     hostname: string;
@@ -22,7 +23,7 @@ export default function App(props: TAppProps) {
                             <Route
                                 path={'/'}
                                 component={lazy(
-                                    () => import('./pages/index.jsx'),
+                                    () => import('./pages/home/index.jsx'),
                                 )}
                             />
 

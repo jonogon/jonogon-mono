@@ -2,8 +2,8 @@ import {useCallback, useState} from 'react';
 import {trpc} from '../trpc/index.mjs';
 import {useLocation} from 'wouter';
 import {useTokenManager} from '../auth/token-manager.tsx';
-import NumberStage from '@/components/custom/NumberStage.tsx';
-import OTPStage from '@/components/custom/OTPStage.tsx';
+import NumberStage from '@/app/components/custom/NumberStage.tsx';
+import OTPStage from '@/app/components/custom/OTPStage.tsx';
 
 export default function Index() {
     const [number, setNumber] = useState(
