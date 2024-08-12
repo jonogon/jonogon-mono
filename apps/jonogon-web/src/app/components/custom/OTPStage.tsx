@@ -3,13 +3,13 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card.tsx';
-import {Button} from '@/components/ui/button.tsx';
+} from '@/app/components/ui/card';
+import {Button} from '@/app/components/ui/button';
 import {
     InputOTP,
     InputOTPGroup,
     InputOTPSlot,
-} from '@/components/ui/input-otp.tsx';
+} from '@/app/components/ui/input-otp';
 
 interface OTPStageProps {
     otp: string;
@@ -48,8 +48,7 @@ export default function OTPStage({
                 <Button
                     className="w-full"
                     onClick={onVerify}
-                    disabled={!isOTPValid || isLoading}
-                >
+                    disabled={!isOTPValid || isLoading}>
                     Verify
                 </Button>
                 <span>Resend OTP</span>

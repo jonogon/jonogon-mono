@@ -3,9 +3,9 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card.tsx';
-import {Input} from '@/components/ui/input.tsx';
-import {Button} from '@/components/ui/button.tsx';
+} from '@/app/components/ui/card';
+import {Input} from '@/app/components/ui/input';
+import {Button} from '@/app/components/ui/button';
 
 interface ProfileCreateStageProps {
     name: string;
@@ -25,7 +25,7 @@ export default function ProfileCreateStage({
     return (
         <Card className="flex flex-col gap-4">
             <CardHeader className="flex items-center">
-                <img src="/images/logo.svg" alt="logo" className='w-full' />
+                <img src="/images/logo.svg" alt="logo" className="w-full" />
                 <CardTitle>Create Your Profile</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
@@ -37,8 +37,7 @@ export default function ProfileCreateStage({
                 <Button
                     onClick={onCompleteProfile}
                     disabled={!isNameValid || isLoading}
-                    className="w-full"
-                >
+                    className="w-full">
                     Complete Profile
                 </Button>
             </CardContent>

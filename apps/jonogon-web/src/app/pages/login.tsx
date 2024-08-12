@@ -1,9 +1,9 @@
+import NumberStage from '@/app/components/custom/NumberStage.tsx';
+import OTPStage from '@/app/components/custom/OTPStage.tsx';
 import {useCallback, useState} from 'react';
-import {trpc} from '../trpc/index.mjs';
 import {useLocation} from 'wouter';
 import {useTokenManager} from '../auth/token-manager.tsx';
-import NumberStage from '@/components/custom/NumberStage.tsx';
-import OTPStage from '@/components/custom/OTPStage.tsx';
+import {trpc} from '../trpc/index.jsx';
 
 export default function Index() {
     const [number, setNumber] = useState(
@@ -57,7 +57,11 @@ export default function Index() {
                 otp: otp,
             },
             {
-                onSuccess: async (data) => {
+                onSuccess: async (data: {
+                    access_token: string;
+                    access_token_validity: number;
+                    refresh_token: string;
+                }) => {
                     await setTokens({
                         accessToken: data.access_token,
                         accessTokenValidity: data.access_token_validity * 1000,
