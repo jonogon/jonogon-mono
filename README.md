@@ -38,6 +38,11 @@ docker compose run --rm -w /mono/misc/migrator mono pnpm run migration up
 docker compose up --remove-orphans
 ```
 
+### DevMode Authentication
+
+- All OTPs sent in dev mode will be visible exclusively on the console.
+- The OTP for `01111111111` is hard coded to be `1111` only in dev mode.
+
 ## Migrations
 Database migrations are done via [node-pg-migrate](https://salsita.github.io/node-pg-migrate/). The migrator tool
 can be found in `/misc/migrator`.
@@ -66,3 +71,21 @@ docker compose run --rm -w /mono/misc/migrator mono pnpm run migration down
 ```bash
 docker compose run --rm -w /mono/apps/jonogon-core mono pnpm run kysely:codegen
 ```
+
+## tRPC
+
+### Playground
+
+Once you have the server running, you can access the tRPC playground
+at [`http://localhost:12001/trpc-playground`](http://localhost:12001/trpc-playground).
+_This is only available in dev mode, and not in production._
+
+#### Authenticating Playground
+
+1. Complete the login flow at [`http://localhost:12002/login`](http://localhost:12002/login)
+2. While at [`http://localhost:12002/`](http://localhost:12002/), open the browser console.
+3. Run the following script and copy the token `JSON.parse(window.localStorage.getItem('auth:token')).token`
+4. Go to the Playground.
+5. Open "Settings" from the top right corner.
+6. Create a header called `Authorization` and paste the token as the value in the format `Bearer {TOKEN}`.
+
