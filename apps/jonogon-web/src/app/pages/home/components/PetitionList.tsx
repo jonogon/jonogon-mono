@@ -6,13 +6,18 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
-} from '../ui/pagination';
+} from '@/app/components/ui/pagination';
 import PetitionCard from './PetitionCard';
 
 const PetitionList = () => {
     return (
         <div>
-            <div className="flex flex-wrap gap-4">
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '15px',
+                }}>
                 <PetitionCard />
                 <PetitionCard />
                 <PetitionCard />
