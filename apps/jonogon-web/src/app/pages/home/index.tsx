@@ -19,12 +19,13 @@ const Home = observer(() => {
     const setStore = useStoreSetter();
     const {filters} = store;
 
-    const {data: petitions, isFetching} = trpc.listPetitionRequests.useQuery(
-        filters,
-        {
-            keepPreviousData: true,
-        },
-    );
+    const {data: petitions, isFetching} =
+        trpc.petitions.listPetitionRequests.useQuery(
+            {},
+            {
+                keepPreviousData: true,
+            },
+        );
 
     console.log({petitions, isFetching});
 
