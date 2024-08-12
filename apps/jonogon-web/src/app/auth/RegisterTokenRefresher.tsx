@@ -1,4 +1,4 @@
-import {trpc} from '../trpc/index.mjs';
+import {trpc} from '../trpc/index.jsx';
 import {useTokenManager} from './token-manager.tsx';
 import {useEffect} from 'react';
 

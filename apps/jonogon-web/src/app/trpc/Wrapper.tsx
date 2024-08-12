@@ -7,7 +7,7 @@ import {
     splitLink,
     wsLink,
 } from '@trpc/client';
-import {trpc} from './index.mjs';
+import {trpc} from './index.jsx';
 import {useTokenManager} from '../auth/token-manager.tsx';
 import {scope} from 'scope-utilities';
 

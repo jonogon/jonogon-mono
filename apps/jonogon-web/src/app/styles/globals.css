@@ -66,5 +66,10 @@
 
     body {
         @apply bg-background text-foreground;
+        overflow: hidden;
     }
+}
+.container {
+    @apply mx-auto px-3;
+    max-width: 1200px;
 }
