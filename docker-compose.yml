@@ -33,7 +33,7 @@ services:
         type: bind
 
       - source: mono-pnpm-store
-        target: /pnpm-store
+        target: /mono/.pnpm-store
         type: volume
 
     depends_on:

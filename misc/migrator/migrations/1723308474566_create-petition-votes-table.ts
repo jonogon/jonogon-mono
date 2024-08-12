@@ -48,13 +48,22 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     });
 
     pgm.createIndex('petition_votes', ['petition_id'], {
-        unique: true,
         name: 'petition_votes__by_petition',
+        ifNotExists: true,
+    });
+
+    pgm.createIndex('petition_votes', ['petition_id', 'vote'], {
+        name: 'petition_votes__by_vote_type',
         ifNotExists: true,
     });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
+    pgm.dropIndex('petition_votes', [], {
+        name: 'petition_votes__by_vote_type',
+        ifExists: true,
+    });
+
     pgm.dropIndex('petition_request_votes', [], {
         name: 'petition_votes__by_user_on_petition',
         ifExists: true,
