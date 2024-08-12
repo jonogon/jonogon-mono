@@ -224,10 +224,90 @@ export const petitionRouter = router({
                 },
             };
         }),
-    create: protectedProcedure.mutation(async ({input, ctx}) => {}),
-    update: protectedProcedure.mutation(async ({input, ctx}) => {}),
+    create: protectedProcedure.mutation(async ({input, ctx}) => {
+        const existingDraft = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select(['petitions.id'])
+            .where('created_by', '=', `${ctx.auth.user_id}`)
+            .where('submitted_at', 'is', null)
+            .executeTakeFirst();
 
-    submit: protectedProcedure.mutation(async ({input, ctx}) => {}),
+        if (existingDraft) {
+            return {
+                data: existingDraft,
+            };
+        }
+
+        const created = await ctx.services.postgresQueryBuilder
+            .insertInto('petitions')
+            .values({
+                created_by: ctx.auth.user_id,
+            })
+            .returning(['petitions.id'])
+            .executeTakeFirst();
+
+        if (!created) {
+            throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'failed-to-create-petition',
+            });
+        }
+
+        return {
+            data: created,
+        };
+    }),
+    update: protectedProcedure
+        .input(
+            z.object({
+                id: z.number(),
+                data: z
+                    .object({
+                        title: z.string(),
+                        location: z.string(),
+                        target: z.string(),
+                        description: z.string(),
+                    })
+                    .partial(),
+            }),
+        )
+        .mutation(async ({input, ctx}) => {
+            // TODO: check if the user is an admin, or if the petition is the user's own
+
+            await ctx.services.postgresQueryBuilder
+                .updateTable('petitions')
+                .set(
+                    pick(input.data, [
+                        'title',
+                        'location',
+                        'target',
+                        'description',
+                    ]),
+                )
+                .where('id', '=', `${input.id}`)
+                .executeTakeFirst();
+
+            return {
+                input,
+                message: 'updated',
+            };
+        }),
+
+    submit: protectedProcedure
+        .input(
+            z.object({
+                id: z.number(),
+            }),
+        )
+        .mutation(async ({input, ctx}) => {
+            await ctx.services.postgresQueryBuilder
+                .updateTable('petitions')
+                .set({
+                    submitted_at: new Date(),
+                })
+                .where('id', '=', `${input.id}`)
+                .executeTakeFirst();
+        }),
 
     removeAttachment: protectedProcedure
         .input(
@@ -236,7 +316,10 @@ export const petitionRouter = router({
                 image_id: z.number(),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // remove the attachment that is tagged
+            // as long as the petition is the user's own or user is admin
+        }),
 
     remove: protectedProcedure
         .input(
@@ -275,7 +358,11 @@ export const petitionRouter = router({
                 vote: z.union([z.literal('up'), z.literal('down')]),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // check if the user has already voted
+            // if they have, update the vote
+            // if they haven't, create a new vote
+        }),
 
     clearVote: protectedProcedure
         .input(
@@ -283,16 +370,22 @@ export const petitionRouter = router({
                 id: z.string(),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // check if the user has voted
+            // if they have, remove the vote
+        }),
 
-    // Admin
+    // Admin / Mod
     approve: publicProcedure
         .input(
             z.object({
                 id: z.number(),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // check if the user is an admin
+            // set approved at
+        }),
 
     reject: publicProcedure
         .input(
@@ -301,7 +394,10 @@ export const petitionRouter = router({
                 reason: z.string(),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // check if the user is an admin
+            // set rejected at and rejection reason
+        }),
 
     formalize: publicProcedure
         .input(
@@ -309,5 +405,8 @@ export const petitionRouter = router({
                 id: z.number(),
             }),
         )
-        .mutation(async ({input, ctx}) => {}),
+        .mutation(async ({input, ctx}) => {
+            // check if the user is an admin
+            // set formalized at
+        }),
 });

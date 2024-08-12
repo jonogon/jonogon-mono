@@ -48,6 +48,7 @@ export const userRouter = router({
             data: {
                 ...pick(user, ['id', 'name', 'picture']),
                 phone: decryptedPhoneNumber,
+                is_completed: user.name,
             },
         };
     }),
