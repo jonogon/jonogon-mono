@@ -25,7 +25,10 @@ export async function httpContextCreatorFactory(services: TServices) {
                 return;
             }
 
-            const decoded = jwt.verify(bearerToken, env.COMMON_HMAC_SECRET);
+            const decoded = jwt.verify(
+                bearerToken,
+                env.COMMON_HMAC_SECRET,
+            ) as jwt.JwtPayload;
 
             if (!decoded) {
                 return;
@@ -41,6 +44,9 @@ export async function httpContextCreatorFactory(services: TServices) {
             return {
                 auth: {
                     user_id: Number(decoded.sub),
+
+                    is_user_admin: !!decoded.is_adm,
+                    is_user_moderator: !!decoded.is_mod,
                 },
             };
         });
