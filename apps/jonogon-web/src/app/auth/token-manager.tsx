@@ -29,7 +29,7 @@ export function createTokenManager({
     prefix?: string;
     refreshOffset?: number;
 }) {
-    const refreshLock = new AwaitLock();
+    let refreshLock: null | AwaitLock = null;
 
     const listeners = new Set<TTokenListener>();
     let refreshFunc: TRefreshFunc | null = null;
@@ -73,6 +73,10 @@ export function createTokenManager({
     }
 
     async function refreshToken() {
+        if (!refreshLock) {
+            refreshLock = new AwaitLock();
+        }
+
         await refreshLock.acquireAsync();
 
         try {
