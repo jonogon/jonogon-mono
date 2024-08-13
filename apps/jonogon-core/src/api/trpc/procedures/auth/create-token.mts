@@ -11,8 +11,9 @@ import {encrypt} from '../../../../lib/crypto/encryption.mjs';
 import jwt from 'jsonwebtoken';
 import {pick} from 'es-toolkit';
 import {getNumberOfAttempts} from './common.mjs';
+import {MAX_OTP_REQUESTS_PER_HOUR} from './request-otp.mjs';
 
-const MAX_LOGIN_ATTEMPTS = 3;
+export const MAX_LOGIN_ATTEMPTS_PER_HOUR = MAX_OTP_REQUESTS_PER_HOUR * 4;
 
 export const createTokenProcedure = publicProcedure
     .input(
@@ -33,10 +34,10 @@ export const createTokenProcedure = publicProcedure
             3600,
         );
 
-        if (numberOfAttempts > MAX_LOGIN_ATTEMPTS) {
+        if (numberOfAttempts > MAX_LOGIN_ATTEMPTS_PER_HOUR) {
             throw new TRPCError({
                 code: 'TOO_MANY_REQUESTS',
-                message: `You can only attempt to log in ${MAX_LOGIN_ATTEMPTS} times in one hour`,
+                message: `You can only attempt to log in ${MAX_LOGIN_ATTEMPTS_PER_HOUR} times in one hour`,
             });
         }
 

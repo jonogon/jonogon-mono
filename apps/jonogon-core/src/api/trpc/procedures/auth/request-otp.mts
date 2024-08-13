@@ -5,6 +5,8 @@ import {hmac} from '../../../../lib/crypto/hmac.mjs';
 import {TRPCError} from '@trpc/server';
 import {getNumberOfAttempts} from './common.mjs';
 
+export const MAX_OTP_REQUESTS_PER_HOUR = 4;
+
 export const requestOTPProcedure = publicProcedure
     .input(
         z.object({
@@ -31,7 +33,7 @@ export const requestOTPProcedure = publicProcedure
             3600,
         );
 
-        if (numberOfAttempts > 5) {
+        if (numberOfAttempts > MAX_OTP_REQUESTS_PER_HOUR) {
             throw new TRPCError({
                 code: 'TOO_MANY_REQUESTS',
                 message: 'You can only request 5 OTPs for a number in one hour',
