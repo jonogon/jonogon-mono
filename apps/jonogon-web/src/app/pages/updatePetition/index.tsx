@@ -55,7 +55,7 @@ const UpdatePetition = () => {
     };
 
     return (
-        <div className="h-[calc(100dvh-65px)] overflow-y-auto">
+        <div>
             {prdLoading ? (
                 <>loading</>
             ) : (

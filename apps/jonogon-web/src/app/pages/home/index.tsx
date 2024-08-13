@@ -26,68 +26,63 @@ const Home = observer(() => {
     // }, 300);
 
     return (
-        <div className="h-[calc(100dvh-65px)] overflow-y-auto">
-            <div className="container flex flex-col gap-4">
-                <h3 className="mt-5 text-4xl">
-                    Explore petitions open for voting
-                </h3>
-                <div className="border-b border-neutral-200 flex items-center justify-between my-2">
-                    <div>
-                        {['all', 'formalized'].map((status) => (
-                            <button
-                                key={status}
-                                className={cn(
-                                    'border-b-2 border-transparent px-3 pb-1 capitalize select-none',
-                                    {
-                                        'border-black':
-                                            filters.status === status,
-                                    },
-                                )}
-                                onClick={() =>
-                                    setStore(
-                                        (store) =>
-                                            (store.filters.status =
-                                                status as Tstatus),
-                                    )
-                                }>
-                                {status}
-                            </button>
-                        ))}
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <button className="flex items-center gap-2 pb-1">
-                                <span className="capitalize text-sm select-none">
-                                    {filters.sort}
-                                </span>
-                                <RxCaretSort />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            align="end"
-                            onCloseAutoFocus={(e) => e.preventDefault()}>
-                            {['latest', 'oldest', 'up votes', 'down votes'].map(
-                                (sort) => (
-                                    <DropdownMenuItem
-                                        key={sort}
-                                        className="capitalize flex items-center justify-between"
-                                        onSelect={() =>
-                                            setStore(
-                                                (store) =>
-                                                    (store.filters.sort =
-                                                        sort as Tsort),
-                                            )
-                                        }>
-                                        <span>{sort}</span>
-                                        {filters.sort === sort && <RxCheck />}
-                                    </DropdownMenuItem>
-                                ),
+        <div className="container flex flex-col gap-4">
+            <h3 className="mt-5 text-4xl">Explore petitions open for voting</h3>
+            <div className="border-b border-neutral-200 flex items-center justify-between my-2">
+                <div>
+                    {['all', 'formalized'].map((status) => (
+                        <button
+                            key={status}
+                            className={cn(
+                                'border-b-2 border-transparent px-3 pb-1 capitalize select-none',
+                                {
+                                    'border-black': filters.status === status,
+                                },
                             )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                            onClick={() =>
+                                setStore(
+                                    (store) =>
+                                        (store.filters.status =
+                                            status as Tstatus),
+                                )
+                            }>
+                            {status}
+                        </button>
+                    ))}
                 </div>
-                <PetitionList />
+                <DropdownMenu>
+                    <DropdownMenuTrigger>
+                        <button className="flex items-center gap-2 pb-1">
+                            <span className="capitalize text-sm select-none">
+                                {filters.sort}
+                            </span>
+                            <RxCaretSort />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        align="end"
+                        onCloseAutoFocus={(e) => e.preventDefault()}>
+                        {['latest', 'oldest', 'up votes', 'down votes'].map(
+                            (sort) => (
+                                <DropdownMenuItem
+                                    key={sort}
+                                    className="capitalize flex items-center justify-between"
+                                    onSelect={() =>
+                                        setStore(
+                                            (store) =>
+                                                (store.filters.sort =
+                                                    sort as Tsort),
+                                        )
+                                    }>
+                                    <span>{sort}</span>
+                                    {filters.sort === sort && <RxCheck />}
+                                </DropdownMenuItem>
+                            ),
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
+            <PetitionList />
         </div>
     );
 });
