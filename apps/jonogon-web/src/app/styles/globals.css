@@ -73,3 +73,14 @@
     @apply mx-auto px-3;
     max-width: 1200px;
 }
+.editor .ProseMirror {
+    min-height: 200px;
+    padding: 5px 10px;
+}
+.editor .ProseMirror p {
+    margin: 0;
+}
+
+.ProseMirror:focus {
+    outline: none;
+}

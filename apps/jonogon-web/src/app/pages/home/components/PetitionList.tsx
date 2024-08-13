@@ -18,14 +18,9 @@ const PetitionList = () => {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '15px',
                 }}>
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
-                <PetitionCard />
+                {Array.from({length: 10}).map((_, index) => (
+                    <PetitionCard />
+                ))}
             </div>
             <Pagination>
                 <PaginationContent>
