@@ -6,11 +6,10 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import {cn} from '@/app/lib/utils';
 import {useStore, useStoreSetter} from '@/app/state/context';
-import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import {observer} from 'mobx-react-lite';
+import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import PetitionList from './components/PetitionList';
-import {trpc} from '@/app/trpc';
-import {useEffect} from 'react';
+import {useDebouncedCallback} from 'use-debounce';
 
 type Tstatus = 'all' | 'formalized';
 type Tsort = 'latest' | 'oldest' | 'up votes' | 'down votes';
@@ -19,6 +18,12 @@ const Home = observer(() => {
     const store = useStore();
     const setStore = useStoreSetter();
     const {filters} = store;
+
+    // const handleOnSearchChange = useDebouncedCallback((e: string) => {
+    //     if (onSearchChange) {
+    //         onSearchChange(e);
+    //     }
+    // }, 300);
 
     return (
         <div className="h-[calc(100dvh-65px)] overflow-y-auto">

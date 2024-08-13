@@ -8,6 +8,7 @@ import Preloader from './components/custom/Preloader.tsx';
 import {StoreProvider} from './state/context.tsx';
 import {makeState} from './state/state.mjs';
 import Navigation from './components/custom/Navigation.tsx';
+import {Toaster} from './components/ui/toaster.tsx';
 
 export type TAppProps = {
     hostname: string;
@@ -40,6 +41,7 @@ export default function App(props: TAppProps) {
                         ) : (
                             <>
                                 <Navigation />
+                                <Toaster />
                                 <Router
                                     ssrPath={props.ssrPath}
                                     ssrSearch={props.ssrSearch}>
