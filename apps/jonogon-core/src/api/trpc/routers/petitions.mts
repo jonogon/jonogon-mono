@@ -14,10 +14,13 @@ import {
     updatePetition,
 } from '../procedures/petitions/crud.mjs';
 import {listPetitionRequests} from '../procedures/petitions/listing/petition-requests.mjs';
+import {listFormalizedPetitions} from '../procedures/petitions/listing/formalized-petitions.mjs';
 
 export const petitionRouter = router({
     // CRUD
     listPetitionRequests: listPetitionRequests,
+    listFormalizedPetitions: listFormalizedPetitions,
+
     get: getPetition,
     create: createPetition,
 
