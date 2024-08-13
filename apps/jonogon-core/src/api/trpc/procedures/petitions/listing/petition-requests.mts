@@ -36,8 +36,7 @@ export const listPetitionRequests = publicProcedure
                                     .count('upvotes.id')
                                     .as('petition_upvote_count'),
                             ])
-                            .where('petitions.submitted_at', 'is not', null)
-                            .where('petitions.rejected_at', 'is', null)
+                            .where('petitions.approved_at', 'is not', null)
                             .where('petitions.formalized_at', 'is', null),
                     ).let((query) => {
                         if (input.filter === 'own') {
@@ -91,12 +90,18 @@ export const listPetitionRequests = publicProcedure
             .selectFrom('result_with_downvotes')
             .innerJoin('petitions', 'petitions.id', 'result_with_downvotes.id')
             .innerJoin('users', 'users.id', 'petitions.created_by')
+            .leftJoin('petition_votes as votes', (join) =>
+                join
+                    .onRef('petitions.id', '=', 'votes.petition_id')
+                    .on('votes.user_id', '=', `${ctx.auth?.user_id ?? 0}`),
+            )
             .selectAll('petitions')
             .select([
                 'users.name as user_name',
                 'users.picture as user_picture',
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
+                'votes.vote as user_vote',
             ]);
 
         const data = await query.execute();
@@ -104,26 +109,31 @@ export const listPetitionRequests = publicProcedure
         return {
             input,
             data: data.map((petition) => ({
-                ...pick(petition, [
-                    'id',
-                    'title',
-                    'location',
-                    'target',
-                    'created_at',
-                    'submitted_at',
-                    'rejected_at',
-                    'rejection_reason',
-                    'approved_at',
-                    'formalized_at',
-                    'petition_upvote_count',
-                    'petition_downvote_count',
-                ]),
-                created_by: {
-                    id: petition.created_by,
-                    name: petition.user_name,
-                    picture: petition.user_picture,
+                data: {
+                    ...pick(petition, [
+                        'id',
+                        'title',
+                        'location',
+                        'target',
+                        'created_at',
+                        'submitted_at',
+                        'rejected_at',
+                        'rejection_reason',
+                        'approved_at',
+                        'formalized_at',
+                        'petition_upvote_count',
+                        'petition_downvote_count',
+                    ]),
+                    created_by: {
+                        id: petition.created_by,
+                        name: petition.user_name,
+                        picture: petition.user_picture,
+                    },
+                    status: deriveStatus(petition),
                 },
-                status: deriveStatus(petition),
+                extras: {
+                    user_vote: petition.user_vote,
+                },
             })),
         };
     });

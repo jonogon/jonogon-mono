@@ -2,7 +2,7 @@ import {publicProcedure} from '../../index.mjs';
 import {z} from 'zod';
 import {TRPCError} from '@trpc/server';
 import {protectedProcedure} from '../../middleware/protected.mjs';
-import {pick} from 'es-toolkit';
+import {omit, pick} from 'es-toolkit';
 import {deriveStatus} from '../../../../db/model-utils/petition.mjs';
 
 export const getPetition = publicProcedure
@@ -17,19 +17,29 @@ export const getPetition = publicProcedure
 
         const result = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
+            .leftJoin('petition_votes', (join) =>
+                join
+                    .onRef('petitions.id', '=', 'petition_votes.petition_id')
+                    .on(
+                        'petition_votes.user_id',
+                        '=',
+                        `${ctx.auth?.user_id ?? 0}`,
+                    ),
+            )
             .select([
-                'id',
-                'title',
-                'description',
-                'location',
-                'target',
-                'created_at',
-                'created_by',
-                'submitted_at',
-                'rejected_at',
-                'rejection_reason',
-                'approved_at',
-                'formalized_at',
+                'petitions.id',
+                'petitions.title',
+                'petitions.description',
+                'petitions.location',
+                'petitions.target',
+                'petitions.created_at',
+                'petitions.created_by',
+                'petitions.submitted_at',
+                'petitions.rejected_at',
+                'petitions.rejection_reason',
+                'petitions.approved_at',
+                'petitions.formalized_at',
+                'petition_votes.vote as user_vote',
             ])
             .where('id', '=', input.id)
             .executeTakeFirst();
@@ -58,10 +68,13 @@ export const getPetition = publicProcedure
 
         return {
             data: {
-                ...result,
+                ...omit(result, ['user_vote']),
                 petition_upvote_count: upvotes,
                 petition_downvote_count: downvotes,
                 status: deriveStatus(result),
+            },
+            extras: {
+                user_vote: result.user_vote,
             },
         };
     });
