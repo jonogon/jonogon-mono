@@ -10,6 +10,9 @@ import {deriveKey} from '../../../../lib/crypto/keys.mjs';
 import {encrypt} from '../../../../lib/crypto/encryption.mjs';
 import jwt from 'jsonwebtoken';
 import {pick} from 'es-toolkit';
+import {getNumberOfAttempts} from './common.mjs';
+
+const MAX_LOGIN_ATTEMPTS = 3;
 
 export const createTokenProcedure = publicProcedure
     .input(
@@ -23,6 +26,19 @@ export const createTokenProcedure = publicProcedure
             input.phoneNumber,
             env.COMMON_HMAC_SECRET,
         );
+
+        const numberOfAttempts = await getNumberOfAttempts(
+            ctx,
+            `otp:${numberHash}:attempted-auth`,
+            3600,
+        );
+
+        if (numberOfAttempts > MAX_LOGIN_ATTEMPTS) {
+            throw new TRPCError({
+                code: 'TOO_MANY_REQUESTS',
+                message: `You can only attempt to log in ${MAX_LOGIN_ATTEMPTS} times in one hour`,
+            });
+        }
 
         const storedOTPHash = await ctx.services.redisConnection.get(
             `otp:${numberHash}`,
