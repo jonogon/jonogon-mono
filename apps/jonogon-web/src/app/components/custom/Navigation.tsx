@@ -1,19 +1,19 @@
 import {cn} from '@/app/lib/utils';
+import {useStore, useStoreSetter} from '@/app/state/context';
+import {trpc} from '@/app/trpc';
 import {Avatar, AvatarFallback, AvatarImage} from '@radix-ui/react-avatar';
-import {SearchIcon} from 'lucide-react';
-import {useRef, useState} from 'react';
-import {PiSignOutLight} from 'react-icons/pi';
-import {Button} from '../ui/button';
 import {observer} from 'mobx-react-lite';
+import {useRef, useState} from 'react';
+import {FiSearch} from 'react-icons/fi';
+import {PiSignOutLight} from 'react-icons/pi';
+import {useLocation} from 'wouter';
+import {Button} from '../ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import {useLocation} from 'wouter';
-import {useStore, useStoreSetter} from '@/app/state/context';
-import {trpc} from '@/app/trpc';
 
 const Navigation = observer(() => {
     const store = useStore();
@@ -29,7 +29,7 @@ const Navigation = observer(() => {
             data: {id: petitionId},
         } = await createPetition();
         console.log([petitionId]);
-        navigate('petitions/' + petitionId);
+        navigate('petitions/' + petitionId + '/edit');
     };
 
     return (
@@ -48,7 +48,7 @@ const Navigation = observer(() => {
                                 setOpenSearch(true);
                                 inputRef.current?.focus();
                             }}>
-                            <SearchIcon size={18} />
+                            <FiSearch size={18} />
                         </Button>
                         <input
                             ref={inputRef}

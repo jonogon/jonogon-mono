@@ -1,13 +1,14 @@
-import {Route, Router, Switch} from 'wouter';
-import {TRPCWrapper} from './trpc/Wrapper.tsx';
 import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
-import AuthWrapper from './auth/Wrapper.tsx';
+import {Route, Router, Switch} from 'wouter';
 import {RegisterTokenRefresher} from './auth/RegisterTokenRefresher.tsx';
-import './styles/globals.css';
+import AuthWrapper from './auth/Wrapper.tsx';
 import Preloader from './components/custom/Preloader.tsx';
+import {Toaster} from './components/ui/toaster.tsx';
 import {StoreProvider} from './state/context.tsx';
 import {makeState} from './state/state.mjs';
-import Navigation from './components/custom/Navigation.tsx';
+import './styles/globals.css';
+import {TRPCWrapper} from './trpc/Wrapper.tsx';
+import Layout from './Layout.tsx';
 
 export type TAppProps = {
     hostname: string;
@@ -38,8 +39,8 @@ export default function App(props: TAppProps) {
                         {preloader ? (
                             <Preloader />
                         ) : (
-                            <>
-                                <Navigation />
+                            <Layout>
+                                <Toaster />
                                 <Router
                                     ssrPath={props.ssrPath}
                                     ssrSearch={props.ssrSearch}>
@@ -54,11 +55,22 @@ export default function App(props: TAppProps) {
                                             )}
                                         />
                                         <Route
-                                            path={'/create-petition'}
+                                            path={
+                                                '/petitions/:petition_id/edit'
+                                            }
                                             component={lazy(
                                                 () =>
                                                     import(
-                                                        './pages/createPetition/index.jsx'
+                                                        './pages/updatePetition/index.jsx'
+                                                    ),
+                                            )}
+                                        />
+                                        <Route
+                                            path={'/petitions/:petition_id'}
+                                            component={lazy(
+                                                () =>
+                                                    import(
+                                                        './pages/singlePetition/index.jsx'
                                                     ),
                                             )}
                                         />
@@ -74,7 +86,7 @@ export default function App(props: TAppProps) {
                                         <Route>404: NOT FOUND</Route>
                                     </Switch>
                                 </Router>
-                            </>
+                            </Layout>
                         )}
                     </Suspense>
                 </StoreProvider>

@@ -72,9 +72,10 @@
 .container {
     @apply mx-auto px-3;
     max-width: 1200px;
+    overflow-x: hidden;
 }
 .editor .ProseMirror {
-    min-height: 200px;
+    min-height: 250px;
     padding: 5px 10px;
 }
 .editor .ProseMirror p {
