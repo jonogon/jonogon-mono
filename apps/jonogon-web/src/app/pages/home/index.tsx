@@ -10,6 +10,7 @@ import {observer} from 'mobx-react-lite';
 import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import PetitionList from './components/PetitionList';
 import {useDebouncedCallback} from 'use-debounce';
+import {trpc} from '@/app/trpc';
 
 type Tstatus = 'all' | 'formalized';
 type Tsort = 'latest' | 'oldest' | 'up votes' | 'down votes';
@@ -18,6 +19,8 @@ const Home = observer(() => {
     const store = useStore();
     const setStore = useStoreSetter();
     const {filters} = store;
+    const {data: petitions} = trpc.petitions.listPetitionRequests.useQuery({});
+    console.log({petitions});
 
     // const handleOnSearchChange = useDebouncedCallback((e: string) => {
     //     if (onSearchChange) {

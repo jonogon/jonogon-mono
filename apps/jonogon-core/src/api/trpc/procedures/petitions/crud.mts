@@ -20,6 +20,7 @@ export const getPetition = publicProcedure
             .select([
                 'id',
                 'title',
+                'description',
                 'location',
                 'target',
                 'created_at',
