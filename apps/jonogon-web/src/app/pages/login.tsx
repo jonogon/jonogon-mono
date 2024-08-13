@@ -57,16 +57,13 @@ export default function Index() {
                 otp: otp,
             },
             {
-                onSuccess: async (data: {
-                    access_token: string;
-                    access_token_validity: number;
-                    refresh_token: string;
-                }) => {
+                onSuccess: async (data) => {
                     await setTokens({
                         accessToken: data.access_token,
                         accessTokenValidity: data.access_token_validity * 1000,
                         refreshToken: data.refresh_token,
-                        refreshTokenValidity: data.access_token_validity * 1000,
+                        refreshTokenValidity:
+                            data.refresh_token_validity * 1000,
                     });
 
                     setLocation('/');

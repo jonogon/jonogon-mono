@@ -105,6 +105,16 @@ export function createTokenManager({
                 refreshToken: parsedRefreshToken.refreshToken,
             });
 
+            if (
+                'refreshToken' in nextTokenInfo &&
+                nextTokenInfo.refreshTokenValidity ===
+                    nextTokenInfo.accessTokenValidity
+            ) {
+                console.warn(
+                    'Refresh token, and access token has the same validity, are you sure you want to do this?',
+                );
+            }
+
             return await setToken(nextTokenInfo);
         } catch {
             return null;
