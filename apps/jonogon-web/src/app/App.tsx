@@ -54,11 +54,22 @@ export default function App(props: TAppProps) {
                                             )}
                                         />
                                         <Route
-                                            path={'/create-petition'}
+                                            path={
+                                                '/petitions/:petition_id/edit'
+                                            }
                                             component={lazy(
                                                 () =>
                                                     import(
-                                                        './pages/createPetition/index.jsx'
+                                                        './pages/updatePetition/index.jsx'
+                                                    ),
+                                            )}
+                                        />
+                                        <Route
+                                            path={'/petitions/:petition_id'}
+                                            component={lazy(
+                                                () =>
+                                                    import(
+                                                        './pages/singlePetition/index.jsx'
                                                     ),
                                             )}
                                         />

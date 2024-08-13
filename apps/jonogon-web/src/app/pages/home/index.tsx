@@ -20,18 +20,6 @@ const Home = observer(() => {
     const setStore = useStoreSetter();
     const {filters} = store;
 
-    // const {data: petitions, isFetching} =
-    //     trpc.petitions.listPetitionRequests.useQuery(
-    //         {},
-    //         {
-    //             keepPreviousData: true,
-    //         },
-    //     );
-
-    // console.log({petitions, isFetching});
-
-    useEffect(() => {}, []);
-
     return (
         <div className="h-[calc(100dvh-65px)] overflow-y-auto">
             <div className="container flex flex-col gap-4">

@@ -29,7 +29,7 @@ const Navigation = observer(() => {
             data: {id: petitionId},
         } = await createPetition();
         console.log([petitionId]);
-        navigate('petitions/' + petitionId);
+        navigate('petitions/' + petitionId + '/edit');
     };
 
     return (
