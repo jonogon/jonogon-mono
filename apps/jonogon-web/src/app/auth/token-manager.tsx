@@ -5,6 +5,7 @@ import {
     useState,
 } from 'react';
 import {returnOf} from 'scope-utilities';
+import AwaitLock from 'await-lock';
 
 export type TRefreshFunc = (options: {refreshToken: string}) => Promise<
     {
@@ -28,6 +29,8 @@ export function createTokenManager({
     prefix?: string;
     refreshOffset?: number;
 }) {
+    const refreshLock = new AwaitLock();
+
     const listeners = new Set<TTokenListener>();
     let refreshFunc: TRefreshFunc | null = null;
 
@@ -70,35 +73,39 @@ export function createTokenManager({
     }
 
     async function refreshToken() {
-        const refreshToken = window.localStorage.getItem(
-            `${prefix}:refresh-token`,
-        );
-
-        if (!refreshToken) {
-            return null;
-        }
-
-        const parsedRefreshToken = JSON.parse(refreshToken) as {
-            expiresAt: number;
-            refreshToken: string;
-        };
-
-        if (Date.now() > parsedRefreshToken.expiresAt) {
-            return null;
-        }
-
-        if (!refreshFunc) {
-            return null;
-        }
+        await refreshLock.acquireAsync();
 
         try {
-            return await setToken(
-                await refreshFunc({
-                    refreshToken: parsedRefreshToken.refreshToken,
-                }),
+            const refreshToken = window.localStorage.getItem(
+                `${prefix}:refresh-token`,
             );
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const parsedRefreshToken = JSON.parse(refreshToken) as {
+                expiresAt: number;
+                refreshToken: string;
+            };
+
+            if (Date.now() > parsedRefreshToken.expiresAt) {
+                return null;
+            }
+
+            if (!refreshFunc) {
+                return null;
+            }
+
+            const nextTokenInfo = await refreshFunc({
+                refreshToken: parsedRefreshToken.refreshToken,
+            });
+
+            return await setToken(nextTokenInfo);
         } catch {
             return null;
+        } finally {
+            refreshLock.release();
         }
     }
 

@@ -129,6 +129,9 @@ importers:
       astro:
         specifier: 4.13.2
         version: 4.13.2(@types/node@22.1.0)(typescript@5.5.4)
+      await-lock:
+        specifier: 2.2.2
+        version: 2.2.2
       class-variance-authority:
         specifier: 0.7.0
         version: 0.7.0
@@ -1276,6 +1279,9 @@ packages:
     hasBin: true
     peerDependencies:
       postcss: ^8.1.0
+
+  await-lock@2.2.2:
+    resolution: {integrity: sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -4831,6 +4837,8 @@ snapshots:
       picocolors: 1.0.1
       postcss: 8.4.41
       postcss-value-parser: 4.2.0
+
+  await-lock@2.2.2: {}
 
   axobject-query@4.1.0: {}
 
