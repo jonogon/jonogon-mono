@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {env} from '../../../../env.mjs';
 import {hmac} from '../../../../lib/crypto/hmac.mjs';
 import {TRPCError} from '@trpc/server';
+import {getNumberOfAttempts} from './common.mjs';
 
 export const requestOTPProcedure = publicProcedure
     .input(
@@ -24,23 +25,11 @@ export const requestOTPProcedure = publicProcedure
             env.COMMON_HMAC_SECRET,
         );
 
-        const numberOfAttempts = (await ctx.services.redisConnection.eval(
-            // this is lua code
-            `
-                local current
-                current = redis.call("incr", KEYS[1])
-                
-                -- only run the expire command on first run
-                if current == 1 then
-                    -- expire the key after 1 hour
-                    redis.call("expire", KEYS[1], 3600)
-                end
-                
-                return current
-            `,
-            1,
+        const numberOfAttempts = await getNumberOfAttempts(
+            ctx,
             `otp:${numberHash}:otp-requests`,
-        )) as number;
+            3600,
+        );
 
         if (numberOfAttempts > 5) {
             throw new TRPCError({
