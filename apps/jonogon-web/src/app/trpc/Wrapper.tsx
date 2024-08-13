@@ -42,17 +42,21 @@ export function TRPCWrapper(props: PropsWithChildren<{hostname: string}>) {
                             url: import.meta.env.DEV
                                 ? `http://${props.hostname}:12001/trpc`
                                 : 'https://core.jonogon.org/trpc',
+                            headers: async () => {
+                                console.log('tomato');
+                                return {};
+                            },
                         }),
                         false: httpBatchLink({
                             url: import.meta.env.DEV
                                 ? `http://${props.hostname}:12001/trpc`
                                 : 'https://core.jonogon.org/trpc',
                             headers: async () => {
-                                return scope(await getToken()).let((token) =>
-                                    token
+                                return scope(await getToken()).let((token) => {
+                                    return token
                                         ? {Authorization: `Bearer ${token}`}
-                                        : {},
-                                );
+                                        : {};
+                                });
                             },
                         }),
                     }),

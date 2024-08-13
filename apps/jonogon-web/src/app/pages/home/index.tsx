@@ -10,6 +10,7 @@ import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import {observer} from 'mobx-react-lite';
 import PetitionList from './components/PetitionList';
 import {trpc} from '@/app/trpc';
+import {useEffect} from 'react';
 
 type Tstatus = 'all' | 'formalized';
 type Tsort = 'latest' | 'oldest' | 'up votes' | 'down votes';
@@ -19,15 +20,17 @@ const Home = observer(() => {
     const setStore = useStoreSetter();
     const {filters} = store;
 
-    const {data: petitions, isFetching} =
-        trpc.petitions.listPetitionRequests.useQuery(
-            {},
-            {
-                keepPreviousData: true,
-            },
-        );
+    // const {data: petitions, isFetching} =
+    //     trpc.petitions.listPetitionRequests.useQuery(
+    //         {},
+    //         {
+    //             keepPreviousData: true,
+    //         },
+    //     );
 
-    console.log({petitions, isFetching});
+    // console.log({petitions, isFetching});
+
+    useEffect(() => {}, []);
 
     return (
         <div className="h-[calc(100dvh-65px)] overflow-y-auto">
