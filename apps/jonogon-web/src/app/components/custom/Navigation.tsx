@@ -13,6 +13,7 @@ import {
 } from '../ui/dropdown-menu';
 import {useLocation} from 'wouter';
 import {useStore, useStoreSetter} from '@/app/state/context';
+import {trpc} from '@/app/trpc';
 
 const Navigation = observer(() => {
     const store = useStore();
@@ -20,6 +21,16 @@ const Navigation = observer(() => {
     const [openSearch, setOpenSearch] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const [location, navigate] = useLocation();
+    const {mutateAsync: createPetition, isLoading} =
+        trpc.petitions.create.useMutation();
+
+    const handlePetitionCreate = async () => {
+        const {
+            data: {id: petitionId},
+        } = await createPetition();
+        console.log([petitionId]);
+        navigate('petitions/' + petitionId);
+    };
 
     return (
         <div className="border-b border-neutral-200">
@@ -62,7 +73,9 @@ const Navigation = observer(() => {
                     <Button
                         variant="link"
                         onClick={() =>
-                            navigate(location !== '/' ? '/' : 'create-petition')
+                            location !== '/'
+                                ? navigate('/')
+                                : handlePetitionCreate()
                         }>
                         {location !== '/'
                             ? 'Browse petitions'

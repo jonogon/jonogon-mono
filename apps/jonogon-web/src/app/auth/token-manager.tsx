@@ -173,7 +173,7 @@ export function useTokenManager(): TTokenManager {
     const context = useContext(tokenManagerContext);
 
     if (!context) {
-        return useState(() => createTokenManager({}))[0];
+        throw new Error('token manager context not found');
     }
 
     return context;

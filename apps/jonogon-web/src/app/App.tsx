@@ -30,52 +30,55 @@ export default function App(props: TAppProps) {
     }, []);
 
     return (
-        <TRPCWrapper hostname={props.hostname}>
-            <StoreProvider store={store}>
-                <Suspense fallback={<>LOADING ...</>}>
-                    {preloader ? (
-                        <Preloader />
-                    ) : (
-                        <AuthWrapper>
-                            <RegisterTokenRefresher />
-                            <Navigation />
-                            <Router
-                                ssrPath={props.ssrPath}
-                                ssrSearch={props.ssrSearch}>
-                                <Switch>
-                                    <Route
-                                        path={'/'}
-                                        component={lazy(
-                                            () =>
-                                                import(
-                                                    './pages/home/index.jsx'
-                                                ),
-                                        )}
-                                    />
-                                    <Route
-                                        path={'/create-petition'}
-                                        component={lazy(
-                                            () =>
-                                                import(
-                                                    './pages/createPetition/index.jsx'
-                                                ),
-                                        )}
-                                    />
-                                    <Route
-                                        path={'/login'}
-                                        component={lazy(
-                                            () => import('./pages/login.jsx'),
-                                        )}
-                                    />
+        <AuthWrapper>
+            <TRPCWrapper hostname={props.hostname}>
+                <RegisterTokenRefresher />
+                <StoreProvider store={store}>
+                    <Suspense fallback={<>LOADING ...</>}>
+                        {preloader ? (
+                            <Preloader />
+                        ) : (
+                            <>
+                                <Navigation />
+                                <Router
+                                    ssrPath={props.ssrPath}
+                                    ssrSearch={props.ssrSearch}>
+                                    <Switch>
+                                        <Route
+                                            path={'/'}
+                                            component={lazy(
+                                                () =>
+                                                    import(
+                                                        './pages/home/index.jsx'
+                                                    ),
+                                            )}
+                                        />
+                                        <Route
+                                            path={'/create-petition'}
+                                            component={lazy(
+                                                () =>
+                                                    import(
+                                                        './pages/createPetition/index.jsx'
+                                                    ),
+                                            )}
+                                        />
+                                        <Route
+                                            path={'/login'}
+                                            component={lazy(
+                                                () =>
+                                                    import('./pages/login.jsx'),
+                                            )}
+                                        />
 
-                                    {/* the catch-all route */}
-                                    <Route>404: NOT FOUND</Route>
-                                </Switch>
-                            </Router>
-                        </AuthWrapper>
-                    )}
-                </Suspense>
-            </StoreProvider>
-        </TRPCWrapper>
+                                        {/* the catch-all route */}
+                                        <Route>404: NOT FOUND</Route>
+                                    </Switch>
+                                </Router>
+                            </>
+                        )}
+                    </Suspense>
+                </StoreProvider>
+            </TRPCWrapper>
+        </AuthWrapper>
     );
 }
