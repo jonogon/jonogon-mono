@@ -1,0 +1,31 @@
+name: Jonogon Web to Cloudflare
+
+on:
+  push:
+    branches:
+      - production
+
+    paths:
+      - apps/jonogon-web/**/*
+      - .github/workflows/web-to-cloudflare.yml
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - run: npm install -g pnpm
+      - run: npm install -g turbo
+      - run: pnpm install
+      - run: turbo run build --filter @jonogon/web
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          branch: main
+          projectName: jonogon-web
+          directory: './apps/jonogon-web/dist'
