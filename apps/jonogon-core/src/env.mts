@@ -18,6 +18,7 @@ export const env = createEnv({
         DATABASE_URL: z.string(),
 
         // For use with R2
+        CLOUDFLARE_ENDPOINT: z.string().optional(),
         CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
         CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
         CLOUDFLARE_SECRET_ACCESS_KEY: z.string().optional(),

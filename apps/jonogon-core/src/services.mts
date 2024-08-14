@@ -5,6 +5,8 @@ import {env} from './env.mjs';
 import {createConsoleSMSService} from './services/sms/consoleSMSService.mjs';
 import {createPostgresQueryBuilder} from './db/postgres/query-builder.mjs';
 import {createBulksmsbdSMSService} from './services/sms/bulksmsbdSMSService.mjs';
+import {createLocalFileStorageService} from './services/file-storage/localFileStorageService.mjs';
+import {createR2FileStorageService} from './services/file-storage/r2FileStorageService.mjs';
 
 export async function createServices() {
     const postgresPool = await createPostgresPool();
@@ -18,13 +20,19 @@ export async function createServices() {
             ? createConsoleSMSService()
             : createBulksmsbdSMSService();
 
+    const fileStorageService =
+        env.NODE_ENV === 'development'
+            ? createLocalFileStorageService()
+            : createR2FileStorageService();
+
     const postgresQueryBuilder = createPostgresQueryBuilder(postgresPool);
 
     return {
         postgresPool,
         postgresQueryBuilder,
         redisConnection,
-        smsService,
+        smsService: smsService,
+        fileStorage: fileStorageService,
     };
 }
 

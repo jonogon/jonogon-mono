@@ -16,6 +16,11 @@ services:
 
       BULKSMSBD_API_KEY: "${BULKSMSBD_API_KEY:-}"
 
+      CLOUDFLARE_ENDPOINT: "${CLOUDFLARE_ENDPOINT:-}"
+      CLOUDFLARE_ACCOUNT_ID: "${CLOUDFLARE_ACCOUNT_ID:-}"
+      CLOUDFLARE_ACCESS_KEY_ID: "${CLOUDFLARE_ACCESS_KEY_ID:-}"
+      CLOUDFLARE_SECRET_ACCESS_KEY: "${CLOUDFLARE_SECRET_ACCESS_KEY:-}"
+
     ports:
       - target: 12001 # `jonogon-core` HTTP port
         published: 12001
@@ -36,6 +41,10 @@ services:
 
       - source: mono-pnpm-store
         target: /mono/.pnpm-store
+        type: volume
+
+      - source: core-static-storage
+        target: /jonogon-static/
         type: volume
 
     depends_on:
@@ -73,5 +82,6 @@ services:
 volumes:
   # named volumes; they aren't removed on `docker compose down`
   mono-pnpm-store:
+  core-static-storage:
   postgres-data:
   redis-data:
