@@ -66,12 +66,32 @@ export const getPetition = publicProcedure
         const downvoteResult = await countVotes(1);
         const downvotes = Number(`${downvoteResult?.votes ?? 0}`);
 
+        const attachments = await ctx.services.postgresQueryBuilder
+            .selectFrom('petition_attachments')
+            .selectAll()
+            .where('petition_id', '=', input.id)
+            .execute();
+
         return {
             data: {
                 ...omit(result, ['user_vote']),
                 petition_upvote_count: upvotes,
                 petition_downvote_count: downvotes,
                 status: deriveStatus(result),
+                attachments: await Promise.all(
+                    attachments.map(async (attachment) => ({
+                        ...pick(attachment, ['id', 'filename', 'created_at']),
+                        type: attachment.is_image ? 'image' : 'file',
+                        thumbnail: attachment.thumbnail
+                            ? await ctx.services.fileStorage.getFileURL(
+                                  attachment.thumbnail,
+                              )
+                            : null,
+                        attachment: await ctx.services.fileStorage.getFileURL(
+                            attachment.attachment,
+                        ),
+                    })),
+                ),
             },
             extras: {
                 user_vote: result.user_vote,

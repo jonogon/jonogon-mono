@@ -46,7 +46,10 @@ export const userRouter = router({
 
         return {
             data: {
-                ...pick(user, ['id', 'name', 'picture']),
+                ...pick(user, ['id', 'name']),
+                picture_url: user.picture
+                    ? await ctx.services.fileStorage.getFileURL(user.picture)
+                    : null,
                 phone: decryptedPhoneNumber,
                 is_completed: user.name,
             },
