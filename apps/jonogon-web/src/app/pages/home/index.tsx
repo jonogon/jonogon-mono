@@ -11,9 +11,19 @@ import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import PetitionList from './components/PetitionList';
 import {useDebouncedCallback} from 'use-debounce';
 import {trpc} from '@/app/trpc';
+import PetitionActionButton from '@/app/components/custom/PetitionActionButton';
 
 type Tstatus = 'all' | 'formalized';
 type Tsort = 'latest' | 'oldest' | 'up votes' | 'down votes';
+
+const FloatingButtonSection = () => (
+    <>
+        <div className='h-14' />
+        <div className='absolute bottom-0 left-0 w-full h-14 container flex flex-col'>
+            <PetitionActionButton />
+        </div>
+    </>
+);
 
 const Home = observer(() => {
     const store = useStore();
@@ -86,6 +96,7 @@ const Home = observer(() => {
                 </DropdownMenu>
             </div>
             <PetitionList />
+            <FloatingButtonSection />
         </div>
     );
 });
