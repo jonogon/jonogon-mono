@@ -19,17 +19,17 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
                 notNull: true,
                 default: false,
             },
-            attachment_name: {
+            title: {
+                type: 'varchar(256)',
+            },
+            filename: {
                 type: 'varchar(256)',
                 notNull: true,
             },
-            thumbnail_url: {
+            thumbnail: {
                 type: 'varchar(512)',
             },
-            image_url: {
-                type: 'varchar(512)',
-            },
-            attachment_url: {
+            attachment: {
                 type: 'varchar(512)',
                 notNull: true,
             },

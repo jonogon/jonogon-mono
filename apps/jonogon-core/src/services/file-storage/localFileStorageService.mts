@@ -13,7 +13,7 @@ export function createLocalFileStorageService(): TFileStorageService {
             });
         },
         async getFileURL(path) {
-            return `http://$CORE_HOSTNAME:12001/${path}`;
+            return `http://$CORE_HOSTNAME:12001/static/${path}`;
         },
     };
 }

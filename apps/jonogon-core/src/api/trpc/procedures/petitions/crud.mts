@@ -41,7 +41,7 @@ export const getPetition = publicProcedure
                 'petitions.formalized_at',
                 'petition_votes.vote as user_vote',
             ])
-            .where('id', '=', input.id)
+            .where('petitions.id', '=', input.id)
             .executeTakeFirst();
 
         if (!result) {
@@ -130,7 +130,28 @@ export const updatePetition = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
-        // TODO: check if the user is an admin, or if the petition is the user's own
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
 
         await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
@@ -158,6 +179,29 @@ export const submitPetition = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
+
         await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -180,7 +224,28 @@ export const removeAttachment = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
-        // as long as the petition is the user's own or user is admin
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.petition_id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
 
         await ctx.services.postgresQueryBuilder
             .deleteFrom('petition_attachments')
@@ -200,12 +265,34 @@ export const remove = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
+
         const deleted = await ctx.services.postgresQueryBuilder
             .with('deleted', (db) => {
                 return db
                     .deleteFrom('petitions')
                     .where('id', '=', `${input.id}`)
-                    .where('created_by', '=', `${ctx.auth.user_id}`)
                     .returningAll();
             })
             .selectFrom('deleted')

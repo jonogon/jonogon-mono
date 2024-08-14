@@ -9,15 +9,15 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface PetitionAttachments {
-  attachment_name: string;
-  attachment_url: string;
+  attachment: string;
   created_at: Generated<Timestamp>;
   deleted_at: Timestamp | null;
+  filename: string;
   id: Generated<Int8>;
-  image_url: string | null;
   is_image: Generated<boolean>;
   petition_id: Int8;
-  thumbnail_url: string | null;
+  thumbnail: string | null;
+  title: string | null;
   updated_at: Generated<Timestamp>;
 }
 
