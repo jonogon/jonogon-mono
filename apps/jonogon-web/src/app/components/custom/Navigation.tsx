@@ -78,32 +78,6 @@ const Navigation = observer(() => {
                     <h2 className="text-2xl font-medium">jonogon</h2>
                 </a>
                 <div className="flex gap items-center">
-                    <Search />
-                    <Button
-                        variant="link"
-                        onClick={() => {
-                            if (!authState) {
-                                navigate('/login');
-                                return;
-                            }
-
-                            if (location !== '/') {
-                                navigate('/');
-                                return;
-                            }
-                            else {
-                                handlePetitionCreate()
-                                return;
-                            }    
-                        }}>
-                        {
-                            !authState
-                                ? 'Login to submit petition'
-                                :location !== '/'
-                                    ? 'Browse petitions'
-                                    : 'Submit petition'
-                        }
-                    </Button>
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <Button variant="link" size="icon">
