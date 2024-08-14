@@ -1,0 +1,38 @@
+name: Jonogon Core to Railway
+
+on:
+  push:
+    branches:
+      - production
+
+    paths:
+      - apps/jonogon-core/**/*
+      - .github/workflows/core-to-railway.yml
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Node 22
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install packages
+        run: pnpm install
+
+      - name: Install Railway
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        working-directory: ./apps/jonogon-core/
+        run: railway up --service jonogon-core
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEPLOY_TOKEN }}

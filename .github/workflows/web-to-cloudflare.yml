@@ -18,14 +18,10 @@ jobs:
         with:
           node-version: 22
       - run: npm install -g pnpm
-      - run: npm install -g turbo
       - run: pnpm install
-      - run: turbo run build --filter @jonogon/web
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          branch: main
-          projectName: jonogon-web
-          directory: './apps/jonogon-web/dist'
+      - run: pnpm build
+      - run: pnpx wrangler pages deploy --project-name jonogon-web --branch main ./
+        working-directory: ./apps/jonogon-web/dist/
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
