@@ -28,8 +28,11 @@ jobs:
       - name: Install packages
         run: pnpm install
 
+      - name: Install Railway
+        run: pnpm install -g @railway/cli
+
       - name: Deploy
         working-directory: ./apps/jonogon-core/
-        run: pnpx railway up --service jonogon-core
+        run: railway up --service jonogon-core
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEPLOY_TOKEN }}
