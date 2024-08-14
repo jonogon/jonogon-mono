@@ -14,6 +14,8 @@ services:
       COMMON_HMAC_SECRET: tomato-is-a-fruititable
       COMMON_ENCRYPTION_SECRET: tomtato-is-an-actual-plant
 
+      BULKSMSBD_API_KEY: "${BULKSMSBD_API_KEY:-}"
+
     ports:
       - target: 12001 # `jonogon-core` HTTP port
         published: 12001
