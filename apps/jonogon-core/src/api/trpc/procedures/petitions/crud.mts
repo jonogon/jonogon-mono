@@ -175,13 +175,22 @@ export const submitPetition = protectedProcedure
 export const removeAttachment = protectedProcedure
     .input(
         z.object({
-            id: z.number(),
-            image_id: z.number(),
+            petition_id: z.number(),
+            attachment_id: z.number(),
         }),
     )
     .mutation(async ({input, ctx}) => {
-        // remove the attachment that is tagged
         // as long as the petition is the user's own or user is admin
+
+        await ctx.services.postgresQueryBuilder
+            .deleteFrom('petition_attachments')
+            .where('petition_id', '=', `${input.petition_id}`)
+            .where('id', '=', `${input.attachment_id}`)
+            .executeTakeFirst();
+
+        return {
+            message: 'removed',
+        };
     });
 
 export const remove = protectedProcedure
