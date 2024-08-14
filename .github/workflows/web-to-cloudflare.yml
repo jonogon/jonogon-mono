@@ -18,9 +18,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install -g pnpm
-      - run: npm install -g turbo
       - run: pnpm install
-      - run: turbo run build --filter @jonogon/web
+      - run: pnpm build
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
