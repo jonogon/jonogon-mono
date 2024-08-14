@@ -29,7 +29,7 @@ jobs:
         run: pnpm install
 
       - name: Install Railway
-        run: pnpm install -g @railway/cli
+        run: npm install -g @railway/cli
 
       - name: Deploy
         working-directory: ./apps/jonogon-core/
