@@ -2,3 +2,4 @@
 .env
 .turbo
 /.pnpm-store
+.DS_Store
