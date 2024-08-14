@@ -21,7 +21,7 @@ jobs:
       - run: pnpm install
       - run: pnpm build
       - run: pnpx wrangler pages deploy --project-name jonogon-web --branch main ./
-        working-directory: ./apps/jonogon-web
+        working-directory: ./apps/jonogon-web/dist/
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
