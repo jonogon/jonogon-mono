@@ -30,6 +30,6 @@ jobs:
 
       - name: Deploy
         working-directory: ./apps/jonogon-core/
-        run: pnpx railway up
+        run: pnpx railway up --service jonogon-core
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEPLOY_TOKEN }}
