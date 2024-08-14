@@ -20,7 +20,7 @@ jobs:
       - run: npm install -g pnpm
       - run: pnpm install
       - run: pnpm build
-      - run: pnpx wrangler pages deploy ./
+      - run: pnpx wrangler pages deploy --project-name jonogon-web --branch main ./
         working-directory: ./apps/jonogon-web
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
