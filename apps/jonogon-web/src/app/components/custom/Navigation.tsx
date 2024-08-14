@@ -1,12 +1,10 @@
 import {cn} from '@/app/lib/utils';
 import {useStore, useStoreSetter} from '@/app/state/context';
-import {trpc} from '@/app/trpc';
 import {Avatar, AvatarFallback, AvatarImage} from '@radix-ui/react-avatar';
 import {observer} from 'mobx-react-lite';
 import {useRef, useState} from 'react';
 import {FiSearch} from 'react-icons/fi';
 import {PiSignOutLight} from 'react-icons/pi';
-import {useLocation} from 'wouter';
 import {Button} from '../ui/button';
 import {
     DropdownMenu,
@@ -14,7 +12,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { useAuthState } from '@/app/auth/token-manager';
 
 const Search = observer(() => {
     const store = useStore();
@@ -57,19 +54,6 @@ const Search = observer(() => {
 })
 
 const Navigation = observer(() => {
-    const authState = useAuthState();
-    const [location, navigate] = useLocation();
-    const {mutateAsync: createPetition, isLoading} =
-        trpc.petitions.create.useMutation();
-
-    const handlePetitionCreate = async () => {
-        const {
-            data: {id: petitionId},
-        } = await createPetition();
-        console.log([petitionId]);
-        navigate('petitions/' + petitionId + '/edit');
-    };
-
     return (
         <div className="border-b border-neutral-200">
             <div className="container h-16 flex items-center justify-between">
@@ -101,7 +85,7 @@ const Navigation = observer(() => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="flex items-center justify-between"
-                                onSelect={() => console.log('s')}>
+                                onSelect={() => console.log('Sign Ou')}>
                                 <span>Sign Out</span>
                                 <PiSignOutLight />
                             </DropdownMenuItem>
