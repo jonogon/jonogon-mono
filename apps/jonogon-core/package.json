@@ -24,8 +24,10 @@
     "ioredis": "5.4.1",
     "jsonwebtoken": "9.0.2",
     "kysely": "0.27.4",
+    "nanoid": "^5.0.7",
     "pg": "8.12.0",
     "scope-utilities": "1.2.2",
+    "sharp": "^0.33.4",
     "winston": "3.14.0",
     "ws": "8.18.0",
     "zod": "3.23.8"
