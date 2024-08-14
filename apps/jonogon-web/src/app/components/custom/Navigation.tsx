@@ -33,14 +33,9 @@ const Search = observer(() => {
             <input
                 ref={inputRef}
                 type="text"
-                onBlur={() =>
-                    !store.filters.search && setOpenSearch(false)
-                }
+                onBlur={() => !store.filters.search && setOpenSearch(false)}
                 onChange={(e) =>
-                    setStore(
-                        (store) =>
-                            (store.filters.search = e.target.value),
-                    )
+                    setStore((store) => (store.filters.search = e.target.value))
                 }
                 value={store.filters.search}
                 placeholder='Search "Petitions"'
@@ -51,12 +46,12 @@ const Search = observer(() => {
             />
         </div>
     );
-})
+});
 
 const Navigation = observer(() => {
     return (
-        <div className="border-b border-neutral-200">
-            <div className="container h-16 flex items-center justify-between">
+        <div className="border-b border-neutral-200 fixed w-full top-0 left-0 z-[100] bg-background">
+            <div className="max-w-screen-sm mx-auto h-16 flex items-center justify-between px-4">
                 <a href="/" className="flex items-center gap-2">
                     <img src="/images/icon.svg" alt="logo" className="w-7" />
                     <h2 className="text-2xl font-medium">jonogon</h2>
@@ -77,10 +72,12 @@ const Navigation = observer(() => {
                         <DropdownMenuContent
                             align="end"
                             onCloseAutoFocus={(e) => e.preventDefault()}>
-                            <DropdownMenuItem onSelect={() => console.log('Edit Profile')}>
+                            <DropdownMenuItem
+                                onSelect={() => console.log('Edit Profile')}>
                                 Edit Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => console.log('My Petitions')}>
+                            <DropdownMenuItem
+                                onSelect={() => console.log('My Petitions')}>
                                 My Petitions
                             </DropdownMenuItem>
                             <DropdownMenuItem
