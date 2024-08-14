@@ -19,7 +19,7 @@ const PetitionList = () => {
                     gap: '15px',
                 }}>
                 {Array.from({length: 10}).map((_, index) => (
-                    <PetitionCard />
+                    <PetitionCard key={index + "key-for-now"} />
                 ))}
             </div>
             <Pagination>

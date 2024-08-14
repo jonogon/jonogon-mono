@@ -158,11 +158,17 @@ export function createTokenManager({
         };
     }
 
+    function removeTokens() {
+        window.localStorage.removeItem(`${prefix}:token`);
+        window.localStorage.removeItem(`${prefix}:refresh-token`);
+    }
+
     return {
         get: getToken,
         set: setToken,
         setRefreshFunc: setRefreshFunc,
         onToken: onToken,
+        signoutHack: removeTokens,
     };
 }
 
