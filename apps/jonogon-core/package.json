@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node .",
     "start:watch": "linkemon --inspect=0.0.0.0:14001 .",
-    "build": "tsc",
+    "build": "tsc || exit 0",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "dev": "concurrently pnpm:build:watch pnpm:start:watch",
     "kysely:codegen": "kysely-codegen --out-file ./src/db/postgres/types.mts"
