@@ -65,8 +65,15 @@ export function createPetitionAttachmentHandler(
                 const imageKey = `attachment_${fileName}.jpg`;
                 const thumbnailKey = `attachment_thumbnail_${fileName}.jpg`;
 
-                const imageStream = sharp(req.body).resize(1960).jpeg();
-                const thumbnailStream = sharp(req.body).resize(512).jpeg();
+                const imageStream = await sharp(req.body)
+                    .resize(1960)
+                    .jpeg()
+                    .toBuffer();
+
+                const thumbnailStream = await sharp(req.body)
+                    .resize(512)
+                    .jpeg()
+                    .toBuffer();
 
                 await Promise.all([
                     ctx.services.fileStorage.storeFile(imageKey, imageStream),

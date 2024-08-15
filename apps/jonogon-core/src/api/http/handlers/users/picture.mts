@@ -22,12 +22,13 @@ export function createProfilePictureHandler(createContext: TContextCreator) {
                 });
             }
 
-            const stream = sharp(req.body)
+            const stream = await sharp(req.body)
                 .resize(512, 512, {
                     fit: 'cover',
                     position: 'attention',
                 })
-                .jpeg();
+                .jpeg()
+                .toBuffer();
 
             const fileName = nanoid();
             const fileKey = `profile-picture_${fileName}.jpg`;
