@@ -59,11 +59,16 @@ const Navigation = observer(() => {
     });
 
     return (
-        <div className="border-b border-neutral-200 fixed w-full top-0 left-0 z-[10] bg-[#9fe892]">
-            <div className="max-w-screen-sm mx-auto h-16 flex items-center justify-between px-4">
+        <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[10] bg-background">
+            <nav className="max-w-screen-sm mx-auto h-20 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/images/icon.svg" alt="logo" className="w-7" />
-                    <h2 className="text-2xl font-black">জনগণ</h2>
+                    <img src="/images/icon.svg" alt="logo" className="w-8" />
+                    <div className={'flex flex-col -space-y-2'}>
+                        <span className="text-3xl font-black">জনগণ</span>
+                        <span className="text-neutral-600">
+                            আমাদের দাবির প্লাটফর্ম
+                        </span>
+                    </div>
                 </Link>
                 <div className="flex gap items-center">
                     {isAuthenticated ? (
@@ -111,7 +116,7 @@ const Navigation = observer(() => {
                         </>
                     )}
                 </div>
-            </div>
+            </nav>
         </div>
     );
 });

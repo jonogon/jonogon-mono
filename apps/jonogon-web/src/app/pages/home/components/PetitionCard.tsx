@@ -12,11 +12,15 @@ import {Link} from 'wouter';
 export default function PetitionCard() {
     return (
         <Link href={'/petitions/1'}>
-            <Card>
-                <CardHeader>
-                    <CardTitle className={'leading-snug'}>
-                        Dismantle The Rapid Action Battalion & Stop Extra
-                        Judicial Killings of Innocent Bangladeshi Civilians
+            <Card className={''}>
+                <CardHeader className={'p-4'}>
+                    <CardTitle
+                        className={
+                            'leading-snug font-bold font-serif text-3xl'
+                        }>
+                        জনগণের দাবি Dismantle The Rapid Action Battalion & Stop
+                        Extra Judicial Killings of Innocent Bangladeshi
+                        Civilians
                     </CardTitle>
 
                     <CardDescription>
@@ -26,9 +30,7 @@ export default function PetitionCard() {
                         </Link>
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="line-clamp-3"></CardContent>
-                <CardFooter className="flex items-center justify-between">
-                    <p className="font-medium">Petition Category</p>
+                <CardFooter className="flex items-center justify-end p-4">
                     <div className="flex gap-4">
                         <div className="flex gap-2 items-center">
                             <ThumbsUp size={16} />

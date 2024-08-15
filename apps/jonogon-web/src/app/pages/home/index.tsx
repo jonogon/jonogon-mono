@@ -82,8 +82,8 @@ const Home = observer(() => {
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
-                <h3 className="mt-12 my-5 text-4xl md:text-5xl">জনগণের দাবি</h3>
-                <div className="border-b border-neutral-200 flex items-center justify-between my-2">
+                <h1 className="mt-12 my-5 text-3xl md:text-4xl">জনগণের দাবি</h1>
+                <div className="flex items-center justify-between my-2">
                     <div>
                         <Tab type={'formalized'}>Formalized দাবিs</Tab>
                         <Tab type={'requests'}>সব দাবি</Tab>

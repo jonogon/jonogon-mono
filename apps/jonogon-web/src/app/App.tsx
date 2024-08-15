@@ -81,6 +81,13 @@ export default function App(props: TAppProps) {
                                                     import('./pages/login.jsx'),
                                             )}
                                         />
+                                        <Route
+                                            path={'/profile/edit'}
+                                            component={lazy(
+                                                () =>
+                                                    import('./pages/login.jsx'),
+                                            )}
+                                        />
 
                                         {/* the catch-all route */}
                                         <Route>404: NOT FOUND</Route>
