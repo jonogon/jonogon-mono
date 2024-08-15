@@ -3,6 +3,7 @@ import sharp from 'sharp';
 import {nanoid} from 'nanoid';
 import {logger} from '../../../../logger.mjs';
 import {Request, Response} from 'express';
+import {env} from '../../../../env.mjs';
 
 export function createProfilePictureHandler(createContext: TContextCreator) {
     return async (req: Request, res: Response) => {
@@ -39,6 +40,13 @@ export function createProfilePictureHandler(createContext: TContextCreator) {
                     picture: fileKey,
                 })
                 .executeTakeFirst();
+
+            if (env.NODE_ENV === 'development') {
+                // stalling as dev is too fast
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 5_000);
+                });
+            }
 
             return res.json({
                 message: 'profile picture has been set',

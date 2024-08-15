@@ -85,7 +85,9 @@ export default function App(props: TAppProps) {
                                             path={'/profile/edit'}
                                             component={lazy(
                                                 () =>
-                                                    import('./pages/login.jsx'),
+                                                    import(
+                                                        './pages/profile/update.jsx'
+                                                    ),
                                             )}
                                         />
 

@@ -3,7 +3,7 @@ import OTPStage from '@/app/components/custom/OTPStage.tsx';
 import {useCallback, useState} from 'react';
 import {useLocation} from 'wouter';
 import {useTokenManager} from '../auth/token-manager.tsx';
-import {trpc} from '../trpc/index.jsx';
+import {trpc} from '@/app/trpc';
 
 export default function Index() {
     const [number, setNumber] = useState(
@@ -76,9 +76,9 @@ export default function Index() {
         <div className="max-w-screen-sm mx-auto px-4 flex flex-col justify-center">
             <h1
                 className={
-                    'text-5xl py-12 md:py-20 font-bold text-stone-600 leading-0'
+                    'text-5xl py-12 md:py-20 font-regular text-stone-600 leading-0'
                 }>
-                Login To The জনগণের Platform 🇧🇩
+                জনগণের প্লাটফর্মে Login করুন 🇧🇩
             </h1>
             {stage === 'number' ? (
                 <NumberStage
