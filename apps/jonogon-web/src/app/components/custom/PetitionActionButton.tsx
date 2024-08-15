@@ -25,7 +25,7 @@ const PetitionActionButton = observer(() => {
     return (
         <Button
             size={'lg'}
-            className={'bg-red-500 font-bold'}
+            className={'bg-red-500 font-bold shadow-2xl drop-shadow-xl'}
             onClick={handlePetitionCreate}>
             {!authState ? 'Login to Submit a দাবি' : 'Submit a দাবি'}
         </Button>

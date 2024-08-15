@@ -21,7 +21,7 @@ const FloatingButtonSection = () => (
     <div className="fixed bottom-0 left-0 w-full bg-background/50">
         <div
             className={
-                'max-w-screen-sm w-full mx-auto flex flex-col py-4 px-4'
+                'max-w-screen-sm w-full mx-auto flex flex-col py-4 px-8'
             }>
             <PetitionActionButton />
         </div>

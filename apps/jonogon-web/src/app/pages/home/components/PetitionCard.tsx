@@ -8,41 +8,38 @@ import {
     CardTitle,
 } from '@/app/components/ui/card';
 import {Link} from 'wouter';
+import {Button} from '@/app/components/ui/button.tsx';
 
 export default function PetitionCard() {
     return (
-        <Link href={'/petitions/1'}>
-            <Card className={''}>
-                <CardHeader className={'p-4'}>
-                    <CardTitle
+        <Card className={''}>
+            <CardHeader className={''}>
+                <CardTitle>
+                    <div
                         className={
-                            'leading-snug font-bold font-serif text-3xl'
+                            'font-normal text-base text-neutral-500 pb-2'
                         }>
-                        জনগণের দাবি Dismantle The Rapid Action Battalion & Stop
-                        Extra Judicial Killings of Innocent Bangladeshi
-                        Civilians
-                    </CardTitle>
-
-                    <CardDescription>
-                        by{' '}
-                        <Link href={'/petitions/1'} className={'font-bold'}>
-                            Vaper Raju
-                        </Link>
-                    </CardDescription>
-                </CardHeader>
-                <CardFooter className="flex items-center justify-end p-4">
-                    <div className="flex gap-4">
-                        <div className="flex gap-2 items-center">
-                            <ThumbsUp size={16} />
-                            <span className="ml-1">100</span>
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <ThumbsDown size={16} />
-                            <span className="ml-1">20</span>
-                        </div>
+                        Naseef Fatemi, 5th August, 2024 — To,{' '}
+                        <i>গণপূর্ত মন্ত্রণালয়, বাংলাদেশ সরকার</i>
                     </div>
-                </CardFooter>
-            </Card>
-        </Link>
+                    <div>
+                        <Link
+                            href={'/petitions/1'}
+                            className={
+                                'leading-snug font-bold font-serif text-3xl align-middle'
+                            }>
+                            Dismantle The Rapid Action Battalion & Stop Extra
+                            Judicial Killings of Innocent Bangladeshi Civilians
+                        </Link>
+                    </div>
+                </CardTitle>
+            </CardHeader>
+            <CardFooter className="flex items-center justify-between">
+                <p className={'font-semibold text-red-600'}>1,203,444 votes</p>
+                <Button size={'sm'} variant={'outline'}>
+                    VOTE
+                </Button>
+            </CardFooter>
+        </Card>
     );
 }
