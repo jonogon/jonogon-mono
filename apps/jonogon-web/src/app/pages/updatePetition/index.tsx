@@ -92,6 +92,7 @@ const UpdatePetition = () => {
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="title">Title</Label>
                     <Input
+                        className='bg-card text-card-foreground'
                         id="title"
                         value={petitionData.title}
                         onChange={(e) =>
@@ -103,6 +104,7 @@ const UpdatePetition = () => {
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="target">Target Ministry</Label>
                     <Input
+                        className='bg-card text-card-foreground'
                         id="target"
                         value={petitionData.target}
                         onChange={(e) =>
@@ -111,33 +113,36 @@ const UpdatePetition = () => {
                         placeholder="Ex- Ministry of Education"
                     />
                 </div>
-                <FileUploader
-                    value={files}
-                    onValueChange={setFiles}
-                    dropzoneOptions={dropZoneOptions}>
-                    <FileInput>
-                        <div className="flex items-center justify-center h-16 w-full border border-neutral-400 text-neutral-600 border-dashed bg-background rounded-md">
-                            <p className="text-gray-400">Upload Image</p>
-                        </div>
-                    </FileInput>
-                    <FileUploaderContent className="flex items-center flex-row gap-2">
-                        {files?.map((file, i) => (
-                            <FileUploaderItem
-                                key={i}
-                                index={i}
-                                className="size-20 p-0 rounded-md overflow-hidden"
-                                aria-roledescription={`file ${i + 1} containing ${file.name}`}>
-                                <img
-                                    src={URL.createObjectURL(file)}
-                                    alt={file.name}
-                                    height={80}
-                                    width={80}
-                                    className="size-20 p-0"
-                                />
-                            </FileUploaderItem>
-                        ))}
-                    </FileUploaderContent>
-                </FileUploader>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="target">Image</Label>
+                    <FileUploader
+                        value={files}
+                        onValueChange={setFiles}
+                        dropzoneOptions={dropZoneOptions}>
+                        <FileInput>
+                            <div className="flex items-center justify-center h-16 w-full border border-neutral-400 text-neutral-600 border-dashed bg-card rounded-md">
+                                <p className="text-gray-400">Drop image here</p>
+                            </div>
+                        </FileInput>
+                        <FileUploaderContent className="flex items-center flex-row gap-2">
+                            {files?.map((file, i) => (
+                                <FileUploaderItem
+                                    key={i}
+                                    index={i}
+                                    className="size-20 p-0 rounded-md overflow-hidden"
+                                    aria-roledescription={`file ${i + 1} containing ${file.name}`}>
+                                    <img
+                                        src={URL.createObjectURL(file)}
+                                        alt={file.name}
+                                        height={80}
+                                        width={80}
+                                        className="size-20 p-0"
+                                    />
+                                </FileUploaderItem>
+                            ))}
+                        </FileUploaderContent>
+                    </FileUploader>
+                </div>
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="description">Details</Label>
                     <Editor
@@ -148,7 +153,9 @@ const UpdatePetition = () => {
                         placeholder="Write your post here..."
                     />
                 </div>
-                <Button onClick={handleUpdatePetition}>Save</Button>
+                <Button className='font-bold' onClick={handleUpdatePetition}>
+                    Save দাবি
+                </Button>
             </div>
         </div>
     );
