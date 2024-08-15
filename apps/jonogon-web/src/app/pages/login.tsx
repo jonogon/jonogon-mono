@@ -73,7 +73,13 @@ export default function Index() {
     };
 
     return (
-        <div className="flex flex-col items-center h-screen justify-center">
+        <div className="max-w-screen-sm mx-auto px-4 flex flex-col justify-center">
+            <h1
+                className={
+                    'text-5xl py-12 md:py-20 font-bold text-stone-600 leading-0'
+                }>
+                Login To The জনগণের Platform 🇧🇩
+            </h1>
             {stage === 'number' ? (
                 <NumberStage
                     number={number}

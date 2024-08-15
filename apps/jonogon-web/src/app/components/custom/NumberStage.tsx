@@ -23,21 +23,31 @@ export default function NumberStage({
     const isNumberValid = /^01[0-9]{9}$/g.test(number);
 
     return (
-        <Card className="flex flex-col gap-4">
-            <CardHeader className="flex items-center">
-                <img src="/images/logo.svg" alt="logo" className="w-full" />
-                <CardTitle>Sign in to post and comment</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-                <Input
-                    placeholder="Enter your phone number"
-                    value={number}
-                    onChange={onNumberChange}
-                />
-                <Button onClick={onNext} disabled={!isNumberValid || isLoading}>
-                    Next
-                </Button>
-            </CardContent>
-        </Card>
+        <div className={'flex flex-col space-y-2'}>
+            <label htmlFor={'phone'} className={'w-full'}>
+                <div className={'text-lg font-bold'}>Phone Number</div>
+                <div className={'text-base text-neutral-500'}>
+                    আপনার ফোন নাম্বারটি লিখুন
+                </div>
+            </label>
+            <Input
+                id={'phone'}
+                className={'text-2xl py-6 px-4 bg-white'}
+                placeholder="01xxxxxxxxx"
+                value={number}
+                onChange={onNumberChange}
+                autoFocus
+                type={'text'}
+                pattern="[0-9]*"
+                inputMode="numeric"
+            />
+            <Button
+                className={'w-full'}
+                size={'lg'}
+                onClick={onNext}
+                disabled={!isNumberValid || isLoading}>
+                Next
+            </Button>
+        </div>
     );
 }

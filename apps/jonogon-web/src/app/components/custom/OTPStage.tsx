@@ -31,28 +31,46 @@ export default function OTPStage({
     const isOTPValid = /^[0-9]{4}$/g.test(otp);
 
     return (
-        <Card className="flex flex-col gap-4">
-            <CardHeader className="flex items-center">
-                <img src="/images/logo.svg" alt="logo" className="w-full" />
-                <CardTitle>Please enter OTP</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 items-center w-full">
-                <InputOTP maxLength={4} value={otp} onChange={handleOTPChange}>
-                    <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                    </InputOTPGroup>
-                </InputOTP>
-                <Button
-                    className="w-full"
-                    onClick={onVerify}
-                    disabled={!isOTPValid || isLoading}>
-                    Verify
-                </Button>
-                <span>Resend OTP</span>
-            </CardContent>
-        </Card>
+        <div className={'space-y-4'}>
+            <label htmlFor={'otp'} className={'w-full'}>
+                <div className={'text-lg font-bold'}>Enter OTP</div>
+                <div className={'text-base text-neutral-500'}>
+                    আপনার নাম্বারে একটি ৪ সংখ্যাসর OTP পাঠানো হয়েছে, সেটি লিখুন
+                </div>
+            </label>
+
+            <InputOTP
+                id={'otp'}
+                autoFocus
+                maxLength={4}
+                value={otp}
+                onChange={handleOTPChange}>
+                <InputOTPGroup className={'w-full'}>
+                    <InputOTPSlot
+                        index={0}
+                        className={'w-full bg-white text-2xl h-16'}
+                    />
+                    <InputOTPSlot
+                        index={1}
+                        className={'w-full bg-white text-2xl h-16'}
+                    />
+                    <InputOTPSlot
+                        index={2}
+                        className={'w-full bg-white text-2xl h-16'}
+                    />
+                    <InputOTPSlot
+                        index={3}
+                        className={'w-full bg-white text-2xl h-16'}
+                    />
+                </InputOTPGroup>
+            </InputOTP>
+            <Button
+                className="w-full"
+                onClick={onVerify}
+                disabled={!isOTPValid || isLoading}
+                size={'lg'}>
+                Verify
+            </Button>
+        </div>
     );
 }
