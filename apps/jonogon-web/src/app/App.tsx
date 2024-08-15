@@ -26,7 +26,7 @@ export default function App(props: TAppProps) {
     useEffect(() => {
         const timer = setTimeout(() => {
             setPreloader(false);
-        }, 700);
+        }, 50);
         return () => clearTimeout(timer);
     }, []);
 
