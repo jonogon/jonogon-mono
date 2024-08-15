@@ -26,7 +26,7 @@ export default function PetitionCard() {
                         <Link
                             href={'/petitions/1'}
                             className={
-                                'leading-snug font-bold font-serif text-3xl align-middle'
+                                'leading-snug font-bold font-serif text-2xl align-middle'
                             }>
                             Dismantle The Rapid Action Battalion & Stop Extra
                             Judicial Killings of Innocent Bangladeshi Civilians

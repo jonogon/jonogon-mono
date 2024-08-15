@@ -62,7 +62,7 @@ const Navigation = observer(() => {
         <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[10] bg-background">
             <nav className="max-w-screen-sm mx-auto h-20 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/images/icon.svg" alt="logo" className="w-8" />
+                    <img src="/images/icon.svg" alt="logo" className="w-12" />
                     <div className={'flex flex-col -space-y-2'}>
                         <span className="text-3xl font-black">জনগণ</span>
                         <span className="text-neutral-600">

@@ -4,9 +4,9 @@ const Preloader = () => {
             <div className="h-48">
                 <img src="/images/icon.svg" alt="" className="h-48" />
             </div>
-            <h2 className="uppercase text-3xl mt-7 font-medium">Jonogon</h2>
-            <p className="mt-2 text-neutral-500">
-                Empowering Your Voice, One Claim at a Time
+            <h2 className="uppercase text-5xl mt-7 font-bold">জনগণ</h2>
+            <p className="mt-2 text-neutral-500 text-xl">
+                আমাদের দাবির প্লাটফর্ম
             </p>
         </div>
     );
