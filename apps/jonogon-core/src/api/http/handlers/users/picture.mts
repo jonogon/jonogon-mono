@@ -23,6 +23,7 @@ export function createProfilePictureHandler(createContext: TContextCreator) {
             }
 
             const stream = await sharp(req.body)
+                .rotate()
                 .resize(512, 512, {
                     fit: 'cover',
                     position: 'attention',

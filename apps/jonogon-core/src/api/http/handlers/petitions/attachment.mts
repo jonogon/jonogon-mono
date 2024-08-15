@@ -66,11 +66,13 @@ export function createPetitionAttachmentHandler(
                 const thumbnailKey = `attachment_thumbnail_${fileName}.jpg`;
 
                 const imageStream = await sharp(req.body)
+                    .rotate()
                     .resize(1960)
                     .jpeg()
                     .toBuffer();
 
                 const thumbnailStream = await sharp(req.body)
+                    .rotate()
                     .resize(512)
                     .jpeg()
                     .toBuffer();
