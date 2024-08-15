@@ -50,11 +50,11 @@ const Search = observer(() => {
 
 const Navigation = observer(() => {
     return (
-        <div className="border-b border-neutral-200 fixed w-full top-0 left-0 z-[100] bg-background">
+        <div className="border-b border-neutral-200 fixed w-full top-0 left-0 z-[10] bg-[#5fde85]">
             <div className="max-w-screen-sm mx-auto h-16 flex items-center justify-between px-4">
                 <a href="/" className="flex items-center gap-2">
                     <img src="/images/icon.svg" alt="logo" className="w-7" />
-                    <h2 className="text-2xl font-medium">jonogon</h2>
+                    <h2 className="text-2xl font-black">জনগণ</h2>
                 </a>
                 <div className="flex gap items-center">
                     <DropdownMenu>

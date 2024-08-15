@@ -6,40 +6,28 @@ import {useAuthState} from '@/app/auth/token-manager';
 
 const PetitionActionButton = observer(() => {
     const authState = useAuthState();
-    const [location, navigate] = useLocation();
+    const [, setLocation] = useLocation();
 
-    const {mutateAsync: createPetition} = trpc.petitions.create.useMutation();
+    const {mutate: createPetition} = trpc.petitions.create.useMutation({
+        onSuccess(response) {
+            setLocation(`/petitions/${response.data.id}/edit`);
+        },
+    });
 
     const handlePetitionCreate = async () => {
-        const {
-            data: {id: petitionId},
-        } = await createPetition();
-        console.log([petitionId]);
-        navigate('petitions/' + petitionId + '/edit');
+        if (!authState) {
+            setLocation(`/login?next=${encodeURIComponent('/petitions/new')}`);
+        } else {
+            createPetition();
+        }
     };
 
     return (
         <Button
             size={'lg'}
-            onClick={() => {
-                if (!authState) {
-                    navigate('/login');
-                    return;
-                }
-
-                if (location !== '/') {
-                    navigate('/');
-                    return;
-                } else {
-                    handlePetitionCreate();
-                    return;
-                }
-            }}>
-            {!authState
-                ? 'Login to submit petition'
-                : location !== '/'
-                  ? 'Browse petitions'
-                  : 'Submit petition'}
+            className={'bg-red-500 font-bold'}
+            onClick={handlePetitionCreate}>
+            {!authState ? 'Login to Submit a দাবি' : 'Submit a দাবি'}
         </Button>
     );
 });
