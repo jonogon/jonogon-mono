@@ -23,6 +23,8 @@ export const env = createEnv({
         CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
         CLOUDFLARE_SECRET_ACCESS_KEY: z.string().optional(),
 
+        CLOUDFLARE_R2_BUCKET: z.string().default('jonogon-static'),
+
         BULKSMSBD_API_KEY: z.string().optional(),
 
         COMMON_HMAC_SECRET: z.string(),

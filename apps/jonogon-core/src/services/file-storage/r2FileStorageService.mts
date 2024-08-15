@@ -24,7 +24,7 @@ export function createR2FileStorageService(): TFileStorageService {
         async storeFile(path, stream) {
             await r2.send(
                 new PutObjectCommand({
-                    Bucket: 'banglacuts-storage',
+                    Bucket: env.CLOUDFLARE_R2_BUCKET,
                     Key: path,
                     Body: stream,
                 }),

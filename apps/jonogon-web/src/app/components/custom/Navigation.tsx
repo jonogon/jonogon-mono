@@ -1,9 +1,6 @@
-import {cn} from '@/app/lib/utils';
-import {useStore, useStoreSetter} from '@/app/state/context';
 import {Avatar, AvatarFallback, AvatarImage} from '@radix-ui/react-avatar';
 import {observer} from 'mobx-react-lite';
-import {useEffect, useRef, useState} from 'react';
-import {FiSearch} from 'react-icons/fi';
+import {useEffect} from 'react';
 import {PiSignOutLight} from 'react-icons/pi';
 import {Button, buttonVariants} from '../ui/button';
 import {
