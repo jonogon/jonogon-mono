@@ -19,12 +19,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-    pgm.createIndex('petition_votes', ['petition_id', 'user_id'], {
-        unique: true,
-        name: 'petition_votes__by_user_on_petition',
-        ifNotExists: true,
-    });
-
     pgm.dropConstraint(
         'petition_votes',
         'petition_votes__by_user_on_petition',
@@ -32,4 +26,10 @@ export async function down(pgm: MigrationBuilder): Promise<void> {
             ifExists: true,
         },
     );
+
+    pgm.createIndex('petition_votes', ['petition_id', 'user_id'], {
+        unique: true,
+        name: 'petition_votes__by_user_on_petition',
+        ifNotExists: true,
+    });
 }
