@@ -9,19 +9,28 @@ import {
     CarouselPrevious,
 } from '@/app/components/ui/carousel';
 
+const testImages = [
+    'https://ecdn.dhakatribune.net/contents/cache/images/640x359x1/uploads/dten/2021/12/19/web-bnp-fakhrul-press-briefing-gulshan-rajib-dhar-31-12-2018-1546260639583-1546260639584.jpeg',
+];
+
 export function ImageCarousel() {
     return (
-        <div className="flex justify-center items-center w-full my-4">
-            <Carousel className="w-full ">
-                <CarouselContent>
+        <div className="flex justify-center items-center w-full w-max-screen-xs">
+            <Carousel className="w-full relative">
+                <CarouselPrevious className="absolute top-[50%] left-2 z-10 opacity-75" />
+                <CarouselContent className="z-0">
                     {Array.from({length: 5}).map((_, index) => (
                         <CarouselItem key={index}>
-                            <div className="p-1">
+                            <div>
                                 <Card>
-                                    <CardContent className="flex aspect-square items-center justify-center p-6">
-                                        <span className="text-4xl font-semibold">
+                                    <CardContent className="flex items-center justify-center p-0">
+                                        {/* <span className="text-4xl font-semibold">
                                             Image {index + 1}
-                                        </span>
+                                        </span> */}
+                                        <img
+                                            src={testImages[0]}
+                                            className="w-full h-auto"
+                                        />
                                         {/* <div className="relative">
                                         TODO: make this appear floating on top of the carousel
                                         <div>
@@ -37,6 +46,7 @@ export function ImageCarousel() {
                         </CarouselItem>
                     ))}
                 </CarouselContent>
+                <CarouselNext className="absolute top-[50%] right-2 opacity-75" />
             </Carousel>
         </div>
     );
