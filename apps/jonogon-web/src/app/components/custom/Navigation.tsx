@@ -45,22 +45,22 @@ const Navigation = observer(() => {
                     {isAuthenticated ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger>
-                                <Button variant="link" size="icon">
-                                    <Avatar className="rounded-full overflow-hidden">
-                                        <AvatarImage
-                                            className={'border-4 rounded-full'}
-                                            src={(
-                                                selfDataResponse?.data
-                                                    .picture_url ??
-                                                `https://static.jonogon.org/placeholder-images/${((id + 1) % 11) + 1}.jpg`
-                                            ).replace(
-                                                '$CORE_HOSTNAME',
-                                                window.location.hostname,
-                                            )}
-                                        />
-                                        <AvatarFallback>CN</AvatarFallback>
-                                    </Avatar>
-                                </Button>
+                                <Avatar className="rounded-full overflow-hidden">
+                                    <AvatarImage
+                                        className={
+                                            'border-4 rounded-full w-12 h-12'
+                                        }
+                                        src={(
+                                            selfDataResponse?.data
+                                                .picture_url ??
+                                            `https://static.jonogon.org/placeholder-images/${((id + 1) % 11) + 1}.jpg`
+                                        ).replace(
+                                            '$CORE_HOSTNAME',
+                                            window.location.hostname,
+                                        )}
+                                    />
+                                    <AvatarFallback>CN</AvatarFallback>
+                                </Avatar>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 align="end"
