@@ -1,4 +1,5 @@
-import * as React from 'react';
+import {trpc} from '@/app/trpc';
+import {useParams} from 'wouter';
 
 import {Card, CardContent} from '@/app/components/ui/card';
 import {
@@ -9,45 +10,51 @@ import {
     CarouselPrevious,
 } from '@/app/components/ui/carousel';
 
-const testImages = [
-    'https://ecdn.dhakatribune.net/contents/cache/images/640x359x1/uploads/dten/2021/12/19/web-bnp-fakhrul-press-briefing-gulshan-rajib-dhar-31-12-2018-1546260639583-1546260639584.jpeg',
-];
+import {CiNoWaitingSign} from 'react-icons/ci';
 
 export function ImageCarousel() {
-    return (
-        <div className="flex justify-center items-center w-full w-max-screen-xs">
-            <Carousel className="w-full relative">
-                <CarouselPrevious className="absolute top-[50%] left-2 z-10 opacity-75" />
-                <CarouselContent className="z-0">
-                    {Array.from({length: 5}).map((_, index) => (
-                        <CarouselItem key={index}>
-                            <div>
-                                <Card>
-                                    <CardContent className="flex items-center justify-center p-0">
-                                        {/* <span className="text-4xl font-semibold">
-                                            Image {index + 1}
-                                        </span> */}
-                                        <img
-                                            src={testImages[0]}
-                                            className="w-full h-auto"
-                                        />
-                                        {/* <div className="relative">
-                                        TODO: make this appear floating on top of the carousel
-                                        <div>
-                                            <CarouselPrevious className="fixed top-15" />
-                                        </div>
-                                        <div>
-                                            <CarouselNext className="fixed bottom-50" />
-                                        </div>
-                                    </div> */}
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselNext className="absolute top-[50%] right-2 opacity-75" />
-            </Carousel>
-        </div>
-    );
+    const {petition_id} = useParams();
+    const {data: petition} = trpc.petitions.get.useQuery({
+        id: petition_id!!,
+    });
+
+    if (petition?.data.attachments.length) {
+        return (
+            <div className="flex justify-center items-center w-full w-max-screen-xs">
+                <Carousel className="w-full relative">
+                    <CarouselPrevious className="absolute top-[50%] left-2 z-10 opacity-75" />
+                    <CarouselContent className="z-0">
+                        {Array.from({
+                            length: petition?.data.attachments.length ?? 0,
+                        }).map((_, index) => (
+                            <CarouselItem key={index}>
+                                <div>
+                                    <Card>
+                                        <CardContent className="flex items-center justify-center p-0">
+                                            <img
+                                                src={
+                                                    petition?.data.attachments[
+                                                        index
+                                                    ].attachment
+                                                }
+                                                className="w-full h-auto"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselNext className="absolute top-[50%] right-2 opacity-75" />
+                </Carousel>
+            </div>
+        );
+    } else {
+        return (
+            <div className="flex flex-row gap-1 items-center">
+                <CiNoWaitingSign />
+                <p>No Attachments Added</p>
+            </div>
+        );
+    }
 }
