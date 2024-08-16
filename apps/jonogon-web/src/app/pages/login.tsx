@@ -1,9 +1,10 @@
 import NumberStage from '@/app/components/custom/NumberStage.tsx';
 import OTPStage from '@/app/components/custom/OTPStage.tsx';
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useLocation} from 'wouter';
 import {useTokenManager} from '../auth/token-manager.tsx';
 import {trpc} from '@/app/trpc';
+import {toast} from '../components/ui/use-toast.ts';
 
 export default function Index() {
     const [number, setNumber] = useState(
@@ -14,8 +15,11 @@ export default function Index() {
 
     const [stage, setStage] = useState<'number' | 'otp'>('number');
 
-    const {mutate: requestOTP, isLoading: isRequestLoading} =
-        trpc.auth.requestOTP.useMutation();
+    const {
+        mutate: requestOTP,
+        isLoading: isRequestLoading,
+        error: otpRequestError,
+    } = trpc.auth.requestOTP.useMutation();
 
     const {mutate: createToken, isLoading: isTokenLoading} =
         trpc.auth.createToken.useMutation();
@@ -72,11 +76,24 @@ export default function Index() {
         );
     };
 
+    const onChangeNumPress = () => {
+        setStage('number');
+    };
+
+    useEffect(() => {
+        if (otpRequestError) {
+            toast({
+                title: 'Otp Request Error',
+                description: otpRequestError.message,
+            });
+        }
+    }, [otpRequestError]);
+
     return (
         <div className="max-w-screen-sm mx-auto px-4 flex flex-col justify-center">
             <h1
                 className={
-                    'text-5xl py-12 md:py-20 font-regular text-stone-600 leading-0'
+                    'text-3xl py-12 md:py-20 font-regular text-stone-600 leading-0'
                 }>
                 জনগণের প্লাটফর্মে Login করুন 🇧🇩
             </h1>
@@ -92,6 +109,7 @@ export default function Index() {
                     otp={otp}
                     onOTPChange={updateOTP}
                     onVerify={login}
+                    onChangeNumPress={onChangeNumPress}
                     isLoading={isTokenLoading}
                 />
             )}
