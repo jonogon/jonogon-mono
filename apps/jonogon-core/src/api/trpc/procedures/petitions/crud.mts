@@ -147,6 +147,7 @@ export const updatePetition = protectedProcedure
                     description: z.string(),
                 })
                 .partial(),
+            also_submit: z.boolean().default(false),
         }),
     )
     .mutation(async ({input, ctx}) => {
@@ -175,14 +176,28 @@ export const updatePetition = protectedProcedure
 
         await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
-            .set(
-                pick(input.data, [
+            .set({
+                ...pick(input.data, [
                     'title',
                     'location',
                     'target',
                     'description',
                 ]),
-            )
+                rejected_at: null,
+                rejection_reason: null,
+                approved_at: null,
+                moderated_by: null,
+
+                formalized_at: null,
+                formalized_by: null,
+                ...(input.also_submit
+                    ? {
+                          submitted_at: new Date(),
+                      }
+                    : {
+                          submitted_at: null,
+                      }),
+            })
             .where('id', '=', `${input.id}`)
             .executeTakeFirst();
 

@@ -8,6 +8,8 @@ import useQueryParams from 'react-use-query-params';
 import {scope} from 'scope-utilities';
 import {useMutation} from '@tanstack/react-query';
 import {useTokenManager} from '@/app/auth/token-manager.tsx';
+import {TrashIcon} from '@radix-ui/react-icons';
+import {z} from 'astro/zod';
 
 const UpdatePetition = () => {
     const {get: getToken} = useTokenManager();
@@ -62,16 +64,21 @@ const UpdatePetition = () => {
 
     const petitionData = {
         target:
-            nextPetitionData.target ?? petitionRemoteData?.data.target ?? '',
+            nextPetitionData.target ??
+            petitionRemoteData?.data.target ??
+            undefined,
         location:
             nextPetitionData.location ??
             petitionRemoteData?.data.location ??
-            '',
-        title: nextPetitionData.title ?? petitionRemoteData?.data.title ?? '',
+            undefined,
+        title:
+            nextPetitionData.title ??
+            petitionRemoteData?.data.title ??
+            undefined,
         description:
             nextPetitionData.description ??
             petitionRemoteData?.data.description ??
-            '',
+            undefined,
     };
 
     const handleUpdateData = useCallback(
@@ -87,7 +94,15 @@ const UpdatePetition = () => {
     const handleUpdatePetition = () => {
         updatePetition({
             id: Number(petition_id),
-            data: nextPetitionData,
+            data: petitionData,
+        });
+    };
+
+    const handlePetitionSubmission = () => {
+        updatePetition({
+            id: Number(petition_id),
+            data: petitionData,
+            also_submit: true,
         });
     };
 
@@ -140,6 +155,22 @@ const UpdatePetition = () => {
         });
     }, [attachmentQueue]);
 
+    const {mutate: removeAttachment} =
+        trpc.petitions.removeAttachment.useMutation({
+            onSuccess: async () => {
+                await utils.petitions.get.invalidate({id: petition_id});
+            },
+        });
+
+    const isValid = z
+        .object({
+            title: z.string().min(12),
+            target: z.string().min(6),
+            location: z.string().min(6),
+            description: z.string().optional(),
+        })
+        .safeParse(petitionData).success;
+
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
             <h1
@@ -159,7 +190,7 @@ const UpdatePetition = () => {
                     <Input
                         className="bg-card text-card-foreground text-2xl py-7"
                         id="title"
-                        value={petitionData.title}
+                        value={petitionData.title ?? ''}
                         onChange={(e) =>
                             handleUpdateData('title', e.target.value)
                         }
@@ -178,7 +209,7 @@ const UpdatePetition = () => {
                     <Input
                         className="bg-card text-card-foreground"
                         id="target"
-                        value={petitionData.target}
+                        value={petitionData.target ?? ''}
                         onChange={(e) =>
                             handleUpdateData('target', e.target.value)
                         }
@@ -197,7 +228,7 @@ const UpdatePetition = () => {
                     <Input
                         className="bg-card text-card-foreground"
                         id="target"
-                        value={petitionData.location}
+                        value={petitionData.location ?? ''}
                         onChange={(e) =>
                             handleUpdateData('location', e.target.value)
                         }
@@ -281,7 +312,7 @@ const UpdatePetition = () => {
                             .map((attachment) => (
                                 <div
                                     className={
-                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black'
+                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black relative'
                                     }>
                                     <img
                                         src={attachment.thumbnail!!.replace(
@@ -293,6 +324,22 @@ const UpdatePetition = () => {
                                             'w-full h-full object-contain object-center'
                                         }
                                     />
+                                    <button
+                                        className={
+                                            'absolute bottom-1 right-1 bg-red-500/90 text-sm hover:bg-red-600 p-2 rounded-sm'
+                                        }
+                                        onClick={() =>
+                                            removeAttachment({
+                                                petition_id: Number(
+                                                    petition_id ?? '0',
+                                                ),
+                                                attachment_id: Number(
+                                                    attachment.id,
+                                                ),
+                                            })
+                                        }>
+                                        <TrashIcon />
+                                    </button>
                                 </div>
                             ))}
                     </div>
@@ -307,17 +354,28 @@ const UpdatePetition = () => {
                     <textarea
                         className={'font-mono p-3 h-48'}
                         placeholder={'Enter Details Here...'}
-                        value={petitionData.description}
+                        value={petitionData.description ?? ''}
                         onChange={(e) =>
                             handleUpdateData('description', e.target.value)
                         }></textarea>
                 </div>
-                <Button
-                    size={'lg'}
-                    disabled={isPetitionSaving}
-                    onClick={handleUpdatePetition}>
-                    Save দাবি
-                </Button>
+                <div className={'flex flex-row space-x-2'}>
+                    <Button
+                        className={'flex-1'}
+                        size={'lg'}
+                        disabled={isPetitionSaving || !isValid}
+                        onClick={handlePetitionSubmission}>
+                        Submit দাবি
+                    </Button>
+
+                    <Button
+                        variant={isValid ? 'outline' : 'default'}
+                        size={'lg'}
+                        disabled={isPetitionSaving}
+                        onClick={handleUpdatePetition}>
+                        Save Draft
+                    </Button>
+                </div>
             </div>
         </div>
     );
