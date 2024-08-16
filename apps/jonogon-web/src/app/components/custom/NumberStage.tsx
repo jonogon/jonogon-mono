@@ -1,11 +1,7 @@
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/app/components/ui/card';
+
 import {Input} from '@/app/components/ui/input';
 import {Button} from '@/app/components/ui/button';
+import { Label } from '../ui/label';
 
 interface NumberStageProps {
     number: string;
@@ -24,12 +20,12 @@ export default function NumberStage({
 
     return (
         <div className={'flex flex-col space-y-2'}>
-            <label htmlFor={'phone'} className={'w-full'}>
+            <Label htmlFor={'phone'} className={'w-full'}>
                 <div className={'text-lg font-bold'}>Phone Number</div>
                 <div className={'text-base text-neutral-500'}>
                     আপনার ফোন নাম্বারটি লিখুন
                 </div>
-            </label>
+            </Label>
             <Input
                 id={'phone'}
                 className={'text-2xl py-6 px-4 bg-white'}

@@ -1,20 +1,16 @@
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/app/components/ui/card';
 import {Button} from '@/app/components/ui/button';
 import {
     InputOTP,
     InputOTPGroup,
     InputOTPSlot,
 } from '@/app/components/ui/input-otp';
+import { Label } from '../ui/label';
 
 interface OTPStageProps {
     otp: string;
     onOTPChange: (newValue: string) => void;
     onVerify: () => void;
+    onChangeNumPress: () => void;
     isLoading: boolean;
 }
 
@@ -23,6 +19,7 @@ export default function OTPStage({
     onOTPChange,
     onVerify,
     isLoading,
+    onChangeNumPress,
 }: OTPStageProps) {
     const handleOTPChange = (newValue: string) => {
         onOTPChange(newValue);
@@ -32,13 +29,12 @@ export default function OTPStage({
 
     return (
         <div className={'space-y-4'}>
-            <label htmlFor={'otp'} className={'w-full'}>
+            <Label htmlFor={'otp'} className={'w-full'}>
                 <div className={'text-lg font-bold'}>Enter OTP</div>
                 <div className={'text-base text-neutral-500'}>
                     আপনার নাম্বারে একটি ৪ সংখ্যাসর OTP পাঠানো হয়েছে, সেটি লিখুন
                 </div>
-            </label>
-
+            </Label>
             <InputOTP
                 id={'otp'}
                 autoFocus
@@ -71,6 +67,14 @@ export default function OTPStage({
                 size={'lg'}>
                 Verify
             </Button>
+
+            <div className="py-3 flex flex-col items-center">
+                <Button
+                    variant={'link'}
+                    onClick={onChangeNumPress}>
+                    Change Number
+                </Button>
+            </div>
         </div>
     );
 }
