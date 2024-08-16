@@ -63,7 +63,7 @@ export const getPetition = publicProcedure
         const upvoteResult = await countVotes(1);
         const upvotes = Number(`${upvoteResult?.votes ?? 0}`);
 
-        const downvoteResult = await countVotes(1);
+        const downvoteResult = await countVotes(-1);
         const downvotes = Number(`${downvoteResult?.votes ?? 0}`);
 
         const attachments = await ctx.services.postgresQueryBuilder
