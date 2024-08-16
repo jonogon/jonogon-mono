@@ -28,8 +28,9 @@ export default function PetitionCard() {
                             className={
                                 'leading-snug font-bold font-serif text-2xl align-middle'
                             }>
-                            Dismantle The Rapid Action Battalion & Stop Extra
-                            Judicial Killings of Innocent Bangladeshi Civilians
+                            This is a Dummy Petition With Something to Do With
+                            Some Political Matter Associated with Civil
+                            Engineering
                         </Link>
                     </div>
                 </CardTitle>
