@@ -9,11 +9,13 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import {useAuthState} from '@/app/auth/token-manager.tsx';
+import {useAuthState, useTokenManager} from '@/app/auth/token-manager.tsx';
 import {Link, useLocation} from 'wouter';
 import {trpc} from '@/app/trpc';
 
 const Navigation = observer(() => {
+    const {signout} = useTokenManager();
+
     const [, setLocation] = useLocation();
     const isAuthenticated = useAuthState();
 
@@ -79,7 +81,10 @@ const Navigation = observer(() => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="flex items-center justify-between"
-                                    onSelect={() => console.log('Sign Ou')}>
+                                    onSelect={() => {
+                                        signout();
+                                        setLocation('/');
+                                    }}>
                                     <span>Sign Out</span>
                                     <PiSignOutLight />
                                 </DropdownMenuItem>

@@ -161,6 +161,8 @@ export function createTokenManager({
     function removeTokens() {
         window.localStorage.removeItem(`${prefix}:token`);
         window.localStorage.removeItem(`${prefix}:refresh-token`);
+
+        listeners.forEach((listener) => listener(null));
     }
 
     return {
@@ -168,7 +170,7 @@ export function createTokenManager({
         set: setToken,
         setRefreshFunc: setRefreshFunc,
         onToken: onToken,
-        signoutHack: removeTokens,
+        signout: removeTokens,
     };
 }
 

@@ -54,6 +54,24 @@ export default function App(props: TAppProps) {
                                                     ),
                                             )}
                                         />
+
+                                        <Route
+                                            path={'/mod'}
+                                            component={lazy(
+                                                () => import('./pages/mod.jsx'),
+                                            )}
+                                        />
+
+                                        <Route
+                                            path={'/petitions/:petition_id'}
+                                            component={lazy(
+                                                () =>
+                                                    import(
+                                                        './pages/singlePetition/index.jsx'
+                                                    ),
+                                            )}
+                                        />
+
                                         <Route
                                             path={
                                                 '/petitions/:petition_id/edit'
@@ -65,15 +83,7 @@ export default function App(props: TAppProps) {
                                                     ),
                                             )}
                                         />
-                                        <Route
-                                            path={'/petitions/:petition_id'}
-                                            component={lazy(
-                                                () =>
-                                                    import(
-                                                        './pages/singlePetition/index.jsx'
-                                                    ),
-                                            )}
-                                        />
+
                                         <Route
                                             path={'/login'}
                                             component={lazy(
