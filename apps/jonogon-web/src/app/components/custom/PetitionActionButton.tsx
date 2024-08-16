@@ -10,7 +10,7 @@ const PetitionActionButton = observer(() => {
 
     const {mutate: createPetition} = trpc.petitions.create.useMutation({
         onSuccess(response) {
-            setLocation(`/petitions/${response.data.id}/edit`);
+            setLocation(`/petitions/${response.data.id}/edit?fresh=true`);
         },
     });
 
