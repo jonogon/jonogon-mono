@@ -98,7 +98,7 @@ export function createPetitionAttachmentHandler(
                     .executeTakeFirst();
 
                 return res.json({
-                    message: 'image added',
+                    message: 'image-added',
                     data: {
                         attachment_id: result?.id,
                         thumbnail_url:
@@ -127,7 +127,7 @@ export function createPetitionAttachmentHandler(
                     .executeTakeFirst();
 
                 return res.json({
-                    message: 'image added',
+                    message: 'attachment-added',
                     data: {
                         attachment_id: result?.id,
                         file_url:

@@ -1,41 +1,49 @@
 import {Button} from '@/app/components/ui/button';
-import {
-    FileInput,
-    FileUploader,
-    FileUploaderContent,
-    FileUploaderItem,
-} from '@/app/components/ui/file-upload';
 import {Input} from '@/app/components/ui/input';
 import {Label} from '@/app/components/ui/label';
-import {useToast} from '@/app/components/ui/use-toast';
 import {trpc} from '@/app/trpc';
-import {useCallback, useState} from 'react';
-import {DropzoneOptions} from 'react-dropzone';
+import {useCallback, useEffect, useState} from 'react';
 import {useLocation, useParams} from 'wouter';
 import useQueryParams from 'react-use-query-params';
-
-const dropZoneOptions = {
-    accept: {
-        'image/*': ['.jpg', '.jpeg', '.png'],
-    },
-    multiple: true,
-    maxFiles: 4,
-    maxSize: 1 * 1024 * 1024,
-} as const satisfies DropzoneOptions;
+import {scope} from 'scope-utilities';
+import {useMutation} from '@tanstack/react-query';
+import {useTokenManager} from '@/app/auth/token-manager.tsx';
 
 const UpdatePetition = () => {
+    const {get: getToken} = useTokenManager();
+    const utils = trpc.useUtils();
+
     const [params, setParams] = useQueryParams<{
         fresh: string;
     }>();
 
-    const {toast} = useToast();
     const {petition_id} = useParams();
     const [, setLocation] = useLocation();
-    const [files, setFiles] = useState<File[] | null>([]);
+
+    const [attachmentQueue, setAttachmentQueue] = useState<
+        {
+            type: 'image' | 'attachment';
+            file: File;
+        }[]
+    >([]);
+
+    const removeOne = useCallback(
+        (type: 'image' | 'attachment') => {
+            setAttachmentQueue((queue) => {
+                const lastIndex = queue.findLastIndex(
+                    (attachment) => attachment.type === type,
+                );
+
+                return queue.filter((_attachment, i) => i !== lastIndex);
+            });
+        },
+        [setAttachmentQueue],
+    );
 
     const {mutate: updatePetition, isLoading: isPetitionSaving} =
         trpc.petitions.update.useMutation({
             onSuccess: async () => {
+                await utils.petitions.get.invalidate({id: petition_id});
                 setLocation(`/petitions/${petition_id}`);
             },
         });
@@ -82,6 +90,55 @@ const UpdatePetition = () => {
             data: nextPetitionData,
         });
     };
+
+    const {mutate: uploadAttachment} = useMutation({
+        mutationFn: async (data: {type: 'image' | 'file'; file: File}) => {
+            const search = new URLSearchParams({
+                type: data.type,
+                filename: data.file.name,
+            });
+
+            const response = await fetch(
+                import.meta.env.DEV
+                    ? `http://${window.location.hostname}:12001/petitions/${petition_id}/attachments?${search}`
+                    : `https://core.jonogon.org/petitions/${petition_id}/attachments?${search}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        Authorization: `Bearer ${await getToken()}`,
+                    },
+                    body: data.file,
+                },
+            );
+
+            return (await response.json()) as {
+                message: 'image-added' | 'attachment-added';
+            };
+        },
+        onSuccess: async (response) => {
+            if (response.message === 'image-added') {
+                removeOne('image');
+            } else {
+                removeOne('attachment');
+            }
+
+            await utils.petitions.get.invalidate({id: petition_id});
+        },
+    });
+
+    useEffect(() => {
+        if (!attachmentQueue.length) {
+            return;
+        }
+
+        const attachment = attachmentQueue[attachmentQueue.length - 1];
+
+        uploadAttachment({
+            type: attachment.type === 'image' ? 'image' : 'file',
+            file: attachment.file,
+        });
+    }, [attachmentQueue]);
 
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
@@ -148,7 +205,7 @@ const UpdatePetition = () => {
                     />
                 </div>
                 <div className="flex flex-col gap-2">
-                    <Label htmlFor="target">
+                    <Label htmlFor="pictures">
                         <div className={'font-bold text-lg'}>
                             Pictures{' '}
                             <span
@@ -157,38 +214,88 @@ const UpdatePetition = () => {
                             </span>
                         </div>
                         <div className={'text-stone-500'}>
-                            কন এলাকার মানুষের জন্য প্রযোজ্য?
+                            কিছু ছবি upload করতে পারেন
                         </div>
                     </Label>
-                    <FileUploader
-                        value={files}
-                        onValueChange={setFiles}
-                        dropzoneOptions={dropZoneOptions}>
-                        <FileInput>
-                            <div className="flex items-center justify-center h-16 w-full border border-neutral-400 text-neutral-600 border-dashed bg-card rounded-md">
-                                <p className="text-gray-400">
-                                    Drop Images Here
-                                </p>
-                            </div>
-                        </FileInput>
-                        <FileUploaderContent className="flex items-center flex-row gap-2">
-                            {files?.map((file, i) => (
-                                <FileUploaderItem
-                                    key={i}
-                                    index={i}
-                                    className="size-20 p-0 rounded-md overflow-hidden"
-                                    aria-roledescription={`file ${i + 1} containing ${file.name}`}>
-                                    <img
-                                        src={URL.createObjectURL(file)}
-                                        alt={file.name}
-                                        height={80}
-                                        width={80}
-                                        className="size-20 p-0"
-                                    />
-                                </FileUploaderItem>
+                    <div className={'flex flex-row flex-wrap gap-2'}>
+                        <div
+                            className={
+                                'flex justify-center items-center border-4 w-24 h-20 rounded-lg relative bg-card hover:bg-card/30 cursor-pointer'
+                            }>
+                            <span
+                                className={
+                                    'text-5xl text-stone-400 drop-shadow-sm cursor-pointer'
+                                }>
+                                +
+                            </span>
+                            <input
+                                id={'pictures'}
+                                type={'file'}
+                                multiple
+                                accept={'image/*'}
+                                className={
+                                    'absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer'
+                                }
+                                onChange={(ev) => {
+                                    setAttachmentQueue((queue) => [
+                                        ...queue,
+                                        ...scope(ev.target.files).let(
+                                            (files) => {
+                                                if (!files) {
+                                                    return [];
+                                                }
+
+                                                const attachments = [];
+
+                                                for (const file of files) {
+                                                    attachments.push({
+                                                        type: 'image' as const,
+                                                        file: file,
+                                                    });
+                                                }
+
+                                                return attachments;
+                                            },
+                                        ),
+                                    ]);
+                                }}
+                            />
+                        </div>
+
+                        {attachmentQueue
+                            .filter((attachment) => attachment.type === 'image')
+                            .map(() => (
+                                <div
+                                    className={
+                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg'
+                                    }>
+                                    <div
+                                        className={
+                                            'animate-spin border-4 border-b-transparent border-l-transparent border-red-500 w-8 h-8 rounded-full'
+                                        }></div>
+                                </div>
                             ))}
-                        </FileUploaderContent>
-                    </FileUploader>
+
+                        {petitionRemoteData?.data?.attachments
+                            .filter((attachment) => attachment.type === 'image')
+                            .map((attachment) => (
+                                <div
+                                    className={
+                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black'
+                                    }>
+                                    <img
+                                        src={attachment.thumbnail!!.replace(
+                                            '$CORE_HOSTNAME',
+                                            window.location.hostname,
+                                        )}
+                                        alt={attachment.filename}
+                                        className={
+                                            'w-full h-full object-contain object-center'
+                                        }
+                                    />
+                                </div>
+                            ))}
+                    </div>
                 </div>
                 <div className="flex flex-col gap-2">
                     <Label>
