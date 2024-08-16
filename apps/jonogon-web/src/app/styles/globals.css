@@ -61,12 +61,17 @@
 }
 
 @layer base {
+    html {
+        @apply overflow-y-scroll;
+    }
+
     * {
         @apply border-border;
     }
 
     body {
         @apply bg-background text-foreground;
+        @apply overflow-y-scroll;
     }
 }
 
