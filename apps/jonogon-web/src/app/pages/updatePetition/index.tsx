@@ -10,6 +10,8 @@ import {useMutation} from '@tanstack/react-query';
 import {useTokenManager} from '@/app/auth/token-manager.tsx';
 import {TrashIcon} from '@radix-ui/react-icons';
 import {z} from 'astro/zod';
+import {ministries, petitionTopics} from '@/app/data';
+import {AutoSuggest} from '@/app/components/ui/auto-suggest';
 
 const UpdatePetition = () => {
     const {get: getToken} = useTokenManager();
@@ -206,7 +208,7 @@ const UpdatePetition = () => {
                             আপনি কার কাছে দাবি করছেন?
                         </div>
                     </Label>
-                    <Input
+                    {/* <Input
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.target ?? ''}
@@ -214,6 +216,18 @@ const UpdatePetition = () => {
                             handleUpdateData('target', e.target.value)
                         }
                         placeholder="Ex: Minister, Ministry, Department, Politician, Prime Minister"
+                    /> */}
+                    <AutoSuggest
+                        className="bg-card text-card-foreground"
+                        id="target"
+                        value={petitionData.target ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('target', e.target.value)
+                        }
+                        handleChange={handleUpdateData}
+                        placeholder="Ex: Minister, Ministry, Department, Politician, Prime Minister"
+                        suggestions={petitionTopics}
+                        name="target"
                     />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -225,7 +239,7 @@ const UpdatePetition = () => {
                             কন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
-                    <Input
+                    <AutoSuggest
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.location ?? ''}
@@ -233,6 +247,9 @@ const UpdatePetition = () => {
                             handleUpdateData('location', e.target.value)
                         }
                         placeholder="Ex: Entire Bangladesh"
+                        handleChange={handleUpdateData}
+                        suggestions={ministries}
+                        name="location"
                     />
                 </div>
                 <div className="flex flex-col gap-2">
