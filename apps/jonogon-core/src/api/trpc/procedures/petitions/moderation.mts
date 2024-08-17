@@ -11,6 +11,10 @@ export const approve = protectedProcedure
         await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
+                rejected_at: null,
+                rejection_reason: null,
+                formalized_at: null,
+
                 approved_at: new Date(),
                 moderated_by: ctx.auth.user_id,
             })
@@ -34,6 +38,9 @@ export const reject = protectedProcedure
         await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
+                approved_at: null,
+                formalized_at: null,
+
                 rejected_at: new Date(),
                 rejection_reason: input.reason,
                 moderated_by: ctx.auth.user_id,
@@ -59,6 +66,9 @@ export const formalize = protectedProcedure
             .set({
                 formalized_at: new Date(),
                 formalized_by: ctx.auth.user_id,
+
+                rejected_at: null,
+                rejection_reason: null,
             })
             .where('id', '=', `${input.petition_id}`)
             .executeTakeFirst();

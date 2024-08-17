@@ -62,7 +62,7 @@
 
 @layer base {
     html {
-        @apply overflow-y-scroll;
+        scrollbar-width: thin;
     }
 
     * {
@@ -71,8 +71,8 @@
 
     body {
         @apply bg-background text-foreground;
-        @apply overflow-y-scroll;
     }
+
 }
 
 .editor .ProseMirror {

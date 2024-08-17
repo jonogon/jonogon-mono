@@ -69,12 +69,7 @@ function SortOption({
 }
 
 const Home = observer(() => {
-    const store = useStore();
-    const setStore = useStoreSetter();
-    const {filters} = store;
-    const {data: petitions} = trpc.petitions.listPetitionRequests.useQuery({});
-
-    const [params, setParams] = useQueryParams<{
+    const [params] = useQueryParams<{
         type: string;
         sort: string;
     }>();
@@ -82,12 +77,18 @@ const Home = observer(() => {
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
-                <h1 className="mt-12 my-5 text-3xl md:text-4xl">জনগণের দাবি</h1>
+                <h1 className="mt-12 my-5 text-3xl md:text-4xl">
+                    {`${params.type}` === 'own'
+                        ? 'Your Own দাবিs'
+                        : 'জনগণের দাবি'}
+                </h1>
                 <div className="flex items-center justify-between my-2">
-                    <div>
-                        <Tab type={'formalized'}>Formalized দাবিs</Tab>
-                        <Tab type={'requests'}>সব দাবি</Tab>
-                    </div>
+                    {`${params.type}` === 'own' ? null : (
+                        <div>
+                            <Tab type={'formalized'}>Formalized দাবিs</Tab>
+                            <Tab type={'requests'}>সব দাবি</Tab>
+                        </div>
+                    )}
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <button className="flex items-center gap-2 pb-1">

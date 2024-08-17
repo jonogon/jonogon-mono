@@ -56,7 +56,7 @@ export const refreshTokenProcedure = publicProcedure
                 sub: tokenClaims.sub,
                 exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour,
 
-                is_adm: tokenClaims.is_admin,
+                is_adm: tokenClaims.is_adm,
                 is_mod: tokenClaims.is_mod,
             },
             env.COMMON_HMAC_SECRET,
@@ -69,7 +69,7 @@ export const refreshTokenProcedure = publicProcedure
                 nbf: Math.ceil(Date.now() / 1000) + 1 * 55 * 60, // not valid until 5 minutes before access_token expiry.
                 exp: Math.ceil(Date.now() / 1000) + 60 * 24 * 60 * 60, // 60 days
 
-                is_adm: tokenClaims.is_admin,
+                is_adm: tokenClaims.is_adm,
                 is_mod: tokenClaims.is_mod,
             },
             env.COMMON_HMAC_SECRET,

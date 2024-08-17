@@ -13,14 +13,12 @@ import {
     submitPetition,
     updatePetition,
 } from '../procedures/petitions/crud.mjs';
-import {listPetitionRequests} from '../procedures/petitions/listing/petition-requests.mjs';
-import {listFormalizedPetitions} from '../procedures/petitions/listing/formalized-petitions.mjs';
+import {listPetitions} from '../procedures/petitions/listing/list-petitions.mjs';
 import {listPendingPetitionRequests} from '../procedures/petitions/listing/pending-petition-requests.mjs';
 
 export const petitionRouter = router({
     // CRUD
-    listPetitionRequests: listPetitionRequests,
-    listFormalizedPetitions: listFormalizedPetitions,
+    list: listPetitions,
     listPendingPetitionRequests: listPendingPetitionRequests,
 
     get: getPetition,

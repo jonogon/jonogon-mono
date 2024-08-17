@@ -8,20 +8,20 @@ export function deriveStatus(petition: {
     submitted_at: SelectType<Petitions['submitted_at']>;
 }) {
     if (petition.formalized_at) {
-        return 'formalized';
+        return 'formalized' as const;
     }
 
     if (petition.approved_at) {
-        return 'approved';
+        return 'approved' as const;
     }
 
     if (petition.rejected_at) {
-        return 'rejected';
+        return 'rejected' as const;
     }
 
     if (petition.submitted_at) {
-        return 'submitted';
+        return 'submitted' as const;
     }
 
-    return 'draft';
+    return 'draft' as const;
 }

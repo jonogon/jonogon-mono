@@ -1,16 +1,35 @@
-import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import {
     Card,
-    CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
 } from '@/app/components/ui/card';
-import {Link} from 'wouter';
+import {Link, useLocation} from 'wouter';
 import {Button} from '@/app/components/ui/button.tsx';
+import {formatDate} from '../../../lib/date.mjs';
+import {ThumbsDown, ThumbsUp} from 'lucide-react';
+import {useAuthState} from '@/app/auth/token-manager.tsx';
 
-export default function PetitionCard() {
+export default function PetitionCard(props: {
+    id: string;
+
+    name: string;
+    date: Date;
+    target: string;
+    title: string;
+
+    status: string;
+
+    upvotes: number;
+    downvotes: number;
+
+    mode: 'request' | 'formalized' | 'own';
+}) {
+    const isAuthenticated = useAuthState();
+
+    const [, setLocation] = useLocation();
+    const totalVotes = props.upvotes + props.downvotes;
+
     return (
         <Card className={''}>
             <CardHeader className={''}>
@@ -19,27 +38,87 @@ export default function PetitionCard() {
                         className={
                             'font-normal text-base text-neutral-500 pb-2'
                         }>
-                        Naseef Fatemi, 5th August, 2024 — To,{' '}
-                        <i>গণপূর্ত মন্ত্রণালয়, বাংলাদেশ সরকার</i>
+                        {props.name}, {formatDate(props.date)} — To,{' '}
+                        <i>{props.target}</i>
                     </div>
                     <div>
                         <Link
-                            href={'/petitions/1'}
+                            href={`/petitions/${props.id}`}
                             className={
                                 'leading-snug font-bold font-serif text-2xl align-middle'
                             }>
-                            This is a Dummy Petition With Something to Do With
-                            Some Political Matter Associated with Civil
-                            Engineering
+                            {props.title}
                         </Link>
                     </div>
                 </CardTitle>
             </CardHeader>
             <CardFooter className="flex items-center justify-between">
-                <p className={'font-semibold text-red-600'}>1,203,444 votes</p>
-                <Button size={'sm'} variant={'outline'}>
-                    VOTE
-                </Button>
+                {props.mode === 'formalized' ? (
+                    <>
+                        <p className={'font-semibold text-red-600'}>
+                            {totalVotes} {totalVotes !== 1 ? 'votes' : 'vote'}
+                        </p>
+                        <Button
+                            size={'sm'}
+                            variant={'outline'}
+                            onClick={() => {
+                                const href = `/petitions/${props.id}`;
+
+                                isAuthenticated
+                                    ? setLocation(href)
+                                    : setLocation(
+                                          `/login?next=${encodeURIComponent(href)}`,
+                                      );
+                            }}>
+                            VOTE
+                        </Button>
+                    </>
+                ) : props.mode === 'request' ? (
+                    <>
+                        <div className={'flex flex-row gap-6'}>
+                            <div className={'flex flex-row gap-2'}>
+                                <ThumbsUp
+                                    className={'w-5 h-5 text-green-500'}
+                                />
+                                {props.upvotes}
+                            </div>
+                            <div className={'flex flex-row gap-2'}>
+                                <ThumbsUp className={'w-5 h-5 text-red-500'} />
+                                {props.downvotes}
+                            </div>
+                        </div>
+                        <Button
+                            size={'sm'}
+                            variant={'outline'}
+                            onClick={() => {
+                                const href = `/petitions/${props.id}`;
+
+                                isAuthenticated
+                                    ? setLocation(href)
+                                    : setLocation(
+                                          `/login?next=${encodeURIComponent(href)}`,
+                                      );
+                            }}>
+                            VOTE
+                        </Button>
+                    </>
+                ) : props.mode === 'own' ? (
+                    <>
+                        <div className={'flex flex-row gap-6'}>
+                            <div className={'flex flex-row gap-2'}>
+                                <ThumbsUp
+                                    className={'w-5 h-5 text-green-500'}
+                                />
+                                {props.upvotes}
+                            </div>
+                            <div className={'flex flex-row gap-2'}>
+                                <ThumbsUp className={'w-5 h-5 text-red-500'} />
+                                {props.downvotes}
+                            </div>
+                        </div>
+                        <div>STATUS: {props.status}</div>
+                    </>
+                ) : null}
             </CardFooter>
         </Card>
     );

@@ -1,4 +1,4 @@
-const formatDate = (date: Date) => {
+export const formatDate = (date: Date) => {
     const day = date.getDate();
     const month = date.toLocaleString('default', {month: 'long'});
     const year = date.getFullYear();

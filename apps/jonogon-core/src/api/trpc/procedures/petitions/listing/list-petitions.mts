@@ -5,11 +5,11 @@ import {TRPCError} from '@trpc/server';
 import {pick} from 'es-toolkit';
 import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
 
-export const listPetitionRequests = publicProcedure
+export const listPetitions = publicProcedure
     .input(
         z.object({
-            filter: z.enum(['all', 'own']).default('all'),
-            sort: z.enum(['submission_time', 'upvotes']).default('upvotes'),
+            filter: z.enum(['request', 'formalized', 'own']).default('request'),
+            sort: z.enum(['time', 'votes']).default('votes'),
             order: z.enum(['asc', 'desc']).default('desc'),
             page: z.number().default(0),
         }),
@@ -19,25 +19,47 @@ export const listPetitionRequests = publicProcedure
             .with('results', (db) => {
                 return scope(
                     scope(
-                        db
-                            .selectFrom('petitions')
-                            .leftJoin('petition_votes as upvotes', (join) =>
-                                join
-                                    .onRef(
-                                        'petitions.id',
-                                        '=',
-                                        'upvotes.petition_id',
+                        scope(
+                            db
+                                .selectFrom('petitions')
+                                .leftJoin('petition_votes as upvotes', (join) =>
+                                    join
+                                        .onRef(
+                                            'petitions.id',
+                                            '=',
+                                            'upvotes.petition_id',
+                                        )
+                                        .on('upvotes.vote', '=', 1),
+                                )
+                                .select(['petitions.id'])
+                                .select(({fn}) => [
+                                    fn
+                                        .count('upvotes.id')
+                                        .as('petition_upvote_count'),
+                                ]),
+                        ).let((query) => {
+                            if (input.filter === 'request') {
+                                return query
+                                    .where(
+                                        'petitions.approved_at',
+                                        'is not',
+                                        null,
                                     )
-                                    .on('upvotes.vote', '=', 1),
-                            )
-                            .select(['petitions.id'])
-                            .select(({fn}) => [
-                                fn
-                                    .count('upvotes.id')
-                                    .as('petition_upvote_count'),
-                            ])
-                            .where('petitions.approved_at', 'is not', null)
-                            .where('petitions.formalized_at', 'is', null),
+                                    .where(
+                                        'petitions.formalized_at',
+                                        'is',
+                                        null,
+                                    );
+                            } else if (input.filter === 'formalized') {
+                                return query.where(
+                                    'petitions.formalized_at',
+                                    'is not',
+                                    null,
+                                );
+                            } else {
+                                return query;
+                            }
+                        }),
                     ).let((query) => {
                         if (input.filter === 'own') {
                             if (!ctx.auth?.user_id) {
@@ -59,9 +81,13 @@ export const listPetitionRequests = publicProcedure
                     }),
                 )
                     .let((query) =>
-                        input.sort === 'submission_time'
+                        input.sort === 'time'
                             ? query.orderBy(
-                                  'petitions.submitted_at',
+                                  input.filter === 'own'
+                                      ? 'petitions.created_at'
+                                      : input.filter === 'request'
+                                        ? 'petitions.submitted_at'
+                                        : 'petitions.formalized_at',
                                   input.order,
                               )
                             : query.orderBy(
@@ -71,7 +97,7 @@ export const listPetitionRequests = publicProcedure
                     )
                     .groupBy(['petitions.id'])
                     .offset(input.page * 32)
-                    .limit(32);
+                    .limit(33);
             })
             .with('result_with_downvotes', (db) => {
                 return db
@@ -133,6 +159,10 @@ export const listPetitionRequests = publicProcedure
                 },
                 extras: {
                     user_vote: petition.user_vote,
+                    user: {
+                        name: petition.user_name,
+                        picture: petition.user_picture,
+                    },
                 },
             })),
         };

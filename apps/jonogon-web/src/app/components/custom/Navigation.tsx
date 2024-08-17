@@ -74,9 +74,7 @@ const Navigation = observer(() => {
                                     Edit Profile
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    onSelect={() =>
-                                        console.log('My Petitions')
-                                    }>
+                                    onSelect={() => setLocation('/?type=own')}>
                                     My Petitions
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
