@@ -33,9 +33,7 @@ export const listPetitions = publicProcedure
                                 )
                                 .select(['petitions.id'])
                                 .select(({fn}) => [
-                                    fn
-                                        .count('upvotes.id')
-                                        .as('petition_upvote_count'),
+                                    fn.countAll().as('petition_upvote_count'),
                                 ]),
                         ).let((query) => {
                             if (input.filter === 'request') {
@@ -109,7 +107,7 @@ export const listPetitions = publicProcedure
                     )
                     .selectAll('results')
                     .select(({fn}) => [
-                        fn.count('downvotes.id').as('petition_downvote_count'),
+                        fn.countAll().as('petition_downvote_count'),
                     ])
                     .groupBy(['results.id', 'results.petition_upvote_count']);
             })
