@@ -21,31 +21,42 @@ export function ImageCarousel() {
     if (petition?.data.attachments.length) {
         return (
             <div className="flex justify-center items-center w-full w-max-screen-xs">
-                <Carousel className="w-full relative">
-                    <CarouselPrevious className="absolute top-[50%] left-2 z-10 opacity-75" />
+                <Carousel className="w-full relative rounded-lg overflow-clip">
+                    <CarouselPrevious
+                        variant={'outline'}
+                        className="absolute top-[50%] left-2 z-10"
+                    />
                     <CarouselContent className="z-0">
                         {Array.from({
                             length: petition?.data.attachments.length ?? 0,
                         }).map((_, index) => (
-                            <CarouselItem key={index}>
-                                <div>
-                                    <Card>
-                                        <CardContent className="flex items-center justify-center p-0">
-                                            <img
-                                                src={
-                                                    petition?.data.attachments[
-                                                        index
-                                                    ].attachment
-                                                }
-                                                className="w-full h-auto"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                </div>
+                            <CarouselItem
+                                key={index}
+                                className={
+                                    'bg-stone-300 flex justify-center items-center'
+                                }>
+                                <Card>
+                                    <CardContent className="flex items-center justify-center p-0">
+                                        <img
+                                            src={`${
+                                                petition?.data.attachments[
+                                                    index
+                                                ].attachment
+                                            }`.replace(
+                                                '$CORE_HOSTNAME',
+                                                window.location.hostname,
+                                            )}
+                                            className="w-full h-full bg-red-500"
+                                        />
+                                    </CardContent>
+                                </Card>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselNext className="absolute top-[50%] right-2 opacity-75" />
+                    <CarouselNext
+                        variant={'outline'}
+                        className="absolute top-[50%] right-2 z-10"
+                    />
                 </Carousel>
             </div>
         );

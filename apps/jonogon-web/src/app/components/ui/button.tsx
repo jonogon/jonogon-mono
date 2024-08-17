@@ -9,14 +9,8 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default:
-                    'bg-red-500 text-primary-foreground hover:bg-red-600/90',
-                destructive:
-                    'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-                outline:
-                    'border-2 border-red-500 bg-background text-red-500 hover:bg-accent hover:text-red-500',
-                secondary:
-                    'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+                default: '',
+                outline: 'border-2 bg-background hover:bg-accent',
                 ghost: 'hover:bg-accent hover:text-accent-foreground',
                 link: 'text-primary underline-offset-4 hover:underline',
             },
@@ -27,10 +21,37 @@ const buttonVariants = cva(
                 xl: 'h-14 rounded-lg text-xl px-9',
                 icon: 'h-10 w-10',
             },
+            intent: {
+                success: '',
+                default: '',
+            },
         },
+        compoundVariants: [
+            {
+                intent: 'success',
+                variant: 'default',
+                class: 'bg-green-500 hover:bg-green-600/90',
+            },
+            {
+                intent: 'success',
+                variant: 'outline',
+                class: 'border-green-500 text-green-500 hover:text-green-500',
+            },
+            {
+                intent: 'default',
+                variant: 'default',
+                class: 'bg-red-500 hover:bg-red-600/90',
+            },
+            {
+                intent: 'default',
+                variant: 'outline',
+                class: 'border-red-500 text-red-500 hover:text-red-500',
+            },
+        ],
         defaultVariants: {
             variant: 'default',
             size: 'default',
+            intent: 'default',
         },
     },
 );
@@ -42,11 +63,13 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({className, variant, size, asChild = false, ...props}, ref) => {
+    ({className, intent, variant, size, asChild = false, ...props}, ref) => {
         const Comp = asChild ? Slot : 'button';
         return (
             <Comp
-                className={cn(buttonVariants({variant, size, className}))}
+                className={cn(
+                    buttonVariants({variant, size, className, intent}),
+                )}
                 ref={ref}
                 {...props}
             />

@@ -1,18 +1,17 @@
 import {trpc} from '@/app/trpc';
 import {useParams} from 'wouter';
-import {TbTargetArrow} from 'react-icons/tb';
-import {SiRelay} from 'react-icons/si';
-
+import Markdown from 'react-markdown';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
-
-import {Progress} from '@/app/components/ui/progress';
 import {ImageCarousel} from './components/ImageCarousel';
 import {Button} from '@/app/components/ui/button';
-import {Card} from '@/app/components/ui/card';
 import {useEffect, useState} from 'react';
+import {useAuthState} from '@/app/auth/token-manager.tsx';
 
 const SinglePetition = () => {
+    const isAuthenticated = useAuthState();
+
     const {petition_id} = useParams();
+
     const {data: petition, refetch} = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
@@ -20,7 +19,9 @@ const SinglePetition = () => {
     const [userVote, setUserVote] = useState(0);
 
     useEffect(() => {
-        setUserVote(petition?.extras.user_vote);
+        if (petition) {
+            setUserVote(petition?.extras.user_vote ?? 0);
+        }
     }, [petition]);
 
     const thumbsUpMutation = trpc.petitions.vote.useMutation();
@@ -59,61 +60,81 @@ const SinglePetition = () => {
         refetch();
     };
 
+    const upvoteCount = petition?.data.petition_upvote_count ?? 0;
+    const downvoteCount = petition?.data.petition_downvote_count ?? 0;
+    const totalVoteCount = upvoteCount + downvoteCount;
+
     return (
-        <div className="container max-w-screen-sm mx-auto px-4 mt-28 flex flex-col gap-4">
-            <h2 className="text-4xl font-bold">{petition?.data.title}</h2>
-            <div className="flex items-center gap-3 font-medium text-neutral-700">
-                <div className="flex items-center gap-2 border-r border-neutral-700 pr-3">
-                    <TbTargetArrow />
-                    <span>{petition?.data.target}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <SiRelay />
-                    <span>{petition?.data.location}</span>
-                </div>
-            </div>
-            {petition?.data.description && (
-                <p
-                    dangerouslySetInnerHTML={{
-                        __html: petition?.data.description,
-                    }}></p>
-            )}
-            <div className="flex items-center gap-3 font-medium text-neutral-700">
-                <div className="flex items-center gap-2 border-r border-neutral-700 pr-3">
+        <>
+            <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
+                <div className={'space-x-1 text-lg text-stone-500'}>
                     <span>
-                        {petition?.data.petition_upvote_count ?? 0} upvotes
+                        {new Date().toLocaleDateString('en-GB', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                        })}
+                        {','}
+                    </span>
+                    <span className={'italic font-semibold'}>
+                        {petition?.extras.user.name ?? ''}
+                    </span>
+                    <span>—</span>
+                    <span>To</span>
+                    <span className={'italic font-semibold'}>
+                        {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
                     </span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span>
-                        {petition?.data.petition_downvote_count ?? 0} downvotes
+                <h1 className="text-4xl font-bold font-serif">
+                    {petition?.data.title ?? 'Untiled Petition'}
+                </h1>
+                <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
+                    <span>It affects</span>
+                    <span className={'italic font-semibold'}>
+                        {petition?.data.location ?? 'SOMEONE, SOMEWHERE'}.
                     </span>
                 </div>
+                <ImageCarousel />
+                {petition?.data.description && (
+                    <Markdown>{petition.data.description}</Markdown>
+                )}
             </div>
-            <Progress
-                value={
-                    ((petition?.data.petition_upvote_count ?? 0) /
-                        ((petition?.data.petition_upvote_count ?? 0) +
-                            (petition?.data.petition_downvote_count ?? 0))) *
-                        100 ?? 0
-                }
-            />
-            <ImageCarousel />
-            <div className="flex flex-row justify-between gap-4 mb-4">
-                <Button
-                    variant={userVote == 1 ? 'default' : 'outline'}
-                    className="flex-grow"
-                    onClick={clickThumbsUp}>
-                    <ThumbsUp size={20} /> <p className="ml-2">Upvote</p>
-                </Button>
-                <Button
-                    variant={userVote == -1 ? 'default' : 'outline'}
-                    className="flex-grow"
-                    onClick={clickThumbsDown}>
-                    <ThumbsDown size={20} /> <p className="ml-2">Downvote</p>
-                </Button>
-            </div>
-        </div>
+            {isAuthenticated ? (
+                <div className="fixed bottom-0 left-0 w-full py-2 bg-background px-4 z-20">
+                    <div
+                        className={
+                            'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
+                        }>
+                        <Button
+                            variant={
+                                userVote === 1 || userVote === 0
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            intent={'success'}
+                            size={'lg'}
+                            className="flex-1 w-full"
+                            onClick={clickThumbsUp}>
+                            <ThumbsUp size={20} />{' '}
+                            <p className="ml-2">{upvoteCount}</p>
+                        </Button>
+                        <Button
+                            variant={
+                                userVote === -1 || userVote === 0
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            intent={'default'}
+                            className="flex-1 w-full"
+                            size={'lg'}
+                            onClick={clickThumbsDown}>
+                            <ThumbsDown size={20} />{' '}
+                            <p className="ml-2">{downvoteCount}</p>
+                        </Button>
+                    </div>
+                </div>
+            ) : null}
+        </>
     );
 };
 

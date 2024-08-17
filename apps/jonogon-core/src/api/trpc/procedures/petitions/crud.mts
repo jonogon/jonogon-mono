@@ -51,6 +51,12 @@ export const getPetition = publicProcedure
             });
         }
 
+        const user = await ctx.services.postgresQueryBuilder
+            .selectFrom('users')
+            .selectAll()
+            .where('id', '=', `${result.created_by}`)
+            .executeTakeFirst();
+
         async function countVotes(vote: -1 | 1) {
             return await ctx.services.postgresQueryBuilder
                 .selectFrom('petition_votes')
@@ -95,6 +101,7 @@ export const getPetition = publicProcedure
             },
             extras: {
                 user_vote: result.user_vote,
+                user: pick(user!!, ['id', 'name', 'picture']),
             },
         };
     });
