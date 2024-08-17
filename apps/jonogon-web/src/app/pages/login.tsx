@@ -15,8 +15,6 @@ export default function Index() {
 
     const [stage, setStage] = useState<'number' | 'otp'>('number');
 
-    const [redirectUrl, setRedirectUrl] = useState<string>('/');
-
     const {
         mutate: requestOTP,
         isLoading: isRequestLoading,
@@ -54,7 +52,10 @@ export default function Index() {
     };
 
     const {set: setTokens} = useTokenManager();
-    const [location, setLocation] = useLocation();
+    const [, setLocation] = useLocation();
+    const params = new URLSearchParams(window.location.search);
+
+    const redirectUrl: string = params.get('next') || '/';
 
     const login = () => {
         createToken(
@@ -90,12 +91,6 @@ export default function Index() {
             });
         }
     }, [otpRequestError]);
-
-    useEffect(() => {
-        const queryParams = new URLSearchParams(window.location.search);
-        const next = queryParams.get('next') || '/';
-        setRedirectUrl(next);
-    }, [location]);
 
     return (
         <div className="max-w-screen-sm mx-auto px-4 flex flex-col justify-center">
