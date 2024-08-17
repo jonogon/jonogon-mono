@@ -10,8 +10,7 @@ import {useMutation} from '@tanstack/react-query';
 import {useTokenManager} from '@/app/auth/token-manager.tsx';
 import {TrashIcon} from '@radix-ui/react-icons';
 import {z} from 'astro/zod';
-import {ministries, petitionTopics} from '@/app/data';
-import {AutoSuggest} from '@/app/components/ui/auto-suggest';
+import {cities, ministries} from '@/app/data';
 
 const UpdatePetition = () => {
     const {get: getToken} = useTokenManager();
@@ -30,6 +29,10 @@ const UpdatePetition = () => {
             file: File;
         }[]
     >([]);
+    const [showSuggestion, setShowSuggestion] = useState<{
+        ministries: boolean;
+        cities: boolean;
+    }>({ministries: false, cities: false});
 
     const removeOne = useCallback(
         (type: 'image' | 'attachment') => {
@@ -217,18 +220,47 @@ const UpdatePetition = () => {
                         }
                         placeholder="Ex: Minister, Ministry, Department, Politician, Prime Minister"
                     /> */}
-                    <AutoSuggest
+                    <Input
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.target ?? ''}
                         onChange={(e) =>
                             handleUpdateData('target', e.target.value)
                         }
-                        handleChange={handleUpdateData}
                         placeholder="Ex: Minister, Ministry, Department, Politician, Prime Minister"
-                        suggestions={petitionTopics}
-                        name="target"
+                        onFocus={() =>
+                            setShowSuggestion({
+                                ...showSuggestion,
+                                ministries: true,
+                            })
+                        }
                     />
+                    {showSuggestion.ministries && (
+                        <ul className="bg-white">
+                            {ministries?.map(
+                                (item) =>
+                                    item.includes(
+                                        petitionData.target?.toUpperCase() ??
+                                            '',
+                                    ) && (
+                                        <li
+                                            className="p-2 border-b hover:cursor-pointer hover:bg-['#F2F2F7']"
+                                            onClick={() => {
+                                                handleUpdateData(
+                                                    'target',
+                                                    item,
+                                                );
+                                                setShowSuggestion({
+                                                    ...showSuggestion,
+                                                    ministries: false,
+                                                });
+                                            }}>
+                                            {item}
+                                        </li>
+                                    ),
+                            )}
+                        </ul>
+                    )}
                 </div>
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="target">
@@ -239,7 +271,7 @@ const UpdatePetition = () => {
                             কন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
-                    <AutoSuggest
+                    {/* <AutoSuggest
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.location ?? ''}
@@ -250,7 +282,48 @@ const UpdatePetition = () => {
                         handleChange={handleUpdateData}
                         suggestions={ministries}
                         name="location"
+                    /> */}
+                    <Input
+                        className="bg-card text-card-foreground"
+                        id="target"
+                        value={petitionData.location ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('location', e.target.value)
+                        }
+                        placeholder="Ex: Entire Bangladesh"
+                        onFocus={() =>
+                            setShowSuggestion({
+                                ...showSuggestion,
+                                cities: true,
+                            })
+                        }
                     />
+                    {showSuggestion.cities && (
+                        <ul className="bg-white">
+                            {cities?.map(
+                                (item) =>
+                                    item.includes(
+                                        petitionData.location?.toUpperCase() ??
+                                            '',
+                                    ) && (
+                                        <li
+                                            className="p-2 border-b hover:cursor-pointer hover:bg-['#F2F2F7']"
+                                            onClick={() => {
+                                                handleUpdateData(
+                                                    'location',
+                                                    item,
+                                                );
+                                                setShowSuggestion({
+                                                    ...showSuggestion,
+                                                    cities: false,
+                                                });
+                                            }}>
+                                            {item}
+                                        </li>
+                                    ),
+                            )}
+                        </ul>
+                    )}
                 </div>
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="pictures">
