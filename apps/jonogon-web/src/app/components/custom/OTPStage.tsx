@@ -8,6 +8,7 @@ import {Label} from '../ui/label';
 import useRerenderInterval from '@/app/lib/useRerenderInterval';
 
 interface OTPStageProps {
+    number: string;
     otp: string;
     onOTPChange: (newValue: string) => void;
     onVerify: () => void;
@@ -34,28 +35,32 @@ const OtpResendSection = ({
     const remainingTimeStr = `${remainingTime} second${remainingTime > 1 ? 's' : ''}`;
 
     return (
-        <div className="flex flex-col items-center gap-5">
+        <div className="flex flex-col items-center gap-2">
             {remainingTime === 0 ? null : (
-                <p className="text-sm">
-                    Didn't receive OTP? Retry sending otp in
-                    <span className="text-red-600"> {remainingTimeStr}</span>
+                <p className="text-stone-500">
+                    OTP পাননি? Retry করতে পারবেন
+                    <span className="text-red-600"> {remainingTimeStr} </span>
+                    পরে
                 </p>
             )}
-            <Button
-                size={'sm'}
-                variant={'link'}
-                disabled={isDisabled || remainingTime !== 0}
-                onClick={() => {
-                    onOtpResendPress();
-                    resetCount();
-                }}>
-                Resend OTP
-            </Button>
+            {remainingTime !== 0 ? null : (
+                <Button
+                    size={'sm'}
+                    variant={'outline'}
+                    disabled={isDisabled || remainingTime !== 0}
+                    onClick={() => {
+                        onOtpResendPress();
+                        resetCount();
+                    }}>
+                    Resend OTP
+                </Button>
+            )}
         </div>
     );
 };
 
 export default function OTPStage({
+    number,
     otp,
     onOTPChange,
     onVerify,
@@ -74,7 +79,15 @@ export default function OTPStage({
             <Label htmlFor={'otp'} className={'w-full'}>
                 <div className={'text-lg font-bold'}>Enter OTP</div>
                 <div className={'text-base text-neutral-500'}>
-                    আপনার নাম্বারে একটি ৪ সংখ্যাসর OTP পাঠানো হয়েছে, সেটি লিখুন
+                    আপনার{' '}
+                    <span className={'font-bold text-red-600'}>{number}</span>{' '}
+                    নাম্বারে একটি ৪ সংখ্যাসর OTP পাঠানো হয়েছে, সেটি লিখুন{' '}
+                    <Button
+                        className="text-red-600 h-6 px-2"
+                        variant={'link'}
+                        onClick={onChangeNumPress}>
+                        Change Number
+                    </Button>
                 </div>
             </Label>
             <InputOTP
@@ -109,15 +122,6 @@ export default function OTPStage({
                 size={'lg'}>
                 Verify
             </Button>
-
-            <div className="py-3 flex flex-col items-center">
-                <Button
-                    className="text-red-600"
-                    variant={'link'}
-                    onClick={onChangeNumPress}>
-                    Change Number
-                </Button>
-            </div>
 
             <OtpResendSection
                 onOtpResendPress={onOtpResendPress}

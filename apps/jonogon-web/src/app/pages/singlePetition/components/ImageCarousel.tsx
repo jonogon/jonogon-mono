@@ -33,7 +33,7 @@ export function ImageCarousel() {
                             <CarouselItem
                                 key={index}
                                 className={
-                                    'bg-stone-300 flex justify-center items-center'
+                                    'bg-border flex justify-center items-center'
                                 }>
                                 <Card>
                                     <CardContent className="flex items-center justify-center p-0">

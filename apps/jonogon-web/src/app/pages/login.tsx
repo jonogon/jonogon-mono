@@ -106,6 +106,7 @@ export default function Index() {
                 />
             ) : (
                 <OTPStage
+                    number={number}
                     otp={otp}
                     onOTPChange={updateOTP}
                     onVerify={login}

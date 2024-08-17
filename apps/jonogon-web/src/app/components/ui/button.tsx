@@ -40,7 +40,7 @@ const buttonVariants = cva(
             {
                 intent: 'default',
                 variant: 'default',
-                class: 'bg-red-500 hover:bg-red-600/90',
+                class: 'bg-red-500 hover:bg-red-600/90 text-white',
             },
             {
                 intent: 'default',
