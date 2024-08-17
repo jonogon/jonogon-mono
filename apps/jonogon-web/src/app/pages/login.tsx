@@ -110,6 +110,7 @@ export default function Index() {
                     onOTPChange={updateOTP}
                     onVerify={login}
                     onChangeNumPress={onChangeNumPress}
+                    onOtpResendPress={sendOTPRequest}
                     isLoading={isTokenLoading}
                 />
             )}

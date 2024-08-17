@@ -4,15 +4,56 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from '@/app/components/ui/input-otp';
-import { Label } from '../ui/label';
+import {Label} from '../ui/label';
+import useRerenderInterval from '@/app/lib/useRerenderInterval';
 
 interface OTPStageProps {
     otp: string;
     onOTPChange: (newValue: string) => void;
     onVerify: () => void;
     onChangeNumPress: () => void;
+    onOtpResendPress: () => void;
     isLoading: boolean;
 }
+
+const OTP_RESEND_INTERVAL = 60;
+
+const OtpResendSection = ({
+    onOtpResendPress,
+    isDisabled,
+}: {
+    onOtpResendPress: () => void;
+    isDisabled?: boolean;
+}) => {
+    const [count, resetCount] = useRerenderInterval(
+        1000,
+        (count) => count < OTP_RESEND_INTERVAL,
+    );
+
+    const remainingTime = OTP_RESEND_INTERVAL - count;
+    const remainingTimeStr = `${remainingTime} second${remainingTime > 1 ? 's' : ''}`;
+
+    return (
+        <div className="flex flex-col items-center gap-5">
+            {remainingTime === 0 ? null : (
+                <p className="text-sm">
+                    Didn't receive OTP? Retry sending otp in
+                    <span className="text-red-600"> {remainingTimeStr}</span>
+                </p>
+            )}
+            <Button
+                size={'sm'}
+                variant={'link'}
+                disabled={isDisabled || remainingTime !== 0}
+                onClick={() => {
+                    onOtpResendPress();
+                    resetCount();
+                }}>
+                Resend OTP
+            </Button>
+        </div>
+    );
+};
 
 export default function OTPStage({
     otp,
@@ -20,6 +61,7 @@ export default function OTPStage({
     onVerify,
     isLoading,
     onChangeNumPress,
+    onOtpResendPress,
 }: OTPStageProps) {
     const handleOTPChange = (newValue: string) => {
         onOTPChange(newValue);
@@ -70,11 +112,17 @@ export default function OTPStage({
 
             <div className="py-3 flex flex-col items-center">
                 <Button
+                    className="text-red-600"
                     variant={'link'}
                     onClick={onChangeNumPress}>
                     Change Number
                 </Button>
             </div>
+
+            <OtpResendSection
+                onOtpResendPress={onOtpResendPress}
+                isDisabled={isLoading}
+            />
         </div>
     );
 }
