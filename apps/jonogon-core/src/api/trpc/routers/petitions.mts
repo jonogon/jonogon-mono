@@ -12,6 +12,7 @@ import {
     removeAttachment,
     submitPetition,
     updatePetition,
+    softDeletePetition
 } from '../procedures/petitions/crud.mjs';
 import {listPetitions} from '../procedures/petitions/listing/list-petitions.mjs';
 import {listPendingPetitionRequests} from '../procedures/petitions/listing/pending-petition-requests.mjs';
@@ -29,6 +30,7 @@ export const petitionRouter = router({
     removeAttachment: removeAttachment,
 
     remove: remove,
+    softDelete: softDeletePetition,
 
     // Skibidi
     vote: vote,

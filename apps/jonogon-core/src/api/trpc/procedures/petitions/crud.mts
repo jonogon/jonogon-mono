@@ -42,6 +42,7 @@ export const getPetition = publicProcedure
                 'petition_votes.vote as user_vote',
             ])
             .where('petitions.id', '=', input.id)
+            .where('petitions.deleted_at', 'is', null)
             .executeTakeFirst();
 
         if (!result) {
@@ -349,4 +350,49 @@ export const remove = protectedProcedure
         }
 
         return {input, data: deleted, message: 'deleted'};
+    });
+
+export const softDeletePetition = protectedProcedure
+    .input(
+        z.object({
+            id: z.number(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.id}`)
+            .where('deleted_at', 'is', null)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
+
+        await ctx.services.postgresQueryBuilder
+            .updateTable('petitions')
+            .set({
+                deleted_at: new Date(),
+            })
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        return {
+            input,
+            message: 'petition soft deleted',
+        };
     });
