@@ -5,6 +5,7 @@ import {useLocation} from 'wouter';
 import {useTokenManager} from '../auth/token-manager.tsx';
 import {trpc} from '@/app/trpc';
 import {toast} from '../components/ui/use-toast.ts';
+import useQueryParams from 'react-use-query-params';
 
 export default function Index() {
     const [number, setNumber] = useState(
@@ -53,6 +54,8 @@ export default function Index() {
 
     const {set: setTokens} = useTokenManager();
     const [, setLocation] = useLocation();
+    const [params] = useQueryParams<{next: string[]}>();
+    const redirectUrl: string = params.next[0] || '/';
 
     const login = () => {
         createToken(
@@ -70,7 +73,7 @@ export default function Index() {
                             data.refresh_token_validity * 1000,
                     });
 
-                    setLocation('/');
+                    setLocation(redirectUrl);
                 },
             },
         );
