@@ -54,7 +54,7 @@ export default function Index() {
 
     const {set: setTokens} = useTokenManager();
     const [, setLocation] = useLocation();
-    const [params] = useQueryParams();
+    const [params] = useQueryParams<{next: string[]}>();
     const redirectUrl: string = params.next[0] || '/';
 
     const login = () => {
