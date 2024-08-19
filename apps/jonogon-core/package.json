@@ -49,5 +49,8 @@
   "license": "MIT",
   "volta": {
     "node": "22.6.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
