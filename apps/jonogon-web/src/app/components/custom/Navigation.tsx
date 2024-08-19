@@ -32,7 +32,7 @@ const Navigation = observer(() => {
     }, [selfDataResponse?.data.name]);
 
     return (
-        <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[10] bg-background">
+        <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[50] bg-background">
             <nav className="max-w-screen-sm mx-auto h-20 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/images/icon.svg" alt="logo" className="w-12" />

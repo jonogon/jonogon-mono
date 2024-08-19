@@ -83,7 +83,7 @@ export default function PetitionCard(props: {
                                 {props.upvotes}
                             </div>
                             <div className={'flex flex-row gap-2'}>
-                                <ThumbsUp className={'w-5 h-5 text-red-500'} />
+                                <ThumbsDown className={'w-5 h-5 text-red-500'} />
                                 {props.downvotes}
                             </div>
                         </div>
@@ -112,7 +112,7 @@ export default function PetitionCard(props: {
                                 {props.upvotes}
                             </div>
                             <div className={'flex flex-row gap-2'}>
-                                <ThumbsUp className={'w-5 h-5 text-red-500'} />
+                                <ThumbsDown className={'w-5 h-5 text-red-500'} />
                                 {props.downvotes}
                             </div>
                         </div>
