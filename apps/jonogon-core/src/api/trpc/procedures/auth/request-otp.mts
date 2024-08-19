@@ -33,7 +33,10 @@ export const requestOTPProcedure = publicProcedure
             3600,
         );
 
-        if (numberOfAttempts > MAX_OTP_REQUESTS_PER_HOUR) {
+        if (
+            env.NODE_ENV !== 'development' &&
+            numberOfAttempts > MAX_OTP_REQUESTS_PER_HOUR
+        ) {
             throw new TRPCError({
                 code: 'TOO_MANY_REQUESTS',
                 message: `You can only request ${MAX_OTP_REQUESTS_PER_HOUR + 1} OTPs for a number in one hour`,
