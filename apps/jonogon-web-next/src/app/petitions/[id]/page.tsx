@@ -218,7 +218,6 @@ export default function Petition() {
                                   year: 'numeric',
                                   month: 'long',
                                   day: 'numeric',
-                                  timeZone: 'Asia/Dhaka',
                               })
                             : 'UNKNOWN DATE'}
                         {','}
