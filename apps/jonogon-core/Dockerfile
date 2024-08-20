@@ -8,7 +8,8 @@ RUN pnpm install
 RUN pnpm build
 RUN pnpm --filter=@jonogon/core --prod deploy pruned
 
-FROM common AS production
+FROM common
+
 ENV NODE_ENV=production
 COPY --from=build /app/pruned .
 

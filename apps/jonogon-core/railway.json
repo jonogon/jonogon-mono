@@ -3,7 +3,8 @@
     "builder": "DOCKERFILE",
     "watchPatterns": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "Dockerfile"
     ],
     "dockerfilePath": "Dockerfile"
   },
