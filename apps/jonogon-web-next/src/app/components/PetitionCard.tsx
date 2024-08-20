@@ -34,8 +34,13 @@ export default function PetitionCard(props: {
                         className={
                             'font-normal text-base text-neutral-500 pb-2'
                         }>
-                        {props.name}, {formatDate(props.date)} — To,{' '}
-                        <i>{props.target}</i>
+                        {props.name},{' '}
+                        <time
+                            dateTime={props.date.toISOString()}
+                            suppressHydrationWarning>
+                            {formatDate(props.date)}
+                        </time>{' '}
+                        — To, <i>{props.target}</i>
                     </div>
                     <div>
                         <Link

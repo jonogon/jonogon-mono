@@ -201,14 +201,16 @@ export default function Petition() {
                 ) : null}
 
                 <div className={'space-x-1 text-lg text-stone-500'}>
-                    <span>
+                    <time
+                        dateTime={new Date().toISOString()}
+                        suppressHydrationWarning>
                         {new Date().toLocaleDateString('en-GB', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
                         })}
                         {','}
-                    </span>
+                    </time>
                     <span className={'italic font-semibold'}>
                         {petition?.extras.user.name ?? ''}
                     </span>
