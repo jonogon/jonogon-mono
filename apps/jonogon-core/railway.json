@@ -9,7 +9,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "pnpm start",
+    "startCommand": "node .",
     "numReplicas": 2,
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
