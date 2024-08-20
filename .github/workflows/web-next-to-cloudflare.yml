@@ -20,7 +20,7 @@ jobs:
       - run: npm install -g pnpm
       - run: pnpm install
       - run: pnpm build
-      - run: pnpm deploy
+      - run: pnpm pages:build && pnpm wrangler pages deploy
         working-directory: ./apps/jonogon-web-next/
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
