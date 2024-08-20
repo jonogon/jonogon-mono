@@ -57,8 +57,6 @@ function Tab({
             className={cn(
                 'border-b-2 border-transparent px-3 pb-1 capitalize select-none',
                 {
-                    'border-black':
-                        (params.get('type') ?? 'formalized') === type,
                     'border-black': (params.get('type') ?? 'requests') === type,
                 },
             )}
@@ -82,7 +80,6 @@ export default function Home() {
                 <div className="flex items-center justify-between my-2">
                     {params.get('type') === 'own' ? null : (
                         <div>
-                            <Tab type={'formalized'}>Formalized দাবিs</Tab>
                             <Tab type={'requests'}>সব দাবি</Tab>
                             <Tab type={'formalized'}>Formalized দাবিs</Tab>
                         </div>

@@ -202,13 +202,25 @@ export default function Petition() {
 
                 <div className={'space-x-1 text-lg text-stone-500'}>
                     <time
-                        dateTime={new Date().toISOString()}
-                        suppressHydrationWarning>
-                        {new Date().toLocaleDateString('en-GB', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })}
+                        dateTime={
+                            petition?.data.created_at
+                                ? new Date(
+                                      petition.data.created_at,
+                                  ).toISOString()
+                                : ''
+                        }
+                        suppressHydrationWarning
+                    >
+                        {petition?.data.created_at
+                            ? new Date(
+                                  petition.data.created_at,
+                              ).toLocaleDateString('en-GB', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  timeZone: 'Asia/Dhaka',
+                              })
+                            : 'UNKNOWN DATE'}
                         {','}
                     </time>
                     <span className={'italic font-semibold'}>
