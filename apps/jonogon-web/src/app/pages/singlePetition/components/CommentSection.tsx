@@ -1,4 +1,6 @@
-import {useState} from 'react';
+import {trpc} from '@/app/trpc';
+import {useEffect, useState} from 'react';
+import {useParams} from 'wouter';
 
 interface CommentInterface {
     body: string;
@@ -13,7 +15,7 @@ function InputBox({comments, setComments}: InputPropInterface) {
     const [inputBody, setInputBody] = useState('');
 
     const onEnter = () => {
-        setComments([{body: inputBody}, ...comments]);
+        setComments([...comments, {body: inputBody}]);
         setInputBody('');
     };
 
@@ -103,6 +105,20 @@ export default function CommentSection() {
             body: '3rd hello',
         },
     ]);
+    // fetch the comments and then do magic with them
+    const {petition_id} = useParams();
+    const {data} = trpc.comments.list.useQuery({
+        petition_id: petition_id!!,
+    });
+
+    // // DO NOT COMMIT THIS. IT HAS ANY
+    // const [comments, setComments] = useState<any[]>([]);
+
+    // useEffect(() => {
+    //     const nestedComments = data ?? [];
+
+    //     setComments(nestedComments);
+    // }, [data]);
 
     return (
         <>

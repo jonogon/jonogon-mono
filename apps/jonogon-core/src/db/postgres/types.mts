@@ -8,6 +8,31 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Comments {
+  body: string | null;
+  created_at: Generated<Timestamp>;
+  deleted_at: Timestamp | null;
+  deleted_by: Int8 | null;
+  depth: Int8;
+  id: Generated<Int8>;
+  is_deleted: Generated<boolean | null>;
+  is_highlighted: Generated<boolean | null>;
+  parent_id: Int8 | null;
+  petition_id: Int8;
+  updated_at: Generated<Timestamp>;
+  user_id: Int8;
+}
+
+export interface CommentVotes {
+  comment_id: Int8;
+  created_at: Generated<Timestamp>;
+  id: Generated<Int8>;
+  nullified_at: Timestamp | null;
+  updated_at: Generated<Timestamp>;
+  user_id: Int8;
+  vote: number;
+}
+
 export interface PetitionAttachments {
   attachment: string;
   created_at: Generated<Timestamp>;
@@ -70,6 +95,8 @@ export interface Users {
 }
 
 export interface DB {
+  comment_votes: CommentVotes;
+  comments: Comments;
   petition_attachments: PetitionAttachments;
   petition_votes: PetitionVotes;
   petitions: Petitions;
