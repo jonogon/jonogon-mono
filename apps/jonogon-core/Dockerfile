@@ -12,4 +12,4 @@ FROM common AS production
 ENV NODE_ENV=production
 COPY --from=build /app/pruned .
 
-CMD ["node", "."]
+CMD node .
