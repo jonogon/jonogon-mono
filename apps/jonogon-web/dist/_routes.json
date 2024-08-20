@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/_astro/*",
+    "/images/favicon.ico",
+    "/images/icon.png",
+    "/images/icon.svg",
+    "/images/logo.svg"
+  ]
+}
