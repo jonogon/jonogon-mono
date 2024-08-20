@@ -105,7 +105,7 @@ export const listPetitions = publicProcedure
                     .selectFrom('results')
                     .leftJoin('petition_votes as downvotes', (join) =>
                         join
-                            .onRef('results.id', '=', 'downvotes.id')
+                            .onRef('results.id', '=', 'downvotes.petition_id')
                             .on('downvotes.vote', '=', -1),
                     )
                     .selectAll('results')
@@ -131,7 +131,21 @@ export const listPetitions = publicProcedure
                 'votes.vote as user_vote',
             ]);
 
-        const data = await query.execute();
+        const data =
+            input.sort === 'time'
+                ? await query
+                      .orderBy(
+                          input.filter === 'own'
+                              ? 'petitions.created_at'
+                              : input.filter === 'request'
+                                ? 'petitions.submitted_at'
+                                : 'petitions.formalized_at',
+                          input.order,
+                      )
+                      .execute()
+                : await query
+                      .orderBy('petition_upvote_count', input.order)
+                      .execute();
 
         return {
             input,

@@ -1,0 +1,27 @@
+name: Jonogon Web Next to Cloudflare
+
+on:
+  push:
+    branches:
+      - production
+
+    paths:
+      - apps/jonogon-web-next/**/*
+      - .github/workflows/web-next-to-cloudflare.yml
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - run: npm install -g pnpm
+      - run: pnpm install
+      - run: pnpm turbo run build --filter @jonogon/core
+      - run: pnpm pages:build && pnpm wrangler pages deploy --branch main
+        working-directory: ./apps/jonogon-web-next/
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
