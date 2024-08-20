@@ -34,7 +34,10 @@ export const createTokenProcedure = publicProcedure
             3600,
         );
 
-        if (numberOfAttempts > MAX_LOGIN_ATTEMPTS_PER_HOUR) {
+        if (
+            env.NODE_ENV !== 'development' &&
+            numberOfAttempts > MAX_LOGIN_ATTEMPTS_PER_HOUR
+        ) {
             throw new TRPCError({
                 code: 'TOO_MANY_REQUESTS',
                 message: `You can only attempt to log in ${MAX_LOGIN_ATTEMPTS_PER_HOUR} times in one hour`,
