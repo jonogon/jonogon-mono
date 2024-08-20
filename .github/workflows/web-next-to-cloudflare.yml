@@ -7,7 +7,7 @@ on:
 
     paths:
       - apps/jonogon-web-next/**/*
-      - .github/workflows/web-to-cloudflare.yml
+      - .github/workflows/web-next-to-cloudflare.yml
 
 jobs:
   publish:
