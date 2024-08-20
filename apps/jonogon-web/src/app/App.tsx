@@ -36,7 +36,7 @@ export default function App(props: TAppProps) {
                 <RegisterTokenRefresher />
                 <StoreProvider store={store}>
                     <Suspense fallback={<>LOADING ...</>}>
-                        {preloader ? (
+                        {preloader && false ? (
                             <Preloader />
                         ) : (
                             <Layout>

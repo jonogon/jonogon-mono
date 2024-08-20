@@ -2,3 +2,4 @@ packages:
   - "apps/*"
   - "packages/*"
   - "misc/migrator"
+  - "misc/firebase-emulator"
