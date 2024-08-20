@@ -19,6 +19,7 @@ jobs:
           node-version: 22
       - run: npm install -g pnpm
       - run: pnpm install
+      - run: pnpm turbo run build --filter @jonogon/core
       - run: pnpm pages:build && pnpm wrangler pages deploy --branch main
         working-directory: ./apps/jonogon-web-next/
         env:
