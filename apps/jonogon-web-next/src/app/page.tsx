@@ -59,6 +59,7 @@ function Tab({
                 {
                     'border-black':
                         (params.get('type') ?? 'formalized') === type,
+                    'border-black': (params.get('type') ?? 'requests') === type,
                 },
             )}
             onClick={updateParams}>
@@ -83,6 +84,7 @@ export default function Home() {
                         <div>
                             <Tab type={'formalized'}>Formalized দাবিs</Tab>
                             <Tab type={'requests'}>সব দাবি</Tab>
+                            <Tab type={'formalized'}>Formalized দাবিs</Tab>
                         </div>
                     )}
                     <DropdownMenu>
