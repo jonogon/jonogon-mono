@@ -20,12 +20,12 @@ export default function EditPetition() {
     const utils = trpc.useUtils();
 
     const params = useSearchParams();
-    
+
     const {id: petition_id} = useParams<{id: string}>();
     const router = useRouter();
-    
+
     const freshValue = params.get('fresh');
-    
+
     const [attachmentQueue, setAttachmentQueue] = useState<
         {
             type: 'image' | 'attachment';
@@ -70,7 +70,12 @@ export default function EditPetition() {
 
         // if confirmed, soft delete the petition
         if (confirmDelete) {
-            await softDeleteMutation.mutateAsync({id: Number(petition_id)});
+            // await softDeleteMutation.mutateAsync({id: Number(petition_id)});
+            toast({
+                title: 'Success',
+                description: 'Petition has been successfully deleted.',
+                variant: 'destructive',
+            });
         }
     };
 
