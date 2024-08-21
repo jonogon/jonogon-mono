@@ -21,6 +21,8 @@ services:
       CLOUDFLARE_ACCESS_KEY_ID: "${CLOUDFLARE_ACCESS_KEY_ID:-}"
       CLOUDFLARE_SECRET_ACCESS_KEY: "${CLOUDFLARE_SECRET_ACCESS_KEY:-}"
 
+      FIREBASE_AUTH_EMULATOR_HOST: "localhost:12005"
+
     ports:
       - target: 12001 # `jonogon-core` HTTP port
         published: 12001
@@ -32,6 +34,18 @@ services:
 
       - target: 12002 # `jonogon-web` HTTP port
         published: 12002
+        protocol: tcp
+
+      - target: 12003 # `jonogon-web-next` HTTP port
+        published: 12003
+        protocol: tcp
+
+      - target: 12004 # firebase emulator UI HTTP port
+        published: 12004
+        protocol: tcp
+
+      - target: 12005 # firebase auth emulator HTTP port
+        published: 12005
         protocol: tcp
 
     volumes:

@@ -3,12 +3,13 @@
     "builder": "DOCKERFILE",
     "watchPatterns": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "Dockerfile"
     ],
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "pnpm start",
+    "startCommand": "node .",
     "numReplicas": 2,
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,

@@ -6,10 +6,11 @@ COPY . /app
 RUN npm install -g pnpm@9.7.0
 RUN pnpm install
 RUN pnpm build
-RUN pnpm --filter=@jonogon/core --prod deploy pruned
+RUN pnpm --filter=@jonogon/core --prod deploy /jonogon-core
 
-FROM common AS production
+FROM common
+
 ENV NODE_ENV=production
-COPY --from=build /app/pruned .
+COPY --from=build /jonogon-core .
 
-CMD ["node", "."]
+CMD node .
