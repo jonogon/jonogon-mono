@@ -4,7 +4,35 @@ import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
 import InputBox from './InputBox';
 import Comment from './Comment';
-import {treeify} from './utils.js';
+
+export const treeify = (comments: NestedComment[]): NestedComment[] => {
+    // Time complexity is O(3n) I think
+    const entries = comments.map((comment) => [
+        comment.id,
+        {...comment, children: []},
+    ]);
+    const commentMap = Object.fromEntries(entries);
+
+    const addCommentsToMap = (comment: NestedComment) => {
+        if (comment.parent_id) {
+            commentMap[comment.parent_id].children.push(commentMap[comment.id]);
+        }
+    };
+
+    comments.map(addCommentsToMap);
+
+    const addCommentsToRoot = (comment: NestedComment) => {
+        if (!comment.parent_id) {
+            return commentMap[comment.id];
+        }
+    };
+
+    const rootComments = comments.map(addCommentsToRoot);
+
+    return rootComments.filter((comment) => {
+        return !!comment;
+    });
+};
 
 export default function CommentThread() {
     const {petition_id} = useParams() as {petition_id: string};
