@@ -21,6 +21,17 @@ export const listComments = publicProcedure
                     'comments.id',
                     'comment_votes.comment_id',
                 )
+                .leftJoin(
+                    'comment_votes as user_vote', // Alias the join for the specific user's vote
+                    (join) =>
+                        join
+                            .onRef('comments.id', '=', 'user_vote.comment_id')
+                            .on(
+                                'user_vote.user_id',
+                                '=',
+                                `${ctx.auth?.user_id}`,
+                            ),
+                )
                 .select(({fn}) => [
                     'users.name as username',
                     'users.id as user_id',
@@ -32,8 +43,15 @@ export const listComments = publicProcedure
                     'comments.highlighted_at',
                     'comments.deleted_at',
                     fn.sum('comment_votes.vote').as('total_votes'), // TODO: how do i count just upvotes and just downvotes
+                    'user_vote.vote as user_vote',
+                    // fn.where(
+
+                    // )
+                    //     .when('comment_votes.user_id', '=', ctx.auth.user_id)
+                    //     .then('comment_votes.vote')
+                    //     .else(val(0)),
                 ])
-                .groupBy(['users.id', 'comments.id'])
+                .groupBy(['user_vote.vote', 'users.id', 'comments.id'])
                 .where('comments.petition_id', '=', `${input.petition_id}`),
         ).let((query) => {
             if (input.parent_id) {

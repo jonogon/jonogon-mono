@@ -11,6 +11,7 @@ export interface Comment {
     highlighted_at: string | null;
 
     total_votes: number;
+    user_vote: number | null;
 }
 
 export interface NestedComment extends Comment {
