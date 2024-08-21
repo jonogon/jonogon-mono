@@ -40,6 +40,11 @@ export default function Petition() {
     const clearVoteMutation = trpc.petitions.clearVote.useMutation();
 
     const clickThumbsUp = async () => {
+        if (!isAuthenticated) {
+            redirectToLoginPage();
+            return;
+        }
+
         if (userVote == 1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
@@ -56,6 +61,11 @@ export default function Petition() {
     };
 
     const clickThumbsDown = async () => {
+        if (!isAuthenticated) {
+            redirectToLoginPage();
+            return;
+        }
+        
         if (userVote == -1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
@@ -70,6 +80,11 @@ export default function Petition() {
         }
         refetch();
     };
+
+    const redirectToLoginPage = () => {
+        const nextUrl = encodeURIComponent(`/petitions/${petition_id}`);
+        router.push(`/login?next=${nextUrl}`);
+    }
 
     const upvoteCount = petition?.data.petition_upvote_count ?? 0;
     const downvoteCount = petition?.data.petition_downvote_count ?? 0;
@@ -247,49 +262,47 @@ export default function Petition() {
                     </Markdown>
                 )}
             </div>
-            {isAuthenticated ? (
-                <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
-                    <div
-                        className={
-                            'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
-                        }>
-                        <Button
-                            variant={
-                                userVote === 1 || userVote === 0
-                                    ? 'default'
-                                    : 'outline'
-                            }
-                            intent={'success'}
-                            size={'lg'}
-                            className="flex-1 w-full"
-                            onClick={clickThumbsUp}>
-                            {status === 'formalized' ? (
-                                <>
-                                    <p className="ml-2">{upvoteCount} — VOTE</p>
-                                </>
-                            ) : (
-                                <>
-                                    <ThumbsUp size={20} />{' '}
-                                    <p className="ml-2">{upvoteCount}</p>
-                                </>
-                            )}
-                        </Button>
-                        <Button
-                            variant={
-                                userVote === -1 || userVote === 0
-                                    ? 'default'
-                                    : 'outline'
-                            }
-                            intent={'default'}
-                            className="flex-1 w-full"
-                            size={'lg'}
-                            onClick={clickThumbsDown}>
-                            <ThumbsDown size={20} />{' '}
-                            <p className="ml-2">{downvoteCount}</p>
-                        </Button>
-                    </div>
+            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
+                <div
+                    className={
+                        'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
+                    }>
+                    <Button
+                        variant={
+                            userVote === 1 || userVote === 0
+                                ? 'default'
+                                : 'outline'
+                        }
+                        intent={'success'}
+                        size={'lg'}
+                        className="flex-1 w-full"
+                        onClick={clickThumbsUp}>
+                        {status === 'formalized' ? (
+                            <>
+                                <p className="ml-2">{upvoteCount} — VOTE</p>
+                            </>
+                        ) : (
+                            <>
+                                <ThumbsUp size={20} />{' '}
+                                <p className="ml-2">{upvoteCount}</p>
+                            </>
+                        )}
+                    </Button>
+                    <Button
+                        variant={
+                            userVote === -1 || userVote === 0
+                                ? 'default'
+                                : 'outline'
+                        }
+                        intent={'default'}
+                        className="flex-1 w-full"
+                        size={'lg'}
+                        onClick={clickThumbsDown}>
+                        <ThumbsDown size={20} />{' '}
+                        <p className="ml-2">{downvoteCount}</p>
+                    </Button>
                 </div>
-            ) : null}
+            </div>
         </>
     );
 }
