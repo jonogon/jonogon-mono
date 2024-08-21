@@ -15,7 +15,7 @@ export const listComments = publicProcedure
         const commentQuery = scope(
             ctx.services.postgresQueryBuilder
                 .selectFrom('comments')
-                .innerJoin('users', 'comments.user_id', 'users.id')
+                .innerJoin('users', 'comments.created_by', 'users.id')
                 .leftJoin(
                     'comment_votes',
                     'comments.id',
@@ -25,12 +25,12 @@ export const listComments = publicProcedure
                     'users.name as username',
                     'users.id as user_id',
                     'comments.parent_id',
+                    'comments.created_by',
                     'comments.id',
-                    'comments.parent_id',
                     'comments.body',
                     'comments.depth',
-                    'comments.is_deleted',
-                    'comments.is_highlighted',
+                    'comments.highlighted_at',
+                    'comments.deleted_at',
                     fn.sum('comment_votes.vote').as('total_votes'), // TODO: how do i count just upvotes and just downvotes
                 ])
                 .groupBy(['users.id', 'comments.id'])
@@ -49,7 +49,7 @@ export const listComments = publicProcedure
 
         return {
             data: comments.map((comment) => {
-                if (comment.is_deleted) {
+                if (comment.deleted_at !== null) {
                     return {
                         ...comment,
                         body: '(deleted)',
@@ -78,7 +78,7 @@ export const createComment = protectedProcedure
             if (input.parent_id) {
                 const parentComment = await ctx.services.postgresQueryBuilder
                     .selectFrom('comments')
-                    .select(['comments.depth'])
+                    .select(['comments.depth', 'comments.petition_id'])
                     .where('comments.id', '=', `${input.parent_id}`)
                     .executeTakeFirst();
 
@@ -86,6 +86,13 @@ export const createComment = protectedProcedure
                     throw new TRPCError({
                         code: 'INTERNAL_SERVER_ERROR',
                         message: 'failed-to-find-parent-comment',
+                    });
+                }
+
+                if (parentComment.petition_id !== input.petition_id) {
+                    throw new TRPCError({
+                        code: 'INTERNAL_SERVER_ERROR',
+                        message: 'parent-comment-in-different-petition',
                     });
                 }
 
@@ -102,7 +109,7 @@ export const createComment = protectedProcedure
             .values({
                 body: input.body,
                 parent_id: input.parent_id ?? null,
-                user_id: ctx.auth.user_id,
+                created_by: ctx.auth.user_id,
                 petition_id: input.petition_id,
                 depth: depth,
             })
@@ -135,7 +142,7 @@ export const deleteComment = protectedProcedure
         }
 
         if (
-            `${comment.user_id}` !== `${ctx.auth.user_id}` &&
+            `${comment.created_by}` !== `${ctx.auth.user_id}` &&
             !ctx.auth.is_user_admin
         ) {
             throw new TRPCError({
@@ -147,7 +154,6 @@ export const deleteComment = protectedProcedure
         await ctx.services.postgresQueryBuilder
             .updateTable('comments')
             .set({
-                is_deleted: true,
                 deleted_by: ctx.auth.user_id,
                 deleted_at: new Date(),
             })

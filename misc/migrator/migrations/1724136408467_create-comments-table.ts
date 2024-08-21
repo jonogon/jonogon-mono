@@ -17,7 +17,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
                 type: 'bigint',
                 notNull: true,
             },
-            user_id: {
+            created_by: {
                 type: 'bigint',
                 notNull: true,
             },
@@ -28,16 +28,8 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
                 type: 'bigint',
                 notNull: true,
             },
-            is_deleted: {
-                type: 'boolean',
-                default: false,
-            },
             deleted_by: {
                 type: 'bigint',
-            },
-            is_highlighted: {
-                type: 'boolean',
-                default: false,
             },
             created_at: {
                 type: 'timestamp',
@@ -49,6 +41,9 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
                 notNull: true,
                 default: pgm.func('current_timestamp'),
             },
+            highlighted_at: {
+                type: 'timestamp',
+            },
             deleted_at: {
                 type: 'timestamp',
             },
@@ -57,9 +52,29 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             ifNotExists: true,
         },
     );
+
+    pgm.createIndex('comments', ['petition_id'], {
+        name: 'comments__by_petition',
+        ifNotExists: true,
+    });
+
+    pgm.createIndex('comments', ['parent_id'], {
+        name: 'comments__by_parent_comment',
+        ifNotExists: true,
+    });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
+    pgm.dropIndex('comments', [], {
+        name: 'comments__by_petition',
+        ifExists: true,
+    });
+
+    pgm.dropIndex('comments', [], {
+        name: 'comments__by_parent_comment',
+        ifExists: true,
+    });
+
     pgm.dropTable('comments', {
         ifExists: true,
     });

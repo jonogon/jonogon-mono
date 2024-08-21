@@ -46,6 +46,11 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
         ifExists: false,
     });
 
+    pgm.createIndex('comment_votes', ['comment_id'], {
+        name: 'comment_votes__by_comment',
+        ifNotExists: true,
+    });
+
     pgm.createIndex('comment_votes', ['comment_id', 'vote'], {
         name: 'comment_votes__by_vote_type',
         ifNotExists: true,
@@ -57,12 +62,17 @@ export async function down(pgm: MigrationBuilder): Promise<void> {
         ifExists: true,
     });
 
-    pgm.dropIndex('petition_request_votes', [], {
-        name: 'petition_votes__by_petition',
+    pgm.dropIndex('comment_votes', [], {
+        name: 'comment_votes__by_comment',
         ifExists: true,
     });
 
-    pgm.dropTable('petition_votes', {
+    pgm.dropIndex('comment_votes', [], {
+        name: 'comment_votes__by_vote_type',
+        ifExists: true,
+    });
+
+    pgm.dropTable('comment_votes', {
         ifExists: true,
     });
 }

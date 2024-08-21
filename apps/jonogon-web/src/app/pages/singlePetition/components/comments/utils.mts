@@ -6,6 +6,9 @@ export const treeify = (
 ): NestedComment[] => {
     // Time complexity is O(3n) I think
 
+    console.log(comments, 'entered treeify with these comments');
+    console.log(comments);
+
     const entries = comments.map((comment) => [
         comment.id,
         {...comment, children: []},
@@ -20,11 +23,15 @@ export const treeify = (
 
     const addChildrenToMap = (comment: Comment) => {
         if (comment.parent_id && comment.parent_id != parentId) {
-            commentMap[parentId!!].children.push(commentMap[comment.id]);
+            commentMap[comment.parent_id!!].children.push(
+                commentMap[comment.id],
+            );
         }
     };
 
     comments.map(parentId ? addChildrenToMap : addCommentsToMap);
+
+    console.log(commentMap, '<---- this should have the children');
 
     const addCommentsToRoot = (comment: Comment) => {
         if (!comment.parent_id) {

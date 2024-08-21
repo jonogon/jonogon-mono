@@ -53,7 +53,7 @@ export default function Comment({comment}: {comment: NestedComment}) {
                     }}>
                     reply
                 </p>
-                {comments?.length &&
+                {!!comments?.length &&
                     (childrenExpanded ? (
                         <p
                             onClick={() => {

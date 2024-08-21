@@ -11,16 +11,15 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export interface Comments {
   body: string | null;
   created_at: Generated<Timestamp>;
+  created_by: Int8;
   deleted_at: Timestamp | null;
   deleted_by: Int8 | null;
   depth: Int8;
+  highlighted_at: Timestamp | null;
   id: Generated<Int8>;
-  is_deleted: Generated<boolean | null>;
-  is_highlighted: Generated<boolean | null>;
   parent_id: Int8 | null;
   petition_id: Int8;
   updated_at: Generated<Timestamp>;
-  user_id: Int8;
 }
 
 export interface CommentVotes {

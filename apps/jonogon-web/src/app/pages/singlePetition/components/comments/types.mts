@@ -1,12 +1,15 @@
 export interface Comment {
+    user_id: string | null;
+    username: string | null;
+
     id: string;
+    parent_id: string | null;
     body: string | null;
     depth: string;
-    is_deleted: boolean | null;
-    is_highlighted: boolean | null;
-    username: string | null;
-    user_id: string | null;
-    parent_id: string | null;
+
+    deleted_at: string | null;
+    highlighted_at: string | null;
+
     total_votes: number;
 }
 
