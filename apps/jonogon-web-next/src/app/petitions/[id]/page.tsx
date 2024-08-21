@@ -41,6 +41,7 @@ export default function Petition() {
 
     const clickThumbsUp = async () => {
         if (!isAuthenticated) {
+            redirectToLoginPage();
             return;
         }
 
@@ -61,6 +62,7 @@ export default function Petition() {
 
     const clickThumbsDown = async () => {
         if (!isAuthenticated) {
+            redirectToLoginPage();
             return;
         }
         
@@ -78,6 +80,11 @@ export default function Petition() {
         }
         refetch();
     };
+
+    const redirectToLoginPage = () => {
+        const nextUrl = encodeURIComponent(`/petitions/${petition_id}`);
+        router.push(`/login?next=${nextUrl}`);
+    }
 
     const upvoteCount = petition?.data.petition_upvote_count ?? 0;
     const downvoteCount = petition?.data.petition_downvote_count ?? 0;
