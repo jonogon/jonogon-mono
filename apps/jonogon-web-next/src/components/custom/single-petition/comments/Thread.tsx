@@ -2,8 +2,8 @@ import {useEffect, useState} from 'react';
 import {NestedComment} from './types.js';
 import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
-import InputBox from './InputBox';
-import Comment from './Comment';
+import InputBox from '@/components/custom/single-petition/comments/InputBox';
+import Comment from '@/components/custom/single-petition/comments/Comment';
 
 export const treeify = (comments: NestedComment[]): NestedComment[] => {
     // Time complexity is O(3n) I think

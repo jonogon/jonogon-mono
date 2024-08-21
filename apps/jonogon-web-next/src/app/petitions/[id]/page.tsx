@@ -6,9 +6,9 @@ import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import {ImageCarousel} from './components/ImageCarousel';
+import {ImageCarousel} from '@/components/custom/single-petition/ImageCarousel';
 
-import CommentThread from './components/comments/Thread';
+import CommentThread from '@/components/custom/single-petition/comments/Thread';
 import {trpc} from '@/trpc';
 import {useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter} from 'next/navigation';

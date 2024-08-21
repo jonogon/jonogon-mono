@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {NestedComment} from './types.js';
-import InputBox from './InputBox';
+import InputBox from '@/components/custom/single-petition/comments/InputBox';
 import {trpc} from '@/trpc';
 
 export default function Comment({
