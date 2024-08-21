@@ -21,32 +21,15 @@ export const treeify = (
         }
     };
 
-    const addChildrenToMap = (comment: Comment) => {
-        if (comment.parent_id && comment.parent_id != parentId) {
-            commentMap[comment.parent_id!!].children.push(
-                commentMap[comment.id],
-            );
-        }
-    };
-
-    comments.map(parentId ? addChildrenToMap : addCommentsToMap);
-
-    console.log(commentMap, '<---- this should have the children');
+    comments.map(addCommentsToMap);
 
     const addCommentsToRoot = (comment: Comment) => {
         if (!comment.parent_id) {
             return commentMap[comment.id];
         }
     };
-    const addChildrenToRoot = (comment: Comment) => {
-        if (comment.parent_id == parentId) {
-            return commentMap[comment.id];
-        }
-    };
 
-    const rootComments = comments.map(
-        parentId ? addChildrenToRoot : addCommentsToRoot,
-    );
+    const rootComments = comments.map(addCommentsToRoot);
 
     return rootComments.filter((comment) => {
         return !!comment;

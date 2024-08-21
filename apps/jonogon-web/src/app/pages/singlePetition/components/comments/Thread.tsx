@@ -24,7 +24,7 @@ export default function CommentThread() {
             <div>
                 <InputBox parentId={undefined} refetch={refetch} />
                 {comments.map((comment) => {
-                    return <Comment comment={comment} />;
+                    return <Comment comment={comment} refetch={refetch} />;
                 })}
             </div>
         </>

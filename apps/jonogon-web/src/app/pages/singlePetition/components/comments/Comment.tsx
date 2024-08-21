@@ -5,39 +5,19 @@ import {useParams} from 'wouter';
 import {trpc} from '@/app/trpc';
 import {treeify} from './utils.mts';
 
-export default function Comment({comment}: {comment: NestedComment}) {
+export default function Comment({
+    comment,
+    refetch,
+}: {
+    comment: NestedComment;
+    refetch: () => void;
+}) {
     const [comments, setComments] = useState<NestedComment[]>(
         comment.children ?? [],
     );
 
-    const [enabled, setEnabled] = useState(false);
     const [inputOpened, setInputOpened] = useState(false);
     const [childrenExpanded, setChildrenExpanded] = useState(true);
-
-    // define a trpc query here that only queries with current comment as parent
-    const {petition_id} = useParams();
-    const {data, refetch} = trpc.comments.list.useQuery(
-        {
-            petition_id: petition_id!!,
-            parent_id: comment.id,
-        },
-        {
-            enabled: enabled,
-        },
-    );
-
-    const refetchChildren = () => {
-        if (!enabled) {
-            setEnabled(true);
-        } else {
-            refetch();
-        }
-    };
-
-    useEffect(() => {
-        const nestedChildren = treeify(data?.data ?? [], comment.id);
-        setComments(nestedChildren);
-    }, [data]);
 
     useEffect(() => {
         setComments(comment?.children ?? []);
@@ -73,7 +53,7 @@ export default function Comment({comment}: {comment: NestedComment}) {
 
             {inputOpened && (
                 <>
-                    <InputBox parentId={comment.id} refetch={refetchChildren} />
+                    <InputBox parentId={comment.id} refetch={refetch} />
                     <button
                         className="px-4 border rounded"
                         onClick={() => {
@@ -86,7 +66,7 @@ export default function Comment({comment}: {comment: NestedComment}) {
             {childrenExpanded && (
                 <div>
                     {comments?.map((c) => {
-                        return <Comment comment={c} />;
+                        return <Comment comment={c} refetch={refetch} />;
                     })}
                 </div>
             )}
