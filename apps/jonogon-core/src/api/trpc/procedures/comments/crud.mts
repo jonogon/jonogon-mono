@@ -1,5 +1,6 @@
 import {publicProcedure} from '../../index.mjs';
 import {z} from 'zod';
+import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
 import {protectedProcedure} from '../../middleware/protected.mjs';
 
@@ -7,31 +8,60 @@ export const listComments = publicProcedure
     .input(
         z.object({
             petition_id: z.string(),
+            parent_id: z.string().optional(),
         }),
     )
     .query(async ({input, ctx}) => {
-        // TODO: if the response is ok, maybe turn it into a tree before sending back
-        const comments = await ctx.services.postgresQueryBuilder
-            .selectFrom('comments')
-            .innerJoin('users', 'comments.user_id', 'users.id')
-            .leftJoin(
-                'comment_votes',
-                'comments.id',
-                'comment_votes.comment_id',
-            )
-            .select(({fn}) => [
-                'users.name',
-                'users.id',
-                'comments.id',
-                'comments.body',
-                fn.sum('comment_votes.vote').as('total_votes'),
-            ])
-            .groupBy(['users.id', 'comments.id'])
-            .where('comments.petition_id', '=', `${input.petition_id}`)
+        const commentQuery = scope(
+            ctx.services.postgresQueryBuilder
+                .selectFrom('comments')
+                .innerJoin('users', 'comments.user_id', 'users.id')
+                .leftJoin(
+                    'comment_votes',
+                    'comments.id',
+                    'comment_votes.comment_id',
+                )
+                .select(({fn}) => [
+                    'users.name as username',
+                    'users.id as user_id',
+                    'comments.parent_id',
+                    'comments.id',
+                    'comments.parent_id',
+                    'comments.body',
+                    'comments.depth',
+                    'comments.is_deleted',
+                    'comments.is_highlighted',
+                    fn.sum('comment_votes.vote').as('total_votes'), // TODO: how do i count just upvotes and just downvotes
+                ])
+                .groupBy(['users.id', 'comments.id'])
+                .where('comments.petition_id', '=', `${input.petition_id}`),
+        ).let((query) => {
+            if (input.parent_id) {
+                return query.where('comments.parent_id', '=', input.parent_id);
+            } else {
+                return query;
+            }
+        });
+
+        const comments = await commentQuery
+            .orderBy('comments.created_at desc')
             .execute();
 
         return {
-            data: comments,
+            data: comments.map((comment) => {
+                if (comment.is_deleted) {
+                    return {
+                        ...comment,
+                        body: '(deleted)',
+                        total_votes: Number(comment.total_votes),
+                    };
+                } else {
+                    return {
+                        ...comment,
+                        total_votes: Number(comment.total_votes),
+                    };
+                }
+            }),
         };
     });
 

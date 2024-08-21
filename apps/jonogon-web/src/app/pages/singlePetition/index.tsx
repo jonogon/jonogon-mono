@@ -6,8 +6,7 @@ import {ImageCarousel} from './components/ImageCarousel';
 import {Button} from '@/app/components/ui/button';
 import {useEffect, useState} from 'react';
 import {useAuthState} from '@/app/auth/token-manager.tsx';
-import Comments from './components/CommentSection';
-import CommentSection from './components/CommentSection';
+import CommentThread from './components/comments/Thread';
 
 const SinglePetition = () => {
     const utils = trpc.useUtils();
@@ -230,7 +229,7 @@ const SinglePetition = () => {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
-                <CommentSection />
+                <CommentThread />
             </div>
 
             {isAuthenticated ? (
