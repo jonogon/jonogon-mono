@@ -13,6 +13,7 @@ import z from 'zod';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
+import {toast} from '@/components/ui/use-toast';
 
 export default function EditPetition() {
     const {get: getToken} = useTokenManager();
@@ -42,6 +43,34 @@ export default function EditPetition() {
         },
         [setAttachmentQueue],
     );
+
+    const softDeleteMutation = trpc.petitions.softDelete.useMutation({
+        onSuccess: () => {
+            // Show success message
+            toast({
+                title: 'Success',
+                description: 'Petition has been successfully deleted.',
+                variant: 'default',
+            });
+
+            // Redirect to home page after a short delay
+            setTimeout(() => {
+                router.push('/');
+            }, 2000); // Redirect after 2 seconds
+        },
+    });
+
+    const handleSoftDelete = async () => {
+        // ask for confirmation before deleting
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete this petition?',
+        );
+
+        // if confirmed, soft delete the petition
+        if (confirmDelete) {
+            await softDeleteMutation.mutateAsync({id: Number(petition_id)});
+        }
+    };
 
     const {mutate: updatePetition, isLoading: isPetitionSaving} =
         trpc.petitions.update.useMutation({
@@ -387,6 +416,14 @@ export default function EditPetition() {
                         disabled={isPetitionSaving}
                         onClick={handleUpdatePetition}>
                         Save Draft
+                    </Button>
+
+                    {/* soft delete button */}
+                    <Button
+                        size={'lg'}
+                        disabled={isPetitionSaving}
+                        onClick={handleSoftDelete}>
+                        Delete
                     </Button>
                 </div>
             </div>
