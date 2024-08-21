@@ -4,7 +4,7 @@ import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
 import InputBox from './InputBox';
 import Comment from './Comment';
-import {treeify} from './utils';
+import {treeify} from './utils.js';
 
 export default function CommentThread() {
     const {petition_id} = useParams() as {petition_id: string};
