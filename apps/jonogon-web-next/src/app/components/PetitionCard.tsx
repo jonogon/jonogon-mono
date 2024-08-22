@@ -5,6 +5,7 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function PetitionCard(props: {
     id: string;
@@ -13,6 +14,14 @@ export default function PetitionCard(props: {
     date: Date;
     target: string;
     title: string;
+    attachment: {
+        id: string;
+        type: string;
+        attachment: string | null;
+        created_at: string | null;
+        filename: string | null;
+        thumbnail: string | null;
+    };
 
     status: string;
 
@@ -29,6 +38,13 @@ export default function PetitionCard(props: {
     return (
         <Card className={''}>
             <CardHeader className={''}>
+                {/* <Image
+                    src={`http://$CORE_HOSTNAME:12001/static/${props.img}`}
+                    alt={props.title}
+                    className="w-full h-48 object-cover"
+                    width={300}
+                    height={200}
+                /> */}
                 <CardTitle>
                     <div
                         className={

@@ -9,7 +9,6 @@ import {
 import PetitionCard from './PetitionCard';
 import {trpc} from '@/trpc';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
-import { useEffect } from 'react';
 
 const PetitionList = () => {
     const params = useSearchParams();
@@ -41,10 +40,6 @@ const PetitionList = () => {
         router.push(`${pathname}?${nextParams}`);
     };
 
-    useEffect(() => {
-        console.log(petitions);
-    }, [petitions]);
-
     return (
         <div>
             <div
@@ -61,6 +56,18 @@ const PetitionList = () => {
                             status={p.data.status}
                             name={p.extras.user.name ?? ''}
                             title={p.data.title ?? 'Untitled Petition'}
+                            attachment={
+                                typeof p.data.attachment === 'string'
+                                    ? p.data.attachment
+                                    : {
+                                          id: '',
+                                          type: '',
+                                          attachment: null,
+                                          created_at: null,
+                                          filename: null,
+                                          thumbnail: null,
+                                      }
+                            }
                             date={new Date(p.data.submitted_at ?? '1970-01-01')}
                             target={p.data.target ?? 'Some Ministry'}
                             key={p.data.id ?? 0}
