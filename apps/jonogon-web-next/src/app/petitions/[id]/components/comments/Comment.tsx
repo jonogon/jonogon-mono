@@ -4,7 +4,13 @@ import InputBox from './InputBox';
 import {trpc} from '@/trpc';
 import {RiThumbUpFill, RiThumbUpLine} from 'react-icons/ri';
 
-export default function Comment({comment, refetch, inputRef}: CommentProps) {
+export default function Comment({
+    comment,
+    refetch,
+    inputRef,
+    focusedCommentId,
+    setFocusedCommentId,
+}: CommentProps) {
     const [comments, setComments] = useState<NestedComment[]>(
         comment.children ?? [],
     );
@@ -44,7 +50,7 @@ export default function Comment({comment, refetch, inputRef}: CommentProps) {
     };
 
     const focusInput = () => {
-        setInputOpened(true);
+        setFocusedCommentId(comment.id);
         inputRef.current?.focus();
     };
 
@@ -53,7 +59,7 @@ export default function Comment({comment, refetch, inputRef}: CommentProps) {
             <div className="flex flex-row relative">
                 <div className="w-10 h-10 rounded-full bg-gray-100 border-2 absolute left-2 top-4"></div>
                 <div
-                    className={`w-full bg-white mt-2 rounded-lg ${inputOpened ? 'border-2 border-blue-500' : ''}`}>
+                    className={`w-full bg-white mt-2 rounded-lg ${focusedCommentId == comment.id ? 'border-2 border-blue-500' : ''}`}>
                     <div className="p-4">
                         <div className="ml-10 flex flex-row justify-between">
                             <p className="font-semibold">
@@ -88,102 +94,58 @@ export default function Comment({comment, refetch, inputRef}: CommentProps) {
                         <p className="mt-4">{comment?.body}</p>
                     </div>
 
-                    <div className="border-t px-4 py-2">
-                        {childrenExpanded ? (
-                            <div className="flex justify-between">
-                                <p
-                                    className="cursor-pointer font-semibold"
-                                    onClick={() => {
-                                        setChildrenExpanded(false);
-                                    }}>
-                                    Hide {comments.length} Replies
-                                </p>
-                                <p
-                                    className="cursor-pointer font-semibold"
-                                    onClick={focusInput}>
-                                    Reply
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="flex justify-between">
-                                {Number(comment.depth) < 2 &&
-                                comments.length ? (
-                                    <>
-                                        <p
-                                            className="cursor-pointer font-semibold"
-                                            onClick={() => {
-                                                setChildrenExpanded(true);
-                                            }}>
-                                            {comments.length} Replies
-                                        </p>
-                                        <p
-                                            className="cursor-pointer font-semibold"
-                                            onClick={focusInput}>
-                                            Reply
-                                        </p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p></p>
-                                        <p
-                                            className="cursor-pointer font-semibold"
-                                            onClick={focusInput}>
-                                            Reply
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    {Number(comment.depth) < 2 && (
+                        <div className="border-t px-4 py-2">
+                            {childrenExpanded ? (
+                                <div className="flex justify-between">
+                                    <p
+                                        className="cursor-pointer font-semibold"
+                                        onClick={() => {
+                                            setChildrenExpanded(false);
+                                        }}>
+                                        Hide {comments.length} Replies
+                                    </p>
+                                    <p
+                                        className="cursor-pointer font-semibold"
+                                        onClick={focusInput}>
+                                        Reply
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between">
+                                    {Number(comment.depth) < 2 &&
+                                    comments.length ? (
+                                        <>
+                                            <p
+                                                className="cursor-pointer font-semibold"
+                                                onClick={() => {
+                                                    setChildrenExpanded(true);
+                                                }}>
+                                                {comments.length} Replies
+                                            </p>
+                                            <p
+                                                className="cursor-pointer font-semibold"
+                                                onClick={focusInput}>
+                                                Reply
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p></p>
+                                            <p
+                                                className="cursor-pointer font-semibold"
+                                                onClick={focusInput}>
+                                                Reply
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="flex flex-row text-sm gap-4 cursor-pointer my-1">
-                {/* <p>{totalVotes} likes</p>
-                {liked ? (
-                    <button className={'font-bold'} onClick={unlikeComment}>
-                        liked
-                    </button>
-                ) : (
-                    <button onClick={likeComment}>like</button>
-                )}
-
-                <p
-                    onClick={() => {
-                        setInputOpened(true);
-                    }}>
-                    reply
-                </p> */}
-                {/* {!!comments?.length &&
-                    (childrenExpanded ? (
-                        <p
-                            onClick={() => {
-                                setChildrenExpanded(false);
-                            }}>
-                            less
-                        </p>
-                    ) : (
-                        <p
-                            onClick={() => {
-                                setChildrenExpanded(true);
-                            }}>
-                            more
-                        </p>
-                    ))} */}
-            </div>
-
-            {/* {inputOpened && (
-                <>
-                    <InputBox parentId={comment.id} refetch={refetch} />
-                    <button
-                        className="px-4 border rounded"
-                        onClick={() => {
-                            setInputOpened(false);
-                        }}>
-                        Cancel
-                    </button>
-                </>
-            )} */}
             {Number(comment.depth) < 2 && childrenExpanded && (
                 <div className="flex flex-row">
                     <div className="border-l h-auto ml-3"></div>
@@ -191,7 +153,15 @@ export default function Comment({comment, refetch, inputRef}: CommentProps) {
                         {comments?.map((c) => {
                             return (
                                 <div className="ml-4 flex flex-col" key={c.id}>
-                                    <Comment comment={c} refetch={refetch} />
+                                    <Comment
+                                        comment={c}
+                                        refetch={refetch}
+                                        inputRef={inputRef}
+                                        focusedCommentId={focusedCommentId}
+                                        setFocusedCommentId={
+                                            setFocusedCommentId
+                                        }
+                                    />
                                 </div>
                             );
                         })}

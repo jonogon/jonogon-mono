@@ -4,7 +4,12 @@ import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
 import {AiOutlineSend} from 'react-icons/ai';
 
-export default function InputBox({parentId, refetch, inputRef}: InputProps) {
+export default function InputBox({
+    refetch,
+    inputRef,
+    focusedCommentId,
+    setFocusedCommentId,
+}: InputProps) {
     const [inputBody, setInputBody] = useState('');
     // const inputRef = useRef<HTMLInputElement>(null);
 
@@ -16,15 +21,12 @@ export default function InputBox({parentId, refetch, inputRef}: InputProps) {
         await createComment.mutateAsync({
             body: inputBody,
             petition_id: id,
-            parent_id: parentId,
+            parent_id: focusedCommentId == '' ? undefined : focusedCommentId,
         });
         setInputBody('');
+        setFocusedCommentId('');
         refetch();
     };
-
-    // const onFocus = () => {
-    //     inputRef?.current?.focus();
-    // };
 
     return (
         <div className="py-2 w-full">
@@ -43,9 +45,7 @@ export default function InputBox({parentId, refetch, inputRef}: InputProps) {
                     size={24}
                     color="#4a4239"
                     className="mx-1 cursor-pointer"
-                    onClick={() => {
-                        onEnter;
-                    }}
+                    onClick={onEnter}
                 />
             </div>
         </div>

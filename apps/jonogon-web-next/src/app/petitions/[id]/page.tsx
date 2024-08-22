@@ -42,6 +42,8 @@ export default function Petition() {
         setNestedComments(treeify(comments?.data ?? []));
     }, [comments]);
 
+    const [focusedCommentId, setFocusedCommentId] = useState('');
+
     const inputRef = useRef<HTMLInputElement>(null);
 
     const [userVote, setUserVote] = useState(0);
@@ -136,198 +138,211 @@ export default function Petition() {
 
     return (
         <>
-            <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
-                {isOwnPetition || isMod || isAdmin ? (
-                    <div
-                        className={
-                            'bg-border px-3 py-2 rounded-lg flex justify-end items-center gap-2'
-                        }>
-                        {status === 'rejected' ? (
-                            <div className={'flex-1'}>
+            <div
+                className="w-full"
+                onMouseDown={() => {
+                    setFocusedCommentId('');
+                }}>
+                <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
+                    {isOwnPetition || isMod || isAdmin ? (
+                        <div
+                            className={
+                                'bg-border px-3 py-2 rounded-lg flex justify-end items-center gap-2'
+                            }>
+                            {status === 'rejected' ? (
+                                <div className={'flex-1'}>
+                                    <div
+                                        className={
+                                            'font-bold text-red-500 text-sm'
+                                        }>
+                                        Your petition was rejected.
+                                    </div>
+                                    <div>
+                                        {petition?.data.rejection_reason ?? ''}
+                                    </div>
+                                </div>
+                            ) : null}
+                            {isMod || isAdmin ? (
                                 <div
                                     className={
-                                        'font-bold text-red-500 text-sm'
+                                        'flex flex-row gap-2 items-center'
                                     }>
-                                    Your petition was rejected.
-                                </div>
-                                <div>
-                                    {petition?.data.rejection_reason ?? ''}
-                                </div>
-                            </div>
-                        ) : null}
-                        {isMod || isAdmin ? (
-                            <div className={'flex flex-row gap-2 items-center'}>
-                                {status === 'submitted' ? (
-                                    <span className={'text-sm'}>
-                                        NOT MODERATED YET
-                                    </span>
-                                ) : null}
-                                {status === 'approved' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna elevate to this some next level shizz?',
-                                            ) &&
-                                            formalize({
-                                                petition_id:
-                                                    Number(petition_id),
-                                            })
-                                        }>
-                                        Formalize
-                                    </Button>
-                                ) : null}
-                                {status === 'submitted' ||
-                                status === 'rejected' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna approve?',
-                                            ) &&
-                                            approve({
-                                                petition_id:
-                                                    Number(petition_id),
-                                            })
-                                        }>
-                                        Approve
-                                    </Button>
-                                ) : null}
-                                {status !== 'rejected' && status !== 'draft' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'default'}
-                                        onClick={() => {
-                                            const rejectionReason =
-                                                window.prompt(
-                                                    'Why you rejecting? (leave empty to cancel)',
-                                                );
-
-                                            rejectionReason &&
-                                                reject({
+                                    {status === 'submitted' ? (
+                                        <span className={'text-sm'}>
+                                            NOT MODERATED YET
+                                        </span>
+                                    ) : null}
+                                    {status === 'approved' ? (
+                                        <Button
+                                            size={'sm'}
+                                            intent={'success'}
+                                            onClick={() =>
+                                                window.confirm(
+                                                    'You sure you wanna elevate to this some next level shizz?',
+                                                ) &&
+                                                formalize({
                                                     petition_id:
                                                         Number(petition_id),
-                                                    reason: rejectionReason,
-                                                });
-                                        }}>
-                                        Reject
-                                    </Button>
-                                ) : null}
-                            </div>
-                        ) : null}
+                                                })
+                                            }>
+                                            Formalize
+                                        </Button>
+                                    ) : null}
+                                    {status === 'submitted' ||
+                                    status === 'rejected' ? (
+                                        <Button
+                                            size={'sm'}
+                                            intent={'success'}
+                                            onClick={() =>
+                                                window.confirm(
+                                                    'You sure you wanna approve?',
+                                                ) &&
+                                                approve({
+                                                    petition_id:
+                                                        Number(petition_id),
+                                                })
+                                            }>
+                                            Approve
+                                        </Button>
+                                    ) : null}
+                                    {status !== 'rejected' &&
+                                    status !== 'draft' ? (
+                                        <Button
+                                            size={'sm'}
+                                            intent={'default'}
+                                            onClick={() => {
+                                                const rejectionReason =
+                                                    window.prompt(
+                                                        'Why you rejecting? (leave empty to cancel)',
+                                                    );
 
-                        {isOwnPetition || isAdmin ? (
-                            <Button
-                                size={'sm'}
-                                onClick={() =>
-                                    router.push(
-                                        `/petitions/${petition_id}/edit`,
-                                    )
-                                }>
-                                Edit দাবি
-                            </Button>
-                        ) : null}
-                    </div>
-                ) : null}
-                <div className={'space-x-1 text-lg text-stone-500'}>
-                    <time
-                        dateTime={
-                            petition?.data.created_at
+                                                rejectionReason &&
+                                                    reject({
+                                                        petition_id:
+                                                            Number(petition_id),
+                                                        reason: rejectionReason,
+                                                    });
+                                            }}>
+                                            Reject
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            ) : null}
+
+                            {isOwnPetition || isAdmin ? (
+                                <Button
+                                    size={'sm'}
+                                    onClick={() =>
+                                        router.push(
+                                            `/petitions/${petition_id}/edit`,
+                                        )
+                                    }>
+                                    Edit দাবি
+                                </Button>
+                            ) : null}
+                        </div>
+                    ) : null}
+                    <div className={'space-x-1 text-lg text-stone-500'}>
+                        <time
+                            dateTime={
+                                petition?.data.created_at
+                                    ? new Date(
+                                          petition.data.created_at,
+                                      ).toISOString()
+                                    : ''
+                            }
+                            suppressHydrationWarning>
+                            {petition?.data.created_at
                                 ? new Date(
                                       petition.data.created_at,
-                                  ).toISOString()
-                                : ''
-                        }
-                        suppressHydrationWarning>
-                        {petition?.data.created_at
-                            ? new Date(
-                                  petition.data.created_at,
-                              ).toLocaleDateString('en-GB', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                              })
-                            : 'UNKNOWN DATE'}
-                        {','}
-                    </time>
-                    <span className={'italic font-semibold'}>
-                        {petition?.extras.user.name ?? ''}
-                    </span>
-                    <span>—</span>
-                    <span>To</span>
-                    <span className={'italic font-semibold'}>
-                        {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
-                    </span>
+                                  ).toLocaleDateString('en-GB', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                  })
+                                : 'UNKNOWN DATE'}
+                            {','}
+                        </time>
+                        <span className={'italic font-semibold'}>
+                            {petition?.extras.user.name ?? ''}
+                        </span>
+                        <span>—</span>
+                        <span>To</span>
+                        <span className={'italic font-semibold'}>
+                            {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
+                        </span>
+                    </div>
+                    <h1 className="text-4xl font-bold font-serif">
+                        {petition?.data.title ?? 'Untiled Petition'}
+                    </h1>
+                    <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
+                        <span>It affects</span>
+                        <span className={'italic font-semibold'}>
+                            {petition?.data.location ?? 'SOMEONE, SOMEWHERE'}.
+                        </span>
+                    </div>
+                    <ImageCarousel />
+                    {petition?.data.description && (
+                        <Markdown>
+                            {petition.data.description ?? 'No description yet.'}
+                        </Markdown>
+                    )}
+                    <div
+                        className={
+                            'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
+                        }>
+                        <Button
+                            variant={
+                                userVote === 1 || userVote === 0
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            intent={'success'}
+                            size={'lg'}
+                            className="flex-1 w-full"
+                            onClick={clickThumbsUp}>
+                            {status === 'formalized' ? (
+                                <>
+                                    <p className="ml-2">{upvoteCount} — VOTE</p>
+                                </>
+                            ) : (
+                                <>
+                                    <ThumbsUp size={20} />{' '}
+                                    <p className="ml-2">{upvoteCount}</p>
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            variant={
+                                userVote === -1 || userVote === 0
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            intent={'default'}
+                            className="flex-1 w-full"
+                            size={'lg'}
+                            onClick={clickThumbsDown}>
+                            <ThumbsDown size={20} />{' '}
+                            <p className="ml-2">{downvoteCount}</p>
+                        </Button>
+                    </div>
+                    <CommentThread
+                        comments={nestedComments}
+                        refetch={refetchComments}
+                        inputRef={inputRef}
+                        focusedCommentId={focusedCommentId}
+                        setFocusedCommentId={setFocusedCommentId}
+                    />
                 </div>
-                <h1 className="text-4xl font-bold font-serif">
-                    {petition?.data.title ?? 'Untiled Petition'}
-                </h1>
-                <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
-                    <span>It affects</span>
-                    <span className={'italic font-semibold'}>
-                        {petition?.data.location ?? 'SOMEONE, SOMEWHERE'}.
-                    </span>
-                </div>
-                <ImageCarousel />
-                {petition?.data.description && (
-                    <Markdown>
-                        {petition.data.description ?? 'No description yet.'}
-                    </Markdown>
-                )}
-                <div
-                    className={
-                        'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
-                    }>
-                    <Button
-                        variant={
-                            userVote === 1 || userVote === 0
-                                ? 'default'
-                                : 'outline'
-                        }
-                        intent={'success'}
-                        size={'lg'}
-                        className="flex-1 w-full"
-                        onClick={clickThumbsUp}>
-                        {status === 'formalized' ? (
-                            <>
-                                <p className="ml-2">{upvoteCount} — VOTE</p>
-                            </>
-                        ) : (
-                            <>
-                                <ThumbsUp size={20} />{' '}
-                                <p className="ml-2">{upvoteCount}</p>
-                            </>
-                        )}
-                    </Button>
-                    <Button
-                        variant={
-                            userVote === -1 || userVote === 0
-                                ? 'default'
-                                : 'outline'
-                        }
-                        intent={'default'}
-                        className="flex-1 w-full"
-                        size={'lg'}
-                        onClick={clickThumbsDown}>
-                        <ThumbsDown size={20} />{' '}
-                        <p className="ml-2">{downvoteCount}</p>
-                    </Button>
-                </div>
-                <CommentThread
-                    comments={nestedComments}
-                    refetch={refetchComments}
-                    inputRef={inputRef}
-                />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div className="flex justify-center">
                     <div className="w-full max-w-screen-sm">
                         <InputBox
-                            parentId={undefined}
                             refetch={refetchComments}
                             inputRef={inputRef}
+                            focusedCommentId={focusedCommentId}
+                            setFocusedCommentId={setFocusedCommentId}
                         />
                     </div>
                 </div>

@@ -38,6 +38,8 @@ export function CommentThread({
     comments,
     refetch,
     inputRef,
+    focusedCommentId,
+    setFocusedCommentId,
 }: CommentThreadProps) {
     return (
         <>
@@ -49,6 +51,8 @@ export function CommentThread({
                             refetch={refetch}
                             key={comment.id}
                             inputRef={inputRef}
+                            focusedCommentId={focusedCommentId}
+                            setFocusedCommentId={setFocusedCommentId}
                         />
                     );
                 })}

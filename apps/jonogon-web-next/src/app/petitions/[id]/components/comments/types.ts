@@ -21,19 +21,24 @@ export interface NestedComment extends Comment {
 }
 
 export interface InputProps {
-    parentId: string | undefined;
     refetch: () => void;
     inputRef: RefObject<HTMLInputElement>;
+    focusedCommentId: string;
+    setFocusedCommentId: (x: string) => void;
 }
 
 export interface CommentThreadProps {
     comments: NestedComment[];
     refetch: () => void;
     inputRef: RefObject<HTMLInputElement>;
+    focusedCommentId: string;
+    setFocusedCommentId: (x: string) => void;
 }
 
 export interface CommentProps {
     comment: NestedComment;
     refetch: () => void;
     inputRef: RefObject<HTMLInputElement>;
+    focusedCommentId: string;
+    setFocusedCommentId: (x: string) => void;
 }
