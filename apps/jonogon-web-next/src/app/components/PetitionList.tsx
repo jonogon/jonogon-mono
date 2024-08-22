@@ -56,18 +56,7 @@ const PetitionList = () => {
                             status={p.data.status}
                             name={p.extras.user.name ?? ''}
                             title={p.data.title ?? 'Untitled Petition'}
-                            attachment={
-                                typeof p.data.attachment === 'string'
-                                    ? p.data.attachment
-                                    : {
-                                          id: '',
-                                          type: '',
-                                          attachment: null,
-                                          created_at: null,
-                                          filename: null,
-                                          thumbnail: null,
-                                      }
-                            }
+                            attachment={p.data.attachment ?? ''}
                             date={new Date(p.data.submitted_at ?? '1970-01-01')}
                             target={p.data.target ?? 'Some Ministry'}
                             key={p.data.id ?? 0}

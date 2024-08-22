@@ -14,14 +14,7 @@ export default function PetitionCard(props: {
     date: Date;
     target: string;
     title: string;
-    attachment: {
-        id: string;
-        type: string;
-        attachment: string | null;
-        created_at: string | null;
-        filename: string | null;
-        thumbnail: string | null;
-    };
+    attachment: any;
 
     status: string;
 
@@ -39,12 +32,22 @@ export default function PetitionCard(props: {
         <Card className={''}>
             <CardHeader className={''}>
                 {/* <Image
-                    src={`http://$CORE_HOSTNAME:12001/static/${props.img}`}
-                    alt={props.title}
-                    className="w-full h-48 object-cover"
+                    src={`${props.attachment.attachment}`.replace(
+                        '$CORE_HOSTNAME',
+                        window.location.hostname,
+                    )}
+                    className="w-full h-full bg-red-500"
+                    alt={props.attachment.filename ?? 'Untitled Petition'}
                     width={300}
                     height={200}
                 /> */}
+                <img
+                    src={`${props.attachment.attachment}`.replace(
+                        '$CORE_HOSTNAME',
+                        window.location.hostname,
+                    )}
+                    className="w-full h-full bg-red-500"
+                />
                 <CardTitle>
                     <div
                         className={
