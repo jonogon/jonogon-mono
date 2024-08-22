@@ -9,6 +9,7 @@ import {
 import PetitionCard from './PetitionCard';
 import {trpc} from '@/trpc';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import { useEffect } from 'react';
 
 const PetitionList = () => {
     const params = useSearchParams();
@@ -39,6 +40,10 @@ const PetitionList = () => {
 
         router.push(`${pathname}?${nextParams}`);
     };
+
+    useEffect(() => {
+        console.log(petitions);
+    }, [petitions]);
 
     return (
         <div>

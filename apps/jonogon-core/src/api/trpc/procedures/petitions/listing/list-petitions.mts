@@ -121,6 +121,11 @@ export const listPetitions = publicProcedure
                     .onRef('petitions.id', '=', 'votes.petition_id')
                     .on('votes.user_id', '=', `${ctx.auth?.user_id ?? 0}`),
             )
+            .leftJoin('petition_attachments as attachments', (join) =>
+                join
+                    .onRef('petitions.id', '=', 'attachments.petition_id')
+                    .on('attachments.deleted_at', 'is', null),
+            )
             .selectAll('petitions')
             .select([
                 'users.name as user_name',
@@ -128,6 +133,16 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote as user_vote',
+                'attachments.attachment as attachment_url',
+            ])
+            .groupBy([
+                'petitions.id',
+                'users.name',
+                'users.picture',
+                'result_with_downvotes.petition_upvote_count',
+                'result_with_downvotes.petition_downvote_count',
+                'votes.vote',
+                'attachments.attachment',
             ]);
 
         const data =
@@ -170,6 +185,7 @@ export const listPetitions = publicProcedure
                         picture: petition.user_picture,
                     },
                     status: deriveStatus(petition),
+                    attachment_url: petition.attachment_url,
                 },
                 extras: {
                     user_vote: petition.user_vote,
