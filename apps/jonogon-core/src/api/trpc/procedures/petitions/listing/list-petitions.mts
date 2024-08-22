@@ -113,6 +113,27 @@ export const listPetitions = publicProcedure
                     ])
                     .groupBy(['results.id', 'results.petition_upvote_count']);
             })
+            .with('first_attachments', (db) => {
+                return db
+                    .selectFrom('results')
+                    .innerJoin('petition_attachments', (join) => {
+                        return join
+                            .onRef(
+                                'results.id',
+                                '=',
+                                'petition_attachments.petition_id',
+                            )
+                            .on('petition_attachments.deleted_at', 'is', null)
+                            .on('petition_attachments.is_image', '=', true);
+                    })
+                    .select([
+                        'petition_attachments.petition_id',
+                        'petition_attachments.attachment',
+                    ])
+                    .distinctOn('petition_attachments.petition_id')
+                    .orderBy('petition_attachments.petition_id', 'asc')
+                    .orderBy('petition_attachments.created_at', 'asc');
+            })
             .selectFrom('result_with_downvotes')
             .innerJoin('petitions', 'petitions.id', 'result_with_downvotes.id')
             .innerJoin('users', 'users.id', 'petitions.created_by')
@@ -121,6 +142,11 @@ export const listPetitions = publicProcedure
                     .onRef('petitions.id', '=', 'votes.petition_id')
                     .on('votes.user_id', '=', `${ctx.auth?.user_id ?? 0}`),
             )
+            .leftJoin(
+                'first_attachments',
+                'first_attachments.petition_id',
+                'petitions.id',
+            )
             .selectAll('petitions')
             .select([
                 'users.name as user_name',
@@ -128,6 +154,7 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote as user_vote',
+                'first_attachments.attachment as attachment',
             ]);
 
         const data =
@@ -148,36 +175,45 @@ export const listPetitions = publicProcedure
 
         return {
             input,
-            data: data.map((petition) => ({
-                data: {
-                    ...pick(petition, [
-                        'id',
-                        'title',
-                        'location',
-                        'target',
-                        'created_at',
-                        'submitted_at',
-                        'rejected_at',
-                        'rejection_reason',
-                        'approved_at',
-                        'formalized_at',
-                        'petition_upvote_count',
-                        'petition_downvote_count',
-                    ]),
-                    created_by: {
-                        id: petition.created_by,
-                        name: petition.user_name,
-                        picture: petition.user_picture,
+            data: await Promise.all(
+                // Use await here
+                data.map(async (petition) => ({
+                    data: {
+                        ...pick(petition, [
+                            'id',
+                            'title',
+                            'location',
+                            'target',
+                            'created_at',
+                            'submitted_at',
+                            'rejected_at',
+                            'rejection_reason',
+                            'approved_at',
+                            'formalized_at',
+                            'petition_upvote_count',
+                            'petition_downvote_count',
+                        ]),
+                        created_by: {
+                            id: petition.created_by,
+                            name: petition.user_name,
+                            picture: petition.user_picture,
+                        },
+                        status: deriveStatus(petition),
+                        attachment: petition.attachment
+                            ? await ctx.services.fileStorage.getFileURL(
+                                  // Await the promise here
+                                  petition.attachment,
+                              )
+                            : null,
                     },
-                    status: deriveStatus(petition),
-                },
-                extras: {
-                    user_vote: petition.user_vote,
-                    user: {
-                        name: petition.user_name,
-                        picture: petition.user_picture,
+                    extras: {
+                        user_vote: petition.user_vote,
+                        user: {
+                            name: petition.user_name,
+                            picture: petition.user_picture,
+                        },
                     },
-                },
-            })),
+                })),
+            ),
         };
     });

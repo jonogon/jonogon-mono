@@ -5,6 +5,7 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function PetitionCard(props: {
     id: string;
@@ -13,6 +14,7 @@ export default function PetitionCard(props: {
     date: Date;
     target: string;
     title: string;
+    attachment: string;
 
     status: string;
 
@@ -29,19 +31,16 @@ export default function PetitionCard(props: {
     return (
         <Card className={''}>
             <CardHeader className={''}>
+                {props.attachment && (
+                    <img
+                        src={`${props.attachment}`.replace(
+                            '$CORE_HOSTNAME',
+                            window.location.hostname,
+                        )}
+                        className="w-full h-full bg-red-500 rounded-lg"
+                    />
+                )}
                 <CardTitle>
-                    <div
-                        className={
-                            'font-normal text-base text-neutral-500 pb-2'
-                        }>
-                        {props.name},{' '}
-                        <time
-                            dateTime={props.date.toISOString()}
-                            suppressHydrationWarning>
-                            {formatDate(props.date)}
-                        </time>{' '}
-                        — To, <i>{props.target}</i>
-                    </div>
                     <div>
                         <Link
                             href={`/petitions/${props.id}`}
@@ -50,6 +49,22 @@ export default function PetitionCard(props: {
                             }>
                             {props.title}
                         </Link>
+                    </div>
+                    <div
+                        className={
+                            'font-normal text-base text-neutral-500 pb-2'
+                        }>
+                        <div>
+                            {props.name},{' '}
+                            <time
+                                dateTime={props.date.toISOString()}
+                                suppressHydrationWarning>
+                                {formatDate(props.date)}
+                            </time>{' '}
+                        </div>
+                        <div>
+                            — To, <i>{props.target}</i>
+                        </div>
                     </div>
                 </CardTitle>
             </CardHeader>
