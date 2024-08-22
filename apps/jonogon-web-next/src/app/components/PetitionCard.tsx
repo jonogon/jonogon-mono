@@ -31,13 +31,15 @@ export default function PetitionCard(props: {
     return (
         <Card className={''}>
             <CardHeader className={''}>
-                <img
-                    src={`${props.attachment.attachment}`.replace(
-                        '$CORE_HOSTNAME',
-                        window.location.hostname,
-                    )}
-                    className="w-full h-full bg-red-500 rounded-lg"
-                />
+                {props.attachment.attachment && (
+                    <img
+                        src={`${props.attachment.attachment}`.replace(
+                            '$CORE_HOSTNAME',
+                            window.location.hostname,
+                        )}
+                        className="w-full h-full bg-red-500 rounded-lg"
+                    />
+                )}
                 <CardTitle>
                     <div>
                         <Link
