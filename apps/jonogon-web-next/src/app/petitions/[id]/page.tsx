@@ -10,6 +10,7 @@ import {ImageCarousel} from './components/ImageCarousel';
 import {trpc} from '@/trpc';
 import {useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter} from 'next/navigation';
+import {CommentThread} from './components/comments/Thread';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -65,7 +66,7 @@ export default function Petition() {
             redirectToLoginPage();
             return;
         }
-        
+
         if (userVote == -1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
@@ -84,7 +85,7 @@ export default function Petition() {
     const redirectToLoginPage = () => {
         const nextUrl = encodeURIComponent(`/petitions/${petition_id}`);
         router.push(`/login?next=${nextUrl}`);
-    }
+    };
 
     const upvoteCount = petition?.data.petition_upvote_count ?? 0;
     const downvoteCount = petition?.data.petition_downvote_count ?? 0;
@@ -224,8 +225,7 @@ export default function Petition() {
                                   ).toISOString()
                                 : ''
                         }
-                        suppressHydrationWarning
-                    >
+                        suppressHydrationWarning>
                         {petition?.data.created_at
                             ? new Date(
                                   petition.data.created_at,
@@ -261,6 +261,7 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
+                <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div

@@ -3,6 +3,7 @@ import {publicProcedure, router} from '../index.mjs';
 import {userRouter} from './users.mjs';
 import {authRouter} from './auth.mjs';
 import {petitionRouter} from './petitions.mjs';
+import {commentRouter} from './comments.mjs';
 
 export const appRouter = router({
     _: publicProcedure.query(() => {
@@ -13,6 +14,7 @@ export const appRouter = router({
     auth: authRouter,
     users: userRouter,
     petitions: petitionRouter,
+    comments: commentRouter,
 });
 
 export type TAppRouter = typeof appRouter;
