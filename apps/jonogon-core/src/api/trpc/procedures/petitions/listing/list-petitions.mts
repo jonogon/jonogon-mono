@@ -116,15 +116,7 @@ export const listPetitions = publicProcedure
             .with('first_attachment', (db) => {
                 return db
                     .selectFrom('petition_attachments')
-                    .select([
-                        'petition_id',
-                        'id as attachment_id',
-                        'filename as attachment_filename',
-                        'created_at as attachment_created_at',
-                        'is_image as attachment_is_image',
-                        'thumbnail as attachment_thumbnail',
-                        'attachment as attachment_url',
-                    ])
+                    .select(['petition_id', 'attachment as attachment_url'])
                     .where('deleted_at', 'is', null)
                     .distinctOn('petition_id')
                     .orderBy('petition_id')
@@ -150,11 +142,6 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote as user_vote',
-                'first_attachment.attachment_id',
-                'first_attachment.attachment_filename',
-                'first_attachment.attachment_created_at',
-                'first_attachment.attachment_is_image',
-                'first_attachment.attachment_thumbnail',
                 'first_attachment.attachment_url',
             ])
             .groupBy([
@@ -164,11 +151,6 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote',
-                'first_attachment.attachment_id',
-                'first_attachment.attachment_filename',
-                'first_attachment.attachment_created_at',
-                'first_attachment.attachment_is_image',
-                'first_attachment.attachment_thumbnail',
                 'first_attachment.attachment_url',
             ]);
 
@@ -213,25 +195,10 @@ export const listPetitions = publicProcedure
                             picture: petition.user_picture,
                         },
                         status: deriveStatus(petition),
-                        attachment: petition.attachment_id
-                            ? {
-                                  id: petition.attachment_id,
-                                  filename: petition.attachment_filename,
-                                  created_at: petition.attachment_created_at,
-                                  type: petition.attachment_is_image
-                                      ? 'image'
-                                      : 'file',
-                                  thumbnail: petition.attachment_thumbnail
-                                      ? await ctx.services.fileStorage.getFileURL(
-                                            petition.attachment_thumbnail,
-                                        )
-                                      : null,
-                                  attachment: petition.attachment_url
-                                      ? await ctx.services.fileStorage.getFileURL(
-                                            petition.attachment_url,
-                                        )
-                                      : null,
-                              }
+                        attachment: petition.attachment_url
+                            ? await ctx.services.fileStorage.getFileURL(
+                                  petition.attachment_url,
+                              )
                             : null,
                     },
                     extras: {

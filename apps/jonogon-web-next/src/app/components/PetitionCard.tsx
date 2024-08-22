@@ -14,7 +14,7 @@ export default function PetitionCard(props: {
     date: Date;
     target: string;
     title: string;
-    attachment: any;
+    attachment: string;
 
     status: string;
 
@@ -31,9 +31,9 @@ export default function PetitionCard(props: {
     return (
         <Card className={''}>
             <CardHeader className={''}>
-                {props.attachment.attachment && (
+                {props.attachment && (
                     <img
-                        src={`${props.attachment.attachment}`.replace(
+                        src={`${props.attachment}`.replace(
                             '$CORE_HOSTNAME',
                             window.location.hostname,
                         )}
