@@ -23,6 +23,8 @@ export default function EditPetition() {
     const {id: petition_id} = useParams<{id: string}>();
     const router = useRouter();
 
+    const freshValue = params.get('fresh');
+
     const [attachmentQueue, setAttachmentQueue] = useState<
         {
             type: 'image' | 'attachment';
@@ -178,7 +180,7 @@ export default function EditPetition() {
                 className={
                     'text-5xl py-12 md:py-10 font-regular text-stone-600 leading-0'
                 }>
-                {'fresh' in params ? '✊ Create New দাবি' : '✊ Update দাবি'}
+                {freshValue ? '✊ Create New দাবি' : '✊ Update দাবি'}
             </h1>
             <div className="flex flex-col gap-5 py-4">
                 <div className="flex flex-col gap-2">
