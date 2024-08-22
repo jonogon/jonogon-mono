@@ -300,6 +300,51 @@ export const removeAttachment = protectedProcedure
         };
     });
 
+export const softDeletePetition = protectedProcedure
+    .input(
+        z.object({
+            id: z.number(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        // Check if the petition exists
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        // Check if the user is authorized to delete the petition
+        if (
+            `${petition.created_by}` !== `${ctx.auth.user_id}` &&
+            !ctx.auth.is_user_admin
+        ) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'not-your-petition',
+            });
+        }
+
+        await ctx.services.postgresQueryBuilder
+            .updateTable('petitions')
+            .set({
+                deleted_at: new Date(),
+            })
+            .where('id', '=', `${input.id}`)
+            .executeTakeFirst();
+
+        return {
+            message: 'petition-soft-deleted',
+        };
+    });
+
 export const remove = protectedProcedure
     .input(
         z.object({
