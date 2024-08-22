@@ -14,11 +14,11 @@ const PetitionList = () => {
     const params = useSearchParams();
 
     const type =
-        params.get('type') === 'requests'
-            ? 'request'
+        params.get('type') === 'formalized'
+            ? 'formalized'
             : params.get('type') === 'own'
               ? 'own'
-              : 'formalized';
+              : 'request';
 
     const page = params.get('page') ? Number(params.get('page')) : 0;
 
