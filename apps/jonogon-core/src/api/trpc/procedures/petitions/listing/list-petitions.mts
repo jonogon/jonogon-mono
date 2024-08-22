@@ -115,12 +115,24 @@ export const listPetitions = publicProcedure
             })
             .with('first_attachments', (db) => {
                 return db
-                    .selectFrom('petition_attachments')
-                    .select(['petition_id', 'attachment'])
-                    .where('deleted_at', 'is', null)
-                    .distinctOn('petition_id')
-                    .orderBy('petition_id')
-                    .orderBy('created_at');
+                    .selectFrom('results')
+                    .innerJoin('petition_attachments', (join) => {
+                        return join
+                            .onRef(
+                                'results.id',
+                                '=',
+                                'petition_attachments.petition_id',
+                            )
+                            .on('petition_attachments.deleted_at', 'is', null)
+                            .on('petition_attachments.is_image', '=', true);
+                    })
+                    .select([
+                        'petition_attachments.petition_id',
+                        'petition_attachments.attachment',
+                    ])
+                    .distinctOn('petition_attachments.petition_id')
+                    .orderBy('petition_attachments.petition_id', 'asc')
+                    .orderBy('petition_attachments.created_at', 'asc');
             })
             .selectFrom('result_with_downvotes')
             .innerJoin('petitions', 'petitions.id', 'result_with_downvotes.id')
