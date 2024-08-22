@@ -14,6 +14,17 @@ import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {toast} from '@/components/ui/use-toast';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function EditPetition() {
     const {get: getToken} = useTokenManager();
@@ -45,39 +56,6 @@ export default function EditPetition() {
         },
         [setAttachmentQueue],
     );
-
-    const softDeleteMutation = trpc.petitions.softDelete.useMutation({
-        onSuccess: () => {
-            // Show success message
-            toast({
-                title: 'Success',
-                description: 'Petition has been successfully deleted.',
-                variant: 'default',
-            });
-
-            // Redirect to home page after a short delay
-            setTimeout(() => {
-                router.push('/?type=own');
-            }, 2000); // Redirect after 2 seconds
-        },
-    });
-
-    const handleSoftDelete = async () => {
-        // ask for confirmation before deleting
-        const confirmDelete = window.confirm(
-            'Are you sure you want to delete this petition?',
-        );
-
-        // if confirmed, soft delete the petition
-        if (confirmDelete) {
-            // await softDeleteMutation.mutateAsync({id: Number(petition_id)});
-            toast({
-                title: 'Success',
-                description: 'Petition has been successfully deleted.',
-                variant: 'destructive',
-            });
-        }
-    };
 
     const {mutate: updatePetition, isLoading: isPetitionSaving} =
         trpc.petitions.update.useMutation({
@@ -141,6 +119,26 @@ export default function EditPetition() {
             data: petitionData,
             also_submit: true,
         });
+    };
+
+    const softDeleteMutation = trpc.petitions.softDelete.useMutation({
+        onSuccess: () => {
+            // Show success message
+            toast({
+                title: 'Success',
+                description: 'Petition has been successfully deleted.',
+                variant: 'destructive',
+            });
+
+            // Redirect to home page after a short delay
+            setTimeout(() => {
+                router.push('/?type=own');
+            }, 2000); // Redirect after 2 seconds
+        },
+    });
+
+    const handleSoftDelete = async () => {
+        await softDeleteMutation.mutateAsync({id: Number(petition_id)});
     };
 
     const {mutate: uploadAttachment} = useMutation({
@@ -210,12 +208,46 @@ export default function EditPetition() {
 
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
-            <h1
-                className={
-                    'text-5xl py-12 md:py-10 font-regular text-stone-600 leading-0'
-                }>
-                {freshValue ? '✊ Create New দাবি' : '✊ Update দাবি'}
-            </h1>
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
+                <h1
+                    className={
+                        'text-5xl font-regular text-stone-600 leading-0'
+                    }>
+                    {freshValue ? '✊ Create New দাবি' : '✊ Update দাবি'}
+                </h1>
+                {freshValue ? (
+                    ''
+                ) : (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                size={'lg'}
+                                disabled={isPetitionSaving}
+                                variant={'outline'}>
+                                Delete
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete your account and remove
+                                    your data from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSoftDelete}>
+                                    Confirm
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
+            </div>
             <div className="flex flex-col gap-5 py-4">
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="title">
@@ -423,14 +455,6 @@ export default function EditPetition() {
                         disabled={isPetitionSaving}
                         onClick={handleUpdatePetition}>
                         Save Draft
-                    </Button>
-
-                    {/* soft delete button */}
-                    <Button
-                        size={'lg'}
-                        disabled={isPetitionSaving}
-                        onClick={handleSoftDelete}>
-                        Delete
                     </Button>
                 </div>
             </div>
