@@ -113,6 +113,23 @@ export const listPetitions = publicProcedure
                     ])
                     .groupBy(['results.id', 'results.petition_upvote_count']);
             })
+            .with('first_attachment', (db) => {
+                return db
+                    .selectFrom('petition_attachments')
+                    .select([
+                        'petition_id',
+                        'id as attachment_id',
+                        'filename as attachment_filename',
+                        'created_at as attachment_created_at',
+                        'is_image as attachment_is_image',
+                        'thumbnail as attachment_thumbnail',
+                        'attachment as attachment_url',
+                    ])
+                    .where('deleted_at', 'is', null)
+                    .distinctOn('petition_id')
+                    .orderBy('petition_id')
+                    .orderBy('created_at');
+            })
             .selectFrom('result_with_downvotes')
             .innerJoin('petitions', 'petitions.id', 'result_with_downvotes.id')
             .innerJoin('users', 'users.id', 'petitions.created_by')
@@ -121,10 +138,10 @@ export const listPetitions = publicProcedure
                     .onRef('petitions.id', '=', 'votes.petition_id')
                     .on('votes.user_id', '=', `${ctx.auth?.user_id ?? 0}`),
             )
-            .leftJoin('petition_attachments as attachments', (join) =>
-                join
-                    .onRef('petitions.id', '=', 'attachments.petition_id')
-                    .on('attachments.deleted_at', 'is', null),
+            .leftJoin(
+                'first_attachment',
+                'petitions.id',
+                'first_attachment.petition_id',
             )
             .selectAll('petitions')
             .select([
@@ -133,12 +150,12 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote as user_vote',
-                'attachments.id as attachment_id',
-                'attachments.filename as attachment_filename',
-                'attachments.created_at as attachment_created_at',
-                'attachments.is_image as attachment_is_image',
-                'attachments.thumbnail as attachment_thumbnail',
-                'attachments.attachment as attachment_url',
+                'first_attachment.attachment_id',
+                'first_attachment.attachment_filename',
+                'first_attachment.attachment_created_at',
+                'first_attachment.attachment_is_image',
+                'first_attachment.attachment_thumbnail',
+                'first_attachment.attachment_url',
             ])
             .groupBy([
                 'petitions.id',
@@ -147,12 +164,12 @@ export const listPetitions = publicProcedure
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
                 'votes.vote',
-                'attachments.id',
-                'attachments.filename',
-                'attachments.created_at',
-                'attachments.is_image',
-                'attachments.thumbnail',
-                'attachments.attachment',
+                'first_attachment.attachment_id',
+                'first_attachment.attachment_filename',
+                'first_attachment.attachment_created_at',
+                'first_attachment.attachment_is_image',
+                'first_attachment.attachment_thumbnail',
+                'first_attachment.attachment_url',
             ]);
 
         const data =
