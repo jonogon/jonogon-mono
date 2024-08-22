@@ -2,307 +2,462 @@
 
 export const runtime = 'edge';
 
-import {useEffect, useState} from 'react';
-import Markdown from 'react-markdown';
-import {ThumbsDown, ThumbsUp} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {ImageCarousel} from './components/ImageCarousel';
+import {useCallback, useEffect, useState} from 'react';
+import {useMutation} from '@tanstack/react-query';
+import {scope} from 'scope-utilities';
+import {TrashIcon} from '@radix-ui/react-icons';
+import {useTokenManager} from '@/auth/token-manager';
+import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {trpc} from '@/trpc';
-import {useAuthState} from '@/auth/token-manager';
-import {useParams, useRouter} from 'next/navigation';
+import z from 'zod';
+import {Label} from '@/components/ui/label';
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+import {toast} from '@/components/ui/use-toast';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-export default function Petition() {
+export default function EditPetition() {
+    const {get: getToken} = useTokenManager();
     const utils = trpc.useUtils();
 
-    const router = useRouter();
-    const isAuthenticated = useAuthState();
-
-    const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
-        enabled: !!isAuthenticated,
-    });
+    const params = useSearchParams();
 
     const {id: petition_id} = useParams<{id: string}>();
+    const router = useRouter();
 
-    const {data: petition, refetch} = trpc.petitions.get.useQuery({
-        id: petition_id!!,
+    const freshValue = params.get('fresh');
+
+    const [attachmentQueue, setAttachmentQueue] = useState<
+        {
+            type: 'image' | 'attachment';
+            file: File;
+        }[]
+    >([]);
+
+    const removeOne = useCallback(
+        (type: 'image' | 'attachment') => {
+            setAttachmentQueue((queue) => {
+                const lastIndex = queue.findLastIndex(
+                    (attachment) => attachment.type === type,
+                );
+
+                return queue.filter((_attachment, i) => i !== lastIndex);
+            });
+        },
+        [setAttachmentQueue],
+    );
+
+    const {mutate: updatePetition, isLoading: isPetitionSaving} =
+        trpc.petitions.update.useMutation({
+            onSuccess: async () => {
+                await utils.petitions.get.invalidate({id: petition_id});
+                router.push(`/petitions/${petition_id}`);
+            },
+        });
+
+    const {data: petitionRemoteData, isLoading: isPetitionLoading} =
+        trpc.petitions.get.useQuery({
+            id: petition_id!,
+        });
+
+    const [nextPetitionData, setNextPetitionData] = useState<{
+        target?: string;
+        location?: string;
+        title?: string;
+        description?: string;
+    }>({});
+
+    const petitionData = {
+        target:
+            nextPetitionData.target ??
+            petitionRemoteData?.data.target ??
+            undefined,
+        location:
+            nextPetitionData.location ??
+            petitionRemoteData?.data.location ??
+            undefined,
+        title:
+            nextPetitionData.title ??
+            petitionRemoteData?.data.title ??
+            undefined,
+        description:
+            nextPetitionData.description ??
+            petitionRemoteData?.data.description ??
+            undefined,
+    };
+
+    const handleUpdateData = useCallback(
+        (key: keyof typeof nextPetitionData, val: string) => {
+            setNextPetitionData((nextPetitionData) => ({
+                ...nextPetitionData,
+                [key]: val,
+            }));
+        },
+        [setNextPetitionData],
+    );
+
+    const handleUpdatePetition = () => {
+        updatePetition({
+            id: Number(petition_id),
+            data: petitionData,
+        });
+    };
+
+    const handlePetitionSubmission = () => {
+        updatePetition({
+            id: Number(petition_id),
+            data: petitionData,
+            also_submit: true,
+        });
+    };
+
+    const softDeleteMutation = trpc.petitions.softDeletePetition.useMutation({
+        onSuccess: () => {
+            // Show success message
+            toast({
+                title: 'Success',
+                description: 'Petition has been successfully deleted.',
+                variant: 'destructive',
+            });
+
+            // Redirect to home page after a short delay
+            setTimeout(() => {
+                router.push('/?type=own');
+            }, 2000); // Redirect after 2 seconds
+        },
     });
 
-    const [userVote, setUserVote] = useState(0);
+    const handleSoftDelete = async () => {
+        await softDeleteMutation.mutateAsync({id: Number(petition_id)});
+    };
+
+    const {mutate: uploadAttachment} = useMutation({
+        mutationFn: async (data: {type: 'image' | 'file'; file: File}) => {
+            const search = new URLSearchParams({
+                type: data.type,
+                filename: data.file.name,
+            });
+
+            const response = await fetch(
+                process.env.NODE_ENV === 'development'
+                    ? `http://${window.location.hostname}:12001/petitions/${petition_id}/attachments?${search}`
+                    : `https://core.jonogon.org/petitions/${petition_id}/attachments?${search}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        Authorization: `Bearer ${await getToken()}`,
+                    },
+                    body: data.file,
+                },
+            );
+
+            return (await response.json()) as {
+                message: 'image-added' | 'attachment-added';
+            };
+        },
+        onSuccess: async (response) => {
+            if (response.message === 'image-added') {
+                removeOne('image');
+            } else {
+                removeOne('attachment');
+            }
+
+            await utils.petitions.get.invalidate({id: petition_id});
+        },
+    });
 
     useEffect(() => {
-        if (petition) {
-            setUserVote(petition?.extras.user_vote ?? 0);
-        }
-    }, [petition]);
-
-    const thumbsUpMutation = trpc.petitions.vote.useMutation();
-    const thumbsDownMutation = trpc.petitions.vote.useMutation();
-    const clearVoteMutation = trpc.petitions.clearVote.useMutation();
-
-    const clickThumbsUp = async () => {
-        if (!isAuthenticated) {
-            redirectToLoginPage();
+        if (!attachmentQueue.length) {
             return;
         }
 
-        if (userVote == 1) {
-            await clearVoteMutation.mutateAsync({
-                petition_id: petition_id!!,
-            });
-            setUserVote(0);
-        } else {
-            await thumbsUpMutation.mutateAsync({
-                petition_id: petition_id!!,
-                vote: 'up',
-            });
-            setUserVote(1);
-        }
-        refetch();
-    };
+        const attachment = attachmentQueue[attachmentQueue.length - 1];
 
-    const clickThumbsDown = async () => {
-        if (!isAuthenticated) {
-            redirectToLoginPage();
-            return;
-        }
-        
-        if (userVote == -1) {
-            await clearVoteMutation.mutateAsync({
-                petition_id: petition_id!!,
-            });
-            setUserVote(0);
-        } else {
-            await thumbsDownMutation.mutateAsync({
-                petition_id: petition_id!!,
-                vote: 'down',
-            });
-            setUserVote(-1);
-        }
-        refetch();
-    };
+        uploadAttachment({
+            type: attachment.type === 'image' ? 'image' : 'file',
+            file: attachment.file,
+        });
+    }, [attachmentQueue]);
 
-    const redirectToLoginPage = () => {
-        const nextUrl = encodeURIComponent(`/petitions/${petition_id}`);
-        router.push(`/login?next=${nextUrl}`);
-    }
+    const {mutate: removeAttachment} =
+        trpc.petitions.removeAttachment.useMutation({
+            onSuccess: async () => {
+                await utils.petitions.get.invalidate({id: petition_id});
+            },
+        });
 
-    const upvoteCount = petition?.data.petition_upvote_count ?? 0;
-    const downvoteCount = petition?.data.petition_downvote_count ?? 0;
-    const totalVoteCount = upvoteCount + downvoteCount;
-
-    const isOwnPetition =
-        petition &&
-        selfResponse &&
-        `${petition?.data.created_by}` === `${selfResponse?.data.id}`;
-
-    const isAdmin = !!selfResponse?.meta.token.is_user_admin;
-    const isMod = !!selfResponse?.meta.token.is_user_moderator;
-    const status = petition?.data.status ?? 'draft';
-
-    const {mutate: approve} = trpc.petitions.approve.useMutation({
-        onSuccess: async () => {
-            await utils.petitions.get.invalidate({id: petition_id});
-        },
-    });
-
-    const {mutate: reject} = trpc.petitions.reject.useMutation({
-        onSuccess: async () => {
-            await utils.petitions.get.invalidate({id: petition_id});
-        },
-    });
-
-    const {mutate: formalize} = trpc.petitions.formalize.useMutation({
-        onSuccess: async () => {
-            await utils.petitions.get.invalidate({id: petition_id});
-        },
-    });
+    const isValid = z
+        .object({
+            title: z.string().min(12),
+            target: z.string().min(6),
+            location: z.string().min(6),
+            description: z.string().optional(),
+        })
+        .safeParse(petitionData).success;
 
     return (
-        <>
-            <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
-                {isOwnPetition || isMod || isAdmin ? (
-                    <div
-                        className={
-                            'bg-border px-3 py-2 rounded-lg flex justify-end items-center gap-2'
-                        }>
-                        {status === 'rejected' ? (
-                            <div className={'flex-1'}>
-                                <div
-                                    className={
-                                        'font-bold text-red-500 text-sm'
-                                    }>
-                                    Your petition was rejected.
-                                </div>
-                                <div>
-                                    {petition?.data.rejection_reason ?? ''}
-                                </div>
-                            </div>
-                        ) : null}
-                        {isMod || isAdmin ? (
-                            <div className={'flex flex-row gap-2 items-center'}>
-                                {status === 'submitted' ? (
-                                    <span className={'text-sm'}>
-                                        NOT MODERATED YET
-                                    </span>
-                                ) : null}
-                                {status === 'approved' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna elevate to this some next level shizz?',
-                                            ) &&
-                                            formalize({
-                                                petition_id:
-                                                    Number(petition_id),
-                                            })
-                                        }>
-                                        Formalize
-                                    </Button>
-                                ) : null}
-                                {status === 'submitted' ||
-                                status === 'rejected' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna approve?',
-                                            ) &&
-                                            approve({
-                                                petition_id:
-                                                    Number(petition_id),
-                                            })
-                                        }>
-                                        Approve
-                                    </Button>
-                                ) : null}
-                                {status !== 'rejected' && status !== 'draft' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'default'}
-                                        onClick={() => {
-                                            const rejectionReason =
-                                                window.prompt(
-                                                    'Why you rejecting? (leave empty to cancel)',
-                                                );
-
-                                            rejectionReason &&
-                                                reject({
-                                                    petition_id:
-                                                        Number(petition_id),
-                                                    reason: rejectionReason,
-                                                });
-                                        }}>
-                                        Reject
-                                    </Button>
-                                ) : null}
-                            </div>
-                        ) : null}
-
-                        {isOwnPetition || isAdmin ? (
-                            <Button
-                                size={'sm'}
-                                onClick={() =>
-                                    router.push(
-                                        `/petitions/${petition_id}/edit`,
-                                    )
-                                }>
-                                Edit দাবি
-                            </Button>
-                        ) : null}
-                    </div>
-                ) : null}
-
-                <div className={'space-x-1 text-lg text-stone-500'}>
-                    <time
-                        dateTime={
-                            petition?.data.created_at
-                                ? new Date(
-                                      petition.data.created_at,
-                                  ).toISOString()
-                                : ''
-                        }
-                        suppressHydrationWarning
-                    >
-                        {petition?.data.created_at
-                            ? new Date(
-                                  petition.data.created_at,
-                              ).toLocaleDateString('en-GB', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                              })
-                            : 'UNKNOWN DATE'}
-                        {','}
-                    </time>
-                    <span className={'italic font-semibold'}>
-                        {petition?.extras.user.name ?? ''}
-                    </span>
-                    <span>—</span>
-                    <span>To</span>
-                    <span className={'italic font-semibold'}>
-                        {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
-                    </span>
-                </div>
-                <h1 className="text-4xl font-bold font-serif">
-                    {petition?.data.title ?? 'Untiled Petition'}
+        <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
+                <h1
+                    className={
+                        'text-5xl font-regular text-stone-600 leading-0'
+                    }>
+                    {freshValue ? '✊ Create New দাবি' : '✊ Update দাবি'}
                 </h1>
-                <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
-                    <span>It affects</span>
-                    <span className={'italic font-semibold'}>
-                        {petition?.data.location ?? 'SOMEONE, SOMEWHERE'}.
-                    </span>
-                </div>
-                <ImageCarousel />
-                {petition?.data.description && (
-                    <Markdown>
-                        {petition.data.description ?? 'No description yet.'}
-                    </Markdown>
+                {freshValue ? (
+                    ''
+                ) : (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                size={'lg'}
+                                disabled={isPetitionSaving}
+                                variant={'outline'}>
+                                Delete
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete your account and remove
+                                    your data from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSoftDelete}>
+                                    Confirm
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 )}
             </div>
-            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
-                <div
-                    className={
-                        'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
-                    }>
-                    <Button
-                        variant={
-                            userVote === 1 || userVote === 0
-                                ? 'default'
-                                : 'outline'
+            <div className="flex flex-col gap-5 py-4">
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="title">
+                        <div className={'font-bold text-lg'}>Title *</div>
+                        <div className={'text-stone-500'}>
+                            আপনার আবেদনের শিরোনাম লিখুন
+                        </div>
+                    </Label>
+                    <Input
+                        className="bg-card text-card-foreground text-2xl py-7"
+                        id="title"
+                        value={petitionData.title ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('title', e.target.value)
                         }
-                        intent={'success'}
+                        placeholder="Ex: Make Primary Education Better"
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="target">
+                        <div className={'font-bold text-lg'}>
+                            Who are you petitioning to? *
+                        </div>
+                        <div className={'text-stone-500'}>
+                            আপনি কার কাছে দাবি করছেন?
+                        </div>
+                    </Label>
+                    <Input
+                        className="bg-card text-card-foreground"
+                        id="target"
+                        value={petitionData.target ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('target', e.target.value)
+                        }
+                        placeholder="Ex: Minister, Ministry, Department, Politician, Prime Minister"
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="target">
+                        <div className={'font-bold text-lg'}>
+                            Area it affects *
+                        </div>
+                        <div className={'text-stone-500'}>
+                            কন এলাকার মানুষের জন্য প্রযোজ্য?
+                        </div>
+                    </Label>
+                    <Input
+                        className="bg-card text-card-foreground"
+                        id="target"
+                        value={petitionData.location ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('location', e.target.value)
+                        }
+                        placeholder="Ex: Entire Bangladesh"
+                    />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="pictures">
+                        <div className={'font-bold text-lg'}>
+                            Pictures{' '}
+                            <span
+                                className={'font-light italic text-stone-600'}>
+                                (optional)
+                            </span>
+                        </div>
+                        <div className={'text-stone-500'}>
+                            কিছু ছবি upload করতে পারেন
+                        </div>
+                    </Label>
+                    <div className={'flex flex-row flex-wrap gap-2'}>
+                        <div
+                            className={
+                                'flex justify-center items-center border-4 w-24 h-20 rounded-lg relative bg-card hover:bg-card/30 cursor-pointer'
+                            }>
+                            <span
+                                className={
+                                    'text-5xl text-stone-400 drop-shadow-sm cursor-pointer'
+                                }>
+                                +
+                            </span>
+                            <input
+                                id={'pictures'}
+                                type={'file'}
+                                multiple
+                                accept={'image/*'}
+                                className={
+                                    'absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer'
+                                }
+                                onChange={(ev) => {
+                                    setAttachmentQueue((queue) => [
+                                        ...queue,
+                                        ...scope(ev.target.files).let(
+                                            (files) => {
+                                                if (!files) {
+                                                    return [];
+                                                }
+
+                                                const attachments = [];
+
+                                                for (
+                                                    let i = 0;
+                                                    i < files.length;
+                                                    i++
+                                                ) {
+                                                    const file = files.item(i);
+
+                                                    if (!file) {
+                                                        continue;
+                                                    }
+
+                                                    attachments.push({
+                                                        type: 'image' as const,
+                                                        file: file,
+                                                    });
+                                                }
+
+                                                return attachments;
+                                            },
+                                        ),
+                                    ]);
+                                }}
+                            />
+                        </div>
+
+                        {attachmentQueue
+                            .filter((attachment) => attachment.type === 'image')
+                            .map((attachment, i) => (
+                                <div
+                                    key={i}
+                                    className={
+                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg'
+                                    }>
+                                    <div
+                                        className={
+                                            'animate-spin border-4 border-b-transparent border-l-transparent border-red-500 w-8 h-8 rounded-full'
+                                        }></div>
+                                </div>
+                            ))}
+
+                        {petitionRemoteData?.data?.attachments
+                            .filter((attachment) => attachment.type === 'image')
+                            .map((attachment) => (
+                                <div
+                                    key={attachment.id}
+                                    className={
+                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black relative'
+                                    }>
+                                    <img
+                                        src={attachment.thumbnail!!.replace(
+                                            '$CORE_HOSTNAME',
+                                            window.location.hostname,
+                                        )}
+                                        alt={attachment.filename}
+                                        className={
+                                            'w-full h-full object-contain object-center'
+                                        }
+                                    />
+                                    <button
+                                        className={
+                                            'absolute bottom-1 right-1 bg-red-500/90 text-sm hover:bg-red-600 p-2 rounded-sm'
+                                        }
+                                        onClick={() =>
+                                            removeAttachment({
+                                                petition_id: Number(
+                                                    petition_id ?? '0',
+                                                ),
+                                                attachment_id: Number(
+                                                    attachment.id,
+                                                ),
+                                            })
+                                        }>
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            ))}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Label>
+                        <div className={'font-bold text-lg'}>
+                            Petition Details
+                        </div>
+                        <div className={'text-stone-500'}>বিস্তারিত লিখুন</div>
+                    </Label>
+                    <textarea
+                        className={'font-mono p-3 h-48'}
+                        placeholder={'Enter Details Here...'}
+                        value={petitionData.description ?? ''}
+                        onChange={(e) =>
+                            handleUpdateData('description', e.target.value)
+                        }></textarea>
+                </div>
+                <div className={'flex flex-row space-x-2'}>
+                    <Button
+                        className={'flex-1'}
                         size={'lg'}
-                        className="flex-1 w-full"
-                        onClick={clickThumbsUp}>
-                        {status === 'formalized' ? (
-                            <>
-                                <p className="ml-2">{upvoteCount} — VOTE</p>
-                            </>
-                        ) : (
-                            <>
-                                <ThumbsUp size={20} />{' '}
-                                <p className="ml-2">{upvoteCount}</p>
-                            </>
-                        )}
+                        disabled={isPetitionSaving || !isValid}
+                        onClick={handlePetitionSubmission}>
+                        Submit দাবি
                     </Button>
+
                     <Button
-                        variant={
-                            userVote === -1 || userVote === 0
-                                ? 'default'
-                                : 'outline'
-                        }
-                        intent={'default'}
-                        className="flex-1 w-full"
+                        variant={isValid ? 'outline' : 'default'}
                         size={'lg'}
-                        onClick={clickThumbsDown}>
-                        <ThumbsDown size={20} />{' '}
-                        <p className="ml-2">{downvoteCount}</p>
+                        disabled={isPetitionSaving}
+                        onClick={handleUpdatePetition}>
+                        Save Draft
                     </Button>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
