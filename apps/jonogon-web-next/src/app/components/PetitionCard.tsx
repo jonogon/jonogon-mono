@@ -31,36 +31,14 @@ export default function PetitionCard(props: {
     return (
         <Card className={''}>
             <CardHeader className={''}>
-                {/* <Image
-                    src={`${props.attachment.attachment}`.replace(
-                        '$CORE_HOSTNAME',
-                        window.location.hostname,
-                    )}
-                    className="w-full h-full bg-red-500"
-                    alt={props.attachment.filename ?? 'Untitled Petition'}
-                    width={300}
-                    height={200}
-                /> */}
                 <img
                     src={`${props.attachment.attachment}`.replace(
                         '$CORE_HOSTNAME',
                         window.location.hostname,
                     )}
-                    className="w-full h-full bg-red-500"
+                    className="w-full h-full bg-red-500 rounded-lg"
                 />
                 <CardTitle>
-                    <div
-                        className={
-                            'font-normal text-base text-neutral-500 pb-2'
-                        }>
-                        {props.name},{' '}
-                        <time
-                            dateTime={props.date.toISOString()}
-                            suppressHydrationWarning>
-                            {formatDate(props.date)}
-                        </time>{' '}
-                        — To, <i>{props.target}</i>
-                    </div>
                     <div>
                         <Link
                             href={`/petitions/${props.id}`}
@@ -69,6 +47,22 @@ export default function PetitionCard(props: {
                             }>
                             {props.title}
                         </Link>
+                    </div>
+                    <div
+                        className={
+                            'font-normal text-base text-neutral-500 pb-2'
+                        }>
+                        <div>
+                            {props.name},{' '}
+                            <time
+                                dateTime={props.date.toISOString()}
+                                suppressHydrationWarning>
+                                {formatDate(props.date)}
+                            </time>{' '}
+                        </div>
+                        <div>
+                            — To, <i>{props.target}</i>
+                        </div>
                     </div>
                 </CardTitle>
             </CardHeader>
