@@ -42,6 +42,7 @@ export const getPetition = publicProcedure
                 'petition_votes.vote as user_vote',
             ])
             .where('petitions.id', '=', input.id)
+            .where('petitions.deleted_at', 'is', null)
             .executeTakeFirst();
 
         if (!result) {
