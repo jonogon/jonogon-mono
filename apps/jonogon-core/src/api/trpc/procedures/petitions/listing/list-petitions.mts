@@ -131,7 +131,12 @@ export const listPetitions = publicProcedure
                         .orderBy('petition_id')
                         .orderBy('created_at')
                         .as('first_attachment'),
-                (join) => join.onRef('petitions.id', '=', 'first_attachment.petition_id')
+                (join) =>
+                    join.onRef(
+                        'petitions.id',
+                        '=',
+                        'first_attachment.petition_id',
+                    ),
             )
             .selectAll('petitions')
             .select([
@@ -161,43 +166,41 @@ export const listPetitions = publicProcedure
 
         return {
             input,
-            data: await Promise.all(
-                data.map(async (petition) => ({
-                    data: {
-                        ...pick(petition, [
-                            'id',
-                            'title',
-                            'location',
-                            'target',
-                            'created_at',
-                            'submitted_at',
-                            'rejected_at',
-                            'rejection_reason',
-                            'approved_at',
-                            'formalized_at',
-                            'petition_upvote_count',
-                            'petition_downvote_count',
-                        ]),
-                        created_by: {
-                            id: petition.created_by,
-                            name: petition.user_name,
-                            picture: petition.user_picture,
-                        },
-                        status: deriveStatus(petition),
-                        attachment: petition.attachment_url
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  petition.attachment_url,
-                              )
-                            : null,
+            data: data.map((petition) => ({
+                data: {
+                    ...pick(petition, [
+                        'id',
+                        'title',
+                        'location',
+                        'target',
+                        'created_at',
+                        'submitted_at',
+                        'rejected_at',
+                        'rejection_reason',
+                        'approved_at',
+                        'formalized_at',
+                        'petition_upvote_count',
+                        'petition_downvote_count',
+                    ]),
+                    created_by: {
+                        id: petition.created_by,
+                        name: petition.user_name,
+                        picture: petition.user_picture,
                     },
-                    extras: {
-                        user_vote: petition.user_vote,
-                        user: {
-                            name: petition.user_name,
-                            picture: petition.user_picture,
-                        },
+                    status: deriveStatus(petition),
+                    attachment: petition.attachment_url
+                        ? ctx.services.fileStorage.getFileURL(
+                              petition.attachment_url,
+                          )
+                        : null,
+                },
+                extras: {
+                    user_vote: petition.user_vote,
+                    user: {
+                        name: petition.user_name,
+                        picture: petition.user_picture,
                     },
-                })),
-            ),
+                },
+            })),
         };
     });
