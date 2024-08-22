@@ -2,7 +2,7 @@
 
 export const runtime = 'edge';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import Markdown from 'react-markdown';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import {Button} from '@/components/ui/button';
@@ -11,6 +11,9 @@ import {trpc} from '@/trpc';
 import {useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter} from 'next/navigation';
 import {CommentThread} from './components/comments/Thread';
+import InputBox from './components/comments/InputBox';
+import {treeify} from './components/comments/utils';
+import {NestedComment} from './components/comments/types';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -27,6 +30,19 @@ export default function Petition() {
     const {data: petition, refetch} = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
+
+    const {data: comments, refetch: refetchComments} =
+        trpc.comments.list.useQuery({
+            petition_id: petition_id!!,
+        });
+
+    const [nestedComments, setNestedComments] = useState<NestedComment[]>([]);
+
+    useEffect(() => {
+        setNestedComments(treeify(comments?.data ?? []));
+    }, [comments]);
+
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const [userVote, setUserVote] = useState(0);
 
@@ -215,7 +231,6 @@ export default function Petition() {
                         ) : null}
                     </div>
                 ) : null}
-
                 <div className={'space-x-1 text-lg text-stone-500'}>
                     <time
                         dateTime={
@@ -261,9 +276,6 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
-                <CommentThread />
-            </div>
-            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div
                     className={
                         'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
@@ -302,6 +314,22 @@ export default function Petition() {
                         <ThumbsDown size={20} />{' '}
                         <p className="ml-2">{downvoteCount}</p>
                     </Button>
+                </div>
+                <CommentThread
+                    comments={nestedComments}
+                    refetch={refetchComments}
+                    inputRef={inputRef}
+                />
+            </div>
+            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
+                <div className="flex justify-center">
+                    <div className="w-full max-w-screen-sm">
+                        <InputBox
+                            parentId={undefined}
+                            refetch={refetchComments}
+                            inputRef={inputRef}
+                        />
+                    </div>
                 </div>
             </div>
         </>

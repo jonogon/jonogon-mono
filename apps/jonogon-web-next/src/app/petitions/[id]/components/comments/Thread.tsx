@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {NestedComment} from './types.js';
+import {CommentThreadProps, NestedComment} from './types.js';
 import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
 import InputBox from './InputBox';
@@ -34,25 +34,23 @@ export const treeify = (comments: NestedComment[]): NestedComment[] => {
     });
 };
 
-export function CommentThread() {
-    const {id} = useParams() as {id: string};
-    const {data, refetch} = trpc.comments.list.useQuery({
-        petition_id: id,
-    });
-
-    const [comments, setComments] = useState<NestedComment[]>([]);
-
-    useEffect(() => {
-        const nestedComments = treeify(data?.data ?? []);
-        setComments(nestedComments?.length ? nestedComments : []);
-    }, [data]);
-
+export function CommentThread({
+    comments,
+    refetch,
+    inputRef,
+}: CommentThreadProps) {
     return (
         <>
             <div>
-                <InputBox parentId={undefined} refetch={refetch} />
                 {comments.map((comment) => {
-                    return <Comment comment={comment} refetch={refetch} />;
+                    return (
+                        <Comment
+                            comment={comment}
+                            refetch={refetch}
+                            key={comment.id}
+                            inputRef={inputRef}
+                        />
+                    );
                 })}
             </div>
         </>

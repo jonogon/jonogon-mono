@@ -1,10 +1,12 @@
-import {useState} from 'react';
+import {LegacyRef, useState, useRef} from 'react';
 import {InputProps} from './types.js';
 import {useParams} from 'next/navigation';
 import {trpc} from '@/trpc';
+import {AiOutlineSend} from 'react-icons/ai';
 
-export default function InputBox({parentId, refetch}: InputProps) {
+export default function InputBox({parentId, refetch, inputRef}: InputProps) {
     const [inputBody, setInputBody] = useState('');
+    // const inputRef = useRef<HTMLInputElement>(null);
 
     const {id} = useParams() as {id: string};
 
@@ -20,22 +22,31 @@ export default function InputBox({parentId, refetch}: InputProps) {
         refetch();
     };
 
+    // const onFocus = () => {
+    //     inputRef?.current?.focus();
+    // };
+
     return (
-        <div className="border p-2">
-            <div className="flex flex-row gap-2">
+        <div className="py-2 w-full">
+            <div className="flex flex-row gap-1 items-center">
                 <input
-                    className="w-3/4 p-4"
+                    className="flex-grow p-4 rounded-full"
                     value={inputBody}
                     onChange={(event) => setInputBody(event.target.value)}
                     onKeyDown={(event) => {
                         event.key == 'Enter' ? onEnter() : null;
                     }}
+                    placeholder="Leave a comment"
+                    ref={inputRef}
                 />
-                <button
-                    className="border bg-white p-2 px-6 rounded flex-grow"
-                    onClick={onEnter}>
-                    Comment
-                </button>
+                <AiOutlineSend
+                    size={24}
+                    color="#4a4239"
+                    className="mx-1 cursor-pointer"
+                    onClick={() => {
+                        onEnter;
+                    }}
+                />
             </div>
         </div>
     );

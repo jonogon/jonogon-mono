@@ -1,3 +1,5 @@
+import {RefObject} from 'react';
+
 export interface Comment {
     user_id: string | null;
     username: string | null;
@@ -21,4 +23,17 @@ export interface NestedComment extends Comment {
 export interface InputProps {
     parentId: string | undefined;
     refetch: () => void;
+    inputRef: RefObject<HTMLInputElement>;
+}
+
+export interface CommentThreadProps {
+    comments: NestedComment[];
+    refetch: () => void;
+    inputRef: RefObject<HTMLInputElement>;
+}
+
+export interface CommentProps {
+    comment: NestedComment;
+    refetch: () => void;
+    inputRef: RefObject<HTMLInputElement>;
 }
