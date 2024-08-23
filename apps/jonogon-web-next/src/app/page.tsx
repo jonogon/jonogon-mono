@@ -94,7 +94,7 @@ export default function Home() {
                         <DropdownMenuTrigger>
                             <div className="flex items-center gap-2 pb-1">
                                 <span className="capitalize text-sm select-none">
-                                    {`${params.sort}` === 'latest'
+                                    {`${params.get('sort')}` === 'latest'
                                         ? 'Latest'
                                         : 'বেশি Votes'}
                                 </span>
