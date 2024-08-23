@@ -291,7 +291,7 @@ export default function EditPetition() {
                             Area it affects *
                         </div>
                         <div className={'text-stone-500'}>
-                            কন এলাকার মানুষের জন্য প্রযোজ্য?
+                            কোন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
                     <Input

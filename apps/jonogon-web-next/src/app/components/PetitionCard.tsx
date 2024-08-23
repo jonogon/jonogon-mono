@@ -5,7 +5,6 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function PetitionCard(props: {
     id: string;
@@ -34,40 +33,40 @@ export default function PetitionCard(props: {
             onClick={() => {
                 router.push(`/petitions/${props.id}`);
             }}>
-            <CardHeader className={''}>
-                {props.attachment && (
-                    <img
-                        src={`${props.attachment}`.replace(
-                            '$CORE_HOSTNAME',
-                            window.location.hostname,
-                        )}
-                        className="w-full h-full bg-red-500 rounded-lg"
-                    />
-                )}
-                <CardTitle>
+            <CardHeader className={'pt-5 pb-4'}>
+                <div className={'font-normal text-base text-neutral-500 pb-2'}>
                     <div>
-                        <Link
-                            href={`/petitions/${props.id}`}
-                            className={
-                                'leading-snug font-bold font-serif text-2xl align-middle break-words overflow-hidden text-ellipsis'
-                            }>
-                            {props.title}
-                        </Link>
+                        {props.name},{' '}
+                        <time
+                            dateTime={props.date.toISOString()}
+                            suppressHydrationWarning>
+                            {formatDate(props.date)}
+                        </time>{' '}
+                        — To, <i>{props.target}</i>
                     </div>
-                    <div
-                        className={
-                            'font-normal text-base text-neutral-500 pb-2'
-                        }>
-                        <div>
-                            {props.name},{' '}
-                            <time
-                                dateTime={props.date.toISOString()}
-                                suppressHydrationWarning>
-                                {formatDate(props.date)}
-                            </time>{' '}
+                </div>
+                <CardTitle className={'flex flex-row items-center space-x-6'}>
+                    {props.attachment && (
+                        <div className={'w-32 h-32'}>
+                            <img
+                                src={`${props.attachment}`.replace(
+                                    '$CORE_HOSTNAME',
+                                    window.location.hostname,
+                                )}
+                                className="w-32 h-32 object-cover bg-red-500 rounded-lg"
+                            />
                         </div>
+                    )}
+
+                    <div className={'flex-1'}>
                         <div>
-                            — To, <i>{props.target}</i>
+                            <Link
+                                href={`/petitions/${props.id}`}
+                                className={
+                                    'leading-snug font-bold font-serif text-2xl align-middle break-words overflow-hidden text-ellipsis'
+                                }>
+                                {props.title}
+                            </Link>
                         </div>
                     </div>
                 </CardTitle>
