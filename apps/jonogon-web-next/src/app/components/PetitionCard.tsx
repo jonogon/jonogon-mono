@@ -45,7 +45,7 @@ export default function PetitionCard(props: {
                         <Link
                             href={`/petitions/${props.id}`}
                             className={
-                                'leading-snug font-bold font-serif text-2xl align-middle'
+                                'leading-snug font-bold font-serif text-2xl align-middle break-words overflow-hidden text-ellipsis'
                             }>
                             {props.title}
                         </Link>

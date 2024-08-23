@@ -22,6 +22,7 @@ export const listPetitions = publicProcedure
                         scope(
                             db
                                 .selectFrom('petitions')
+                                .where('deleted_at', 'is', null)
                                 .leftJoin('petition_votes as upvotes', (join) =>
                                     join
                                         .onRef(
