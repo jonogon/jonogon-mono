@@ -42,7 +42,7 @@ export default function PetitionCard(props: {
                                     '$CORE_HOSTNAME',
                                     window.location.hostname,
                                 )}
-                                className="w-20 h-20 object-cover object-center rounded bg-background"
+                                className="w-16 h-16 md:w-20 md:h-20 object-cover object-center rounded bg-background"
                             />
                         </div>
                     )}
@@ -53,12 +53,12 @@ export default function PetitionCard(props: {
                                 'font-normal text-base text-neutral-500 pb-1'
                             }>
                             <div>
+                                <i>{props.name}</i> —{' '}
                                 <time
                                     dateTime={props.date.toISOString()}
                                     suppressHydrationWarning>
                                     {formatDate(props.date)}
-                                </time>{' '}
-                                — To, <i>{props.target}</i>
+                                </time>
                             </div>
                         </div>
 
