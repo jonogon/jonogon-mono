@@ -25,6 +25,7 @@ export interface Petitions {
   approved_at: Timestamp | null;
   created_at: Generated<Timestamp>;
   created_by: Int8;
+  deleted_at: Timestamp | null;
   description: string | null;
   formalized_at: Timestamp | null;
   formalized_by: Int8 | null;
