@@ -25,6 +25,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
+import {petitionLocations, petitionTargets} from '@/lib/constants';
 
 export default function EditPetition() {
     const {get: getToken} = useTokenManager();
@@ -275,7 +277,8 @@ export default function EditPetition() {
                             আপনি কার কাছে দাবি করছেন?
                         </div>
                     </Label>
-                    <Input
+                    <AutoCompleteInput
+                        options={petitionTargets}
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.target ?? ''}
@@ -294,8 +297,8 @@ export default function EditPetition() {
                             কোন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
-                    <Input
-                        className="bg-card text-card-foreground"
+                    <AutoCompleteInput
+                        options={petitionLocations}
                         id="target"
                         value={petitionData.location ?? ''}
                         onChange={(e) =>
