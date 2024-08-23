@@ -41,7 +41,7 @@ const Navigation = () => {
                     <div className={'flex flex-col -space-y-2'}>
                         <span className="text-3xl font-black">জনগণ</span>
                         <span className="text-neutral-600">
-                            আমাদের দাবির প্লাটফর্ম
+                            সবার দাবির প্লাটফর্ম
                         </span>
                     </div>
                 </Link>

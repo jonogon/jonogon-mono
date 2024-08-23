@@ -1,5 +1,7 @@
 'use client';
 
+import Loading from '@/app/petitions/[id]/loading';
+
 export const runtime = 'edge';
 
 import {useEffect, useState} from 'react';
@@ -23,7 +25,11 @@ export default function Petition() {
 
     const {id: petition_id} = useParams<{id: string}>();
 
-    const {data: petition, refetch} = trpc.petitions.get.useQuery({
+    const {
+        data: petition,
+        refetch,
+        isLoading,
+    } = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
 
@@ -117,7 +123,9 @@ export default function Petition() {
         },
     });
 
-    return (
+    return isLoading ? (
+        <Loading />
+    ) : (
         <>
             <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
                 {isOwnPetition || isMod || isAdmin ? (

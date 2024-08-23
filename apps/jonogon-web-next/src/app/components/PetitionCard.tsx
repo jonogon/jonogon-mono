@@ -29,7 +29,11 @@ export default function PetitionCard(props: {
     const totalVotes = props.upvotes + props.downvotes;
 
     return (
-        <Card className={''}>
+        <Card
+            className={'cursor-pointer'}
+            onClick={() => {
+                router.push(`/petitions/${props.id}`);
+            }}>
             <CardHeader className={''}>
                 {props.attachment && (
                     <img
@@ -77,7 +81,9 @@ export default function PetitionCard(props: {
                         <Button
                             size={'sm'}
                             variant={'outline'}
-                            onClick={() => {
+                            onClick={(ev) => {
+                                ev.stopPropagation();
+
                                 const href = `/petitions/${props.id}`;
 
                                 isAuthenticated

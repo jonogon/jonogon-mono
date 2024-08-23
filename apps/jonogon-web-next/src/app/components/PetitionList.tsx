@@ -22,11 +22,12 @@ const PetitionList = () => {
 
     const page = params.get('page') ? Number(params.get('page')) : 0;
 
-    const {data: petitionRequestListResponse} = trpc.petitions.list.useQuery({
-        filter: type,
-        page: page,
-        sort: params.get('sort') === 'latest' ? 'time' : 'votes',
-    });
+    const {data: petitionRequestListResponse, isLoading} =
+        trpc.petitions.list.useQuery({
+            filter: type,
+            page: page,
+            sort: params.get('sort') === 'latest' ? 'time' : 'votes',
+        });
 
     const petitions = petitionRequestListResponse?.data ?? [];
 
@@ -48,25 +49,44 @@ const PetitionList = () => {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '15px',
                 }}>
-                {petitions.slice(0, 32).map((p) => {
-                    return (
-                        <PetitionCard
-                            id={p.data.id}
-                            mode={type}
-                            status={p.data.status}
-                            name={p.extras.user.name ?? ''}
-                            title={p.data.title ?? 'Untitled Petition'}
-                            attachment={p.data.attachment ?? ''}
-                            date={new Date(p.data.submitted_at ?? '1970-01-01')}
-                            target={p.data.target ?? 'Some Ministry'}
-                            key={p.data.id ?? 0}
-                            upvotes={Number(p.data.petition_upvote_count) ?? 0}
-                            downvotes={
-                                Number(p.data.petition_downvote_count) ?? 0
-                            }
-                        />
-                    );
-                })}
+                {isLoading
+                    ? Array(4)
+                          .fill(null)
+                          .map((_, i) => {
+                              return (
+                                  <div
+                                      className={
+                                          'w-full bg-border animate-pulse h-32'
+                                      }
+                                      key={i}></div>
+                              );
+                          })
+                    : petitions.slice(0, 32).map((p) => {
+                          return (
+                              <PetitionCard
+                                  id={p.data.id}
+                                  mode={type}
+                                  status={p.data.status}
+                                  name={p.extras.user.name ?? ''}
+                                  title={p.data.title ?? 'Untitled Petition'}
+                                  attachment={p.data.attachment ?? ''}
+                                  date={
+                                      new Date(
+                                          p.data.submitted_at ?? '1970-01-01',
+                                      )
+                                  }
+                                  target={p.data.target ?? 'Some Ministry'}
+                                  key={p.data.id ?? 0}
+                                  upvotes={
+                                      Number(p.data.petition_upvote_count) ?? 0
+                                  }
+                                  downvotes={
+                                      Number(p.data.petition_downvote_count) ??
+                                      0
+                                  }
+                              />
+                          );
+                      })}
             </div>
             <div className={'py-4'}>
                 <Pagination>
