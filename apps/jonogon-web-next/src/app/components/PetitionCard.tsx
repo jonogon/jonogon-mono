@@ -36,13 +36,13 @@ export default function PetitionCard(props: {
             <CardHeader className={'p-4'}>
                 <CardTitle className={'flex flex-row items-stretch space-x-4'}>
                     {props.attachment && (
-                        <div className={'w-16 h-full bg-red-500'}>
+                        <div className={''}>
                             <img
                                 src={`${props.attachment}`.replace(
                                     '$CORE_HOSTNAME',
                                     window.location.hostname,
                                 )}
-                                className="w-full h-full object-cover bg-red-500 rounded"
+                                className="w-20 h-20 object-cover object-center rounded bg-background"
                             />
                         </div>
                     )}
