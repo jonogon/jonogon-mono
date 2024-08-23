@@ -33,48 +33,48 @@ export default function PetitionCard(props: {
             onClick={() => {
                 router.push(`/petitions/${props.id}`);
             }}>
-            <CardHeader className={'pt-5 pb-4'}>
-                <div className={'font-normal text-base text-neutral-500 pb-2'}>
-                    <div>
-                        {props.name},{' '}
-                        <time
-                            dateTime={props.date.toISOString()}
-                            suppressHydrationWarning>
-                            {formatDate(props.date)}
-                        </time>{' '}
-                        — To, <i>{props.target}</i>
-                    </div>
-                </div>
-                <CardTitle className={'flex flex-row items-center space-x-6'}>
+            <CardHeader className={'p-4'}>
+                <CardTitle className={'flex flex-row items-stretch space-x-4'}>
                     {props.attachment && (
-                        <div className={'w-32 h-32'}>
+                        <div className={'w-16 h-full bg-red-500'}>
                             <img
                                 src={`${props.attachment}`.replace(
                                     '$CORE_HOSTNAME',
                                     window.location.hostname,
                                 )}
-                                className="w-32 h-32 object-cover bg-red-500 rounded-lg"
+                                className="w-full h-full object-cover bg-red-500 rounded"
                             />
                         </div>
                     )}
 
                     <div className={'flex-1'}>
-                        <div>
-                            <Link
-                                href={`/petitions/${props.id}`}
-                                className={
-                                    'leading-snug font-bold font-serif text-2xl align-middle break-words overflow-hidden text-ellipsis'
-                                }>
-                                {props.title}
-                            </Link>
+                        <div
+                            className={
+                                'font-normal text-base text-neutral-500 pb-1'
+                            }>
+                            <div>
+                                <time
+                                    dateTime={props.date.toISOString()}
+                                    suppressHydrationWarning>
+                                    {formatDate(props.date)}
+                                </time>{' '}
+                                — To, <i>{props.target}</i>
+                            </div>
+                        </div>
+
+                        <div
+                            className={
+                                'leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle break-words overflow-hidden text-ellipsis'
+                            }>
+                            {props.title}
                         </div>
                     </div>
                 </CardTitle>
             </CardHeader>
-            <CardFooter className="flex items-center justify-between">
+            <CardFooter className="flex items-center justify-between p-2 border-t border-t-background">
                 {props.mode === 'formalized' ? (
                     <>
-                        <p className={'font-semibold text-red-600'}>
+                        <p className={'font-semibold text-red-600 px-4'}>
                             {totalVotes} {totalVotes !== 1 ? 'votes' : 'vote'}
                         </p>
                         <Button
@@ -96,7 +96,7 @@ export default function PetitionCard(props: {
                     </>
                 ) : props.mode === 'request' ? (
                     <>
-                        <div className={'flex flex-row gap-6'}>
+                        <div className={'flex flex-row gap-6 mx-2'}>
                             <div className={'flex flex-row gap-2'}>
                                 <ThumbsUp
                                     className={'w-5 h-5 text-green-500'}
@@ -127,7 +127,7 @@ export default function PetitionCard(props: {
                     </>
                 ) : props.mode === 'own' ? (
                     <>
-                        <div className={'flex flex-row gap-6'}>
+                        <div className={'flex flex-row gap-6 mx-2'}>
                             <div className={'flex flex-row gap-2'}>
                                 <ThumbsUp
                                     className={'w-5 h-5 text-green-500'}
@@ -141,7 +141,9 @@ export default function PetitionCard(props: {
                                 {props.downvotes}
                             </div>
                         </div>
-                        <div>STATUS: {props.status}</div>
+                        <div className={'font-mono text-sm'}>
+                            STATUS: {props.status}
+                        </div>
                     </>
                 ) : null}
             </CardFooter>

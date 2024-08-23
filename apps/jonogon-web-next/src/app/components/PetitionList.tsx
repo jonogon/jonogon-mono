@@ -43,12 +43,7 @@ const PetitionList = () => {
 
     return (
         <div>
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '15px',
-                }}>
+            <div className={'flex flex-col space-y-4'}>
                 {isLoading
                     ? Array(4)
                           .fill(null)
