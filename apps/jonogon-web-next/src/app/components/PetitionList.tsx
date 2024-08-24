@@ -10,9 +10,11 @@ import PetitionCard from './PetitionCard';
 import {trpc} from '@/trpc';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {useAutoAnimate} from '@formkit/auto-animate/react';
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect, useMemo, useState} from 'react';
 
 const PetitionList = () => {
+    const [fuckUpOrder, setFuckupOrder] = useState(true);
+
     const [animationParent] = useAutoAnimate();
 
     const params = useSearchParams();
@@ -40,7 +42,31 @@ const PetitionList = () => {
             },
         );
 
-    const petitions = petitionRequestListResponse?.data ?? [];
+    useEffect(() => {
+        if (petitionRequestListResponse?.data) {
+            setTimeout(() => {
+                setFuckupOrder(false);
+            }, 1_000);
+        }
+    }, [petitionRequestListResponse?.data]);
+
+    const petitions = useMemo(() => {
+        if (petitionRequestListResponse?.data) {
+            if (fuckUpOrder) {
+                const nextData = [...petitionRequestListResponse.data];
+
+                const tmp = nextData[0];
+                nextData[0] = nextData[1];
+                nextData[1] = tmp;
+
+                return nextData;
+            } else {
+                return petitionRequestListResponse.data;
+            }
+        }
+
+        return [];
+    }, [petitionRequestListResponse?.data, fuckUpOrder]);
 
     const router = useRouter();
     const pathname = usePathname();
@@ -69,7 +95,7 @@ const PetitionList = () => {
                           })
                     : petitions.slice(0, 32).map((p, i) => {
                           return (
-                              <Fragment key={i}>
+                              <Fragment key={p.data.id}>
                                   <PetitionCard
                                       id={p.data.id}
                                       userVote={p.extras.user_vote}
@@ -107,6 +133,7 @@ const PetitionList = () => {
                                           ? 0
                                           : 4) ? (
                                       <div
+                                          key={'formalization-line'}
                                           className={
                                               'py-5 text-center text-green-700 flex flex-row items-center relative'
                                           }>
