@@ -25,13 +25,14 @@ const PetitionList = () => {
               : 'request';
 
     const page = params.get('page') ? Number(params.get('page')) : 0;
+    const sort = params.get('sort') === 'latest' ? 'time' : 'votes';
 
     const {data: petitionRequestListResponse, isLoading} =
         trpc.petitions.list.useQuery(
             {
                 filter: type,
                 page: page,
-                sort: params.get('sort') === 'latest' ? 'time' : 'votes',
+                sort: sort,
             },
             {
                 refetchInterval:
@@ -99,6 +100,7 @@ const PetitionList = () => {
                                       }
                                   />
                                   {type === 'request' &&
+                                  sort === 'votes' &&
                                   page === 0 &&
                                   i ===
                                       (process.env.NODE_ENV === 'development'
