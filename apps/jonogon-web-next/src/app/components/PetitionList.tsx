@@ -9,8 +9,12 @@ import {
 import PetitionCard from './PetitionCard';
 import {trpc} from '@/trpc';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import {useAutoAnimate} from '@formkit/auto-animate/react';
+import React, {Fragment} from 'react';
 
 const PetitionList = () => {
+    const [animationParent] = useAutoAnimate();
+
     const params = useSearchParams();
 
     const type =
@@ -23,11 +27,17 @@ const PetitionList = () => {
     const page = params.get('page') ? Number(params.get('page')) : 0;
 
     const {data: petitionRequestListResponse, isLoading} =
-        trpc.petitions.list.useQuery({
-            filter: type,
-            page: page,
-            sort: params.get('sort') === 'latest' ? 'time' : 'votes',
-        });
+        trpc.petitions.list.useQuery(
+            {
+                filter: type,
+                page: page,
+                sort: params.get('sort') === 'latest' ? 'time' : 'votes',
+            },
+            {
+                refetchInterval:
+                    process.env.NODE_ENV === 'development' ? 5_000 : 30_000,
+            },
+        );
 
     const petitions = petitionRequestListResponse?.data ?? [];
 
@@ -43,7 +53,7 @@ const PetitionList = () => {
 
     return (
         <div>
-            <div className={'flex flex-col space-y-4'}>
+            <div className={'flex flex-col space-y-1'} ref={animationParent}>
                 {isLoading
                     ? Array(4)
                           .fill(null)
@@ -56,30 +66,62 @@ const PetitionList = () => {
                                       key={i}></div>
                               );
                           })
-                    : petitions.slice(0, 32).map((p) => {
+                    : petitions.slice(0, 32).map((p, i) => {
                           return (
-                              <PetitionCard
-                                  id={p.data.id}
-                                  mode={type}
-                                  status={p.data.status}
-                                  name={p.extras.user.name ?? ''}
-                                  title={p.data.title ?? 'Untitled Petition'}
-                                  attachment={p.data.attachment ?? ''}
-                                  date={
-                                      new Date(
-                                          p.data.submitted_at ?? '1970-01-01',
-                                      )
-                                  }
-                                  target={p.data.target ?? 'Some Ministry'}
-                                  key={p.data.id ?? 0}
-                                  upvotes={
-                                      Number(p.data.petition_upvote_count) ?? 0
-                                  }
-                                  downvotes={
-                                      Number(p.data.petition_downvote_count) ??
-                                      0
-                                  }
-                              />
+                              <Fragment key={i}>
+                                  <PetitionCard
+                                      id={p.data.id}
+                                      userVote={p.extras.user_vote}
+                                      mode={type}
+                                      status={p.data.status}
+                                      name={p.extras.user.name ?? ''}
+                                      title={
+                                          p.data.title ?? 'Untitled Petition'
+                                      }
+                                      attachment={p.data.attachment ?? ''}
+                                      date={
+                                          new Date(
+                                              p.data.submitted_at ??
+                                                  '1970-01-01',
+                                          )
+                                      }
+                                      target={p.data.target ?? 'Some Ministry'}
+                                      key={p.data.id ?? 0}
+                                      upvotes={
+                                          Number(
+                                              p.data.petition_upvote_count,
+                                          ) ?? 0
+                                      }
+                                      downvotes={
+                                          Number(
+                                              p.data.petition_downvote_count,
+                                          ) ?? 0
+                                      }
+                                  />
+                                  {type === 'request' &&
+                                  page === 0 &&
+                                  i ===
+                                      (process.env.NODE_ENV === 'development'
+                                          ? 0
+                                          : 4) ? (
+                                      <div
+                                          className={
+                                              'py-5 text-center text-green-700 flex flex-row items-center relative'
+                                          }>
+                                          <div
+                                              className={
+                                                  'border-t border-t-green-600 w-full absolute'
+                                              }></div>
+                                          <div
+                                              className={
+                                                  'flex-1 w-full max-w-[80%] md:max-w-[70%] px-4 mx-auto top-0 left-0 right-0 bg-background z-10'
+                                              }>
+                                              ☝️ যেসব দাবি, Formalization-এর
+                                              জন্য review করা হবে
+                                          </div>
+                                      </div>
+                                  ) : null}
+                              </Fragment>
                           );
                       })}
             </div>

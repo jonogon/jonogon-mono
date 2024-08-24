@@ -13,9 +13,8 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv env.d.ts"
   },
   "dependencies": {
-    "next": "14.2.5",
-    "react": "^18",
-    "react-dom": "^18",
+    "@formkit/auto-animate": "^0.8.2",
+    "@heroicons/react": "^2.1.5",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -46,6 +45,9 @@
     "lucide-react": "^0.427.0",
     "mobx": "^6.13.1",
     "mobx-react-lite": "^4.0.7",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-icons": "^5.2.1",
     "react-markdown": "9.0.1",
@@ -55,13 +57,15 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.5.4",
     "use-debounce": "^10.0.2",
-    "zustand": "4.5.4",
-    "zod": "3.23.8"
+    "zod": "3.23.8",
+    "zustand": "4.5.4"
   },
   "devDependencies": {
-    "prettier": "3.3.3",
     "@cloudflare/next-on-pages": "1",
     "@cloudflare/workers-types": "^4.20240815.0",
+    "@jonogon/core": "workspace:*",
+    "@tailwindcss/typography": "^0.5.14",
+    "@trpc/server": "10.45.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -69,12 +73,10 @@
     "eslint-config-next": "14.2.5",
     "eslint-plugin-next-on-pages": "^1.13.2",
     "postcss": "^8",
+    "prettier": "3.3.3",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vercel": "^36.0.0",
-    "wrangler": "^3.72.0",
-    "@jonogon/core": "workspace:*",
-    "@tailwindcss/typography": "^0.5.14",
-    "@trpc/server": "10.45.2"
+    "wrangler": "^3.72.0"
   }
 }
