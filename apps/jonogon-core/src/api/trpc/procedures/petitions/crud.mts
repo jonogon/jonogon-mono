@@ -137,6 +137,15 @@ export const createPetition = protectedProcedure.mutation(
             });
         }
 
+        await ctx.services.postgresQueryBuilder
+            .insertInto('petition_votes')
+            .values({
+                petition_id: created.id,
+                user_id: ctx.auth.user_id,
+                vote: 1, // Upvote
+            })
+            .executeTakeFirst();
+
         return {
             data: created,
         };
