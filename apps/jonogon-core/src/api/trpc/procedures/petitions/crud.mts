@@ -137,7 +137,7 @@ export const createPetition = protectedProcedure.mutation(
             });
         }
 
-        await ctx.services.postgresQueryBuilder
+        const upvote = await ctx.services.postgresQueryBuilder
             .insertInto('petition_votes')
             .values({
                 petition_id: created.id,
@@ -145,6 +145,18 @@ export const createPetition = protectedProcedure.mutation(
                 vote: 1, // Upvote
             })
             .executeTakeFirst();
+
+        if (!upvote) {
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('petitions')
+                .where('id', '=', `${created.id}`)
+                .executeTakeFirst();
+
+            throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'failed-to-upvote-petition',
+            });
+        }
 
         return {
             data: created,
