@@ -9,33 +9,6 @@ export default function Comment() {
     const [inputOpened, setInputOpened] = useState(false);
     const [replyInputOpened, setReplyInputOpened] = useState(false);
     const [replyBtnSignal, setReplyBtnSignal] = useState(false); // dis some weird hacking to do dependency inversion magic lol
-    const replyInputRef = useRef<HTMLTextAreaElement>(null);
-
-    const scrollToInput = async () => {
-        // if (replyInputDivRef.current) {
-        //     const offsetTop = replyInputDivRef.current?.offsetTop - 100;
-        //     const maxScrollTop =
-        //         document.documentElement.scrollHeight - window.innerHeight;
-        //     window.scrollTo({
-        //         behavior: 'smooth',
-        //         top: Math.min(offsetTop, maxScrollTop),
-        //     });
-        //     const checkIfScrollFinished = () => {
-        //         const currentScroll = window.pageYOffset;
-        //         if (
-        //             Math.abs(currentScroll - offsetTop) <= 1 ||
-        //             currentScroll >= maxScrollTop
-        //         ) {
-        //             // Scroll has finished (or very close), focus on the input
-        //             replyInputRef.current?.focus();
-        //         } else {
-        //             // Continue checking
-        //             requestAnimationFrame(checkIfScrollFinished);
-        //         }
-        //     };
-        //     requestAnimationFrame(checkIfScrollFinished);
-        // }
-    };
 
     return (
         <div className="flex flex-col my-2 p-2 gap-1">
@@ -74,10 +47,7 @@ export default function Comment() {
                 </div>
             </div>
             {inputOpened && (
-                <div
-                    onClick={() => {
-                        setInputOpened(false);
-                    }}>
+                <div>
                     <InputBox
                         replyBtnSignal={replyBtnSignal}
                         setInputOpened={setInputOpened}
@@ -92,37 +62,31 @@ export default function Comment() {
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                     <Reply
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                     <Reply
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                     <Reply
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                     <Reply
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                     <Reply
                         setInputOpen={setReplyInputOpened}
                         replyBtnSignal={replyBtnSignal}
                         setReplyBtnSignal={setReplyBtnSignal}
-                        scroll={scrollToInput}
                     />
                 </div>
                 {/* <div className={`${replyInputOpened ? '' : 'hidden'}`}>

@@ -5,12 +5,10 @@ export default function Reply({
     setInputOpen,
     replyBtnSignal,
     setReplyBtnSignal,
-    scroll,
 }: {
     setInputOpen: (x: boolean) => void;
     replyBtnSignal: boolean;
     setReplyBtnSignal: (x: boolean) => void;
-    scroll: () => void;
 }) {
     return (
         <div className="flex flex-col gap-1 my-2">
@@ -35,7 +33,6 @@ export default function Reply({
                         onClick={() => {
                             setInputOpen(true);
                             setReplyBtnSignal(!replyBtnSignal);
-                            scroll();
                         }}>
                         <GoReply />
                         Reply
