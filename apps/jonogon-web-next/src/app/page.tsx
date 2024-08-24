@@ -57,7 +57,8 @@ function Tab({
             className={cn(
                 'border-b-2 border-transparent px-3 pb-1 capitalize select-none',
                 {
-                    'border-black': (params.get('type') ?? 'requests') === type,
+                    'border-red-500 text-red-500':
+                        (params.get('type') ?? 'requests') === type,
                 },
             )}
             onClick={updateParams}>
@@ -72,7 +73,7 @@ export default function Home() {
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
-                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-semibold">
+                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-center text-red-500">
                     {params.get('type') === 'own' ? (
                         'Your Own দাবিs'
                     ) : (
