@@ -301,6 +301,7 @@ export default function EditPetition() {
                         options={petitionLocations}
                         id="target"
                         value={petitionData.location ?? ''}
+                        className="bg-card text-card-foreground"
                         onChange={(e) =>
                             handleUpdateData('location', e.target.value)
                         }
