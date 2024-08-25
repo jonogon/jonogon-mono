@@ -9,7 +9,7 @@ import {
     splitLink,
     wsLink,
 } from '@trpc/client';
-import {trpc} from './index';
+import {trpc} from './client';
 import {scope} from 'scope-utilities';
 import {useTokenManager} from '@/auth/token-manager';
 

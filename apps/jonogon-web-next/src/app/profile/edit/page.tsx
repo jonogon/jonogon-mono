@@ -2,7 +2,7 @@
 
 import {ChangeEvent, useCallback, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {useTokenManager} from '@/auth/token-manager';
 import {useRouter} from 'next/navigation';
 import {cn} from '@/lib/utils';

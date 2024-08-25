@@ -7,7 +7,7 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import PetitionCard from './PetitionCard';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {useAutoAnimate} from '@formkit/auto-animate/react';
 import React, {Fragment, useEffect, useMemo, useState} from 'react';

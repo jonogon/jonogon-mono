@@ -1,6 +1,6 @@
 'use client';
 
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import Link from 'next/link';
 
 export default function Mod() {

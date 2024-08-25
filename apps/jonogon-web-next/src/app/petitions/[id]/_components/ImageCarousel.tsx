@@ -1,4 +1,4 @@
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 
 import {Card, CardContent} from '@/components/ui/card';
 import {

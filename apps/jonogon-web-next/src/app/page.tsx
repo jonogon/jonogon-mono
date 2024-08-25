@@ -11,7 +11,7 @@ import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import {PropsWithChildren} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {cn} from '@/lib/utils';
-import PetitionList from '@/app/components/PetitionList';
+import PetitionList from '@/app/_components/PetitionList';
 import PetitionActionButton from '@/components/custom/PetitionActionButton';
 
 function SortOption({

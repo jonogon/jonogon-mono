@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import {useAuthState, useTokenManager} from '@/auth/token-manager';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 

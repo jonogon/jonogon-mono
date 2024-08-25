@@ -1,7 +1,7 @@
 'use client';
 
 import {useCallback, useEffect, useState} from 'react';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {useTokenManager} from '@/auth/token-manager';
 import {toast} from '@/components/ui/use-toast';
 import OTPStage from '@/components/custom/OTPStage';

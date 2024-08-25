@@ -2,7 +2,7 @@
 
 import {useEffect} from 'react';
 import {useTokenManager} from '@/auth/token-manager';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 
 export function RegisterTokenRefresher() {
     const {setRefreshFunc} = useTokenManager();

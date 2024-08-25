@@ -1,4 +1,4 @@
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {Button} from '../ui/button';
 import {useAuthState} from '@/auth/token-manager';
 import {useRouter} from 'next/navigation';

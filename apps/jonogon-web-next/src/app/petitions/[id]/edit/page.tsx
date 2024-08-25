@@ -8,7 +8,7 @@ import {scope} from 'scope-utilities';
 import {TrashIcon} from '@radix-ui/react-icons';
 import {useTokenManager} from '@/auth/token-manager';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import z from 'zod';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
