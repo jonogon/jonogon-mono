@@ -27,6 +27,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
+const ReactQuill = dynamic(() => import('react-quill'), {ssr: false});
+
+import 'react-quill/dist/quill.snow.css';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 
 export default function EditPetition() {
     const {get: getToken} = useTokenManager();
@@ -399,7 +404,7 @@ export default function EditPetition() {
                                     className={
                                         'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black relative'
                                     }>
-                                    <img
+                                    <Image
                                         src={attachment.thumbnail!!.replace(
                                             '$CORE_HOSTNAME',
                                             window.location.hostname,
@@ -436,13 +441,29 @@ export default function EditPetition() {
                         </div>
                         <div className={'text-stone-500'}>বিস্তারিত লিখুন</div>
                     </Label>
-                    <textarea
+                    {/* <textarea
                         className={'font-mono p-3 h-48'}
                         placeholder={'Enter Details Here...'}
                         value={petitionData.description ?? ''}
                         onChange={(e) =>
                             handleUpdateData('description', e.target.value)
-                        }></textarea>
+                        }></textarea> */}
+                    <ReactQuill
+                        className={'font-mono'}
+                        value={petitionData.description ?? ''}
+                        onChange={(content) =>
+                            handleUpdateData('description', content)
+                        }
+                        modules={{
+                            toolbar: [
+                                [{header: '1'}, {header: '2'}],
+                                ['bold', 'italic', 'underline'],
+                                [{list: 'ordered'}, {list: 'bullet'}],
+                                ['link', 'image'],
+                                ['clean'],
+                            ],
+                        }}
+                    />
                 </div>
                 <div className={'flex flex-row space-x-2'}>
                     <Button
