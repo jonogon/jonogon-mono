@@ -139,11 +139,11 @@ const PetitionList = () => {
                                           }>
                                           <div
                                               className={
-                                                  'border-t border-t-green-600 w-full absolute'
+                                                  'border-t-2 border-dashed border-t-green-500 w-full absolute'
                                               }></div>
                                           <div
                                               className={
-                                                  'flex-1 w-full max-w-[80%] md:max-w-[70%] px-4 mx-auto top-0 left-0 right-0 bg-background z-10'
+                                                  'top-0 pr-4 left-0 bg-background z-[1] font-semibold'
                                               }>
                                               ☝️ যেসব দাবি, Formalization-এর
                                               জন্য review করা হবে
