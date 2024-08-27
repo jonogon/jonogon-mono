@@ -12,7 +12,7 @@ import {ImageCarousel} from './components/ImageCarousel';
 import {trpc} from '@/trpc';
 import {useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter} from 'next/navigation';
-import CommentThread from './components/Thread';
+import CommentThread from './components/comments/Thread';
 
 export default function Petition() {
     const utils = trpc.useUtils();

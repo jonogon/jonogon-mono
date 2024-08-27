@@ -1,19 +1,39 @@
+import {trpc} from '@/trpc';
+import {useParams} from 'next/navigation';
 import {RefObject, useEffect, useRef, useState} from 'react';
 
 export default function InputBox({
     setInputOpened,
     replyBtnSignal,
+    parentId,
+    refetch,
     tag,
 }: {
     setInputOpened: (x: boolean) => void;
     replyBtnSignal: boolean;
-    tag?: string;
+    parentId: string;
+    refetch: () => void;
+    tag: string;
 }) {
     const [inputValue, setInputValue] = useState('');
     const replyInputRef = useRef<HTMLTextAreaElement>(null);
 
+    const {id: petition_id} = useParams<{id: string}>();
+
+    const createCommentMutation = trpc.comments.create.useMutation();
+
+    const createComment = () => {
+        createCommentMutation.mutate({
+            petition_id: petition_id,
+            body: inputValue,
+            parent_id: parentId,
+        });
+        setInputValue('');
+        setInputOpened(false);
+        refetch();
+    };
+
     const scroll = () => {
-        console.log('inside scroll');
         if (replyInputRef.current) {
             const textareaBottom =
                 replyInputRef.current.offsetTop +
@@ -36,7 +56,7 @@ export default function InputBox({
                             window.innerHeight
                 ) {
                     replyInputRef.current?.focus();
-                    setInputValue(tag ? tag : '@imtiaz ');
+                    setInputValue(tag);
                 } else {
                     requestAnimationFrame(checkIfScrollFinished);
                 }
@@ -46,7 +66,6 @@ export default function InputBox({
     };
 
     useEffect(() => {
-        console.log('in the useEffect');
         scroll();
     }, [replyBtnSignal]);
 
@@ -68,7 +87,11 @@ export default function InputBox({
                     }}>
                     Cancel
                 </p>
-                <p className="p-2 border bg-green-600 text-white rounded-full text-sm cursor-pointer px-4">
+                <p
+                    className="p-2 border bg-green-600 text-white rounded-full text-sm cursor-pointer px-4"
+                    onClick={() => {
+                        createComment();
+                    }}>
                     Comment
                 </p>
             </div>
