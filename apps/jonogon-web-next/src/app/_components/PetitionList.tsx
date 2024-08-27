@@ -94,6 +94,9 @@ const PetitionList = () => {
                               );
                           })
                     : petitions.slice(0, 32).map((p, i) => {
+                          if (!p) {
+                              return null;
+                          }
                           return (
                               <Fragment key={p.data.id}>
                                   <PetitionCard
