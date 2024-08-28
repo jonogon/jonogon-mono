@@ -221,11 +221,22 @@ export default function EditPetition() {
         const isAdmin = !!selfResponse?.meta.token.is_user_admin;
         const isMod = !!selfResponse?.meta.token.is_user_moderator;
 
-        if (!isPetitionLoading && petitionRemoteData && selfResponse) {
-            if (!(isOwnPetition || isAdmin || isMod)) {
-                router.push(`/petitions/${petition_id}`);
-                return null;
+        useEffect(() => {
+            if (!isAuthenticated) {
+                router.push(`/login?next=${encodeURIComponent(`/petitions/${petition_id}/edit`)}`);
+            } else if (!isPetitionLoading && petitionRemoteData && selfResponse) {
+                if (!(isOwnPetition || isAdmin || isMod)) {
+                    router.push(`/petitions/${petition_id}`);
+                    toast({
+                        title: 'You are not authorized to edit this petition',
+                        variant: 'destructive',
+                    });
+                }
             }
+        }, [isAuthenticated, isPetitionLoading, petitionRemoteData, selfResponse, isOwnPetition, isAdmin, isMod, router, petition_id]);
+
+        if (!isAuthenticated || (!isPetitionLoading && !(isOwnPetition || isAdmin || isMod))) {
+            return null;
         }
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
