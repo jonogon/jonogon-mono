@@ -208,7 +208,7 @@ export default function EditPetition() {
         .object({
             title: z.string().min(12),
             target: z.string().min(6),
-            location: z.string().min(6),
+            location: z.string().min(3),
             description: z.string().optional(),
         })
         .safeParse(petitionData).success;
