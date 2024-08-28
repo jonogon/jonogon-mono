@@ -1,0 +1,22 @@
+# Protect main from accidental commits.
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+PROTECTED_BRANCHES="^(main)"
+
+if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]
+then
+  echo "\n🚫 Push directly to $BRANCH branch is not allowed! \n" && exit 1
+fi
+
+if [[ $branchName = *[![:ascii:]]* ]]
+then
+  echo "\n🚫 Branch name should not have any ascii and upper case letters, please rename your branch name\n" && exit 1
+fi
+
+if [[ $branchName =~ [A-Z] ]]
+then
+  echo "\n🚫 Branch name should not have any ascii and upper case letters, please rename your branch name \n" && exit 1
+fi
+
+
+exit 0
