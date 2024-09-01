@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useState} from 'react';
 import {trpc} from '@/trpc/client';
+import {useAuthState} from '@/auth/token-manager';
 import {toast} from '@/components/ui/use-toast';
 import OTPStage from '@/components/custom/OTPStage';
 import NumberStage from '@/components/custom/NumberStage';
@@ -56,11 +57,14 @@ export default function Login() {
         );
     };
 
+    const isAuthenticated = useAuthState();
+
     const router = useRouter();
     const params = useSearchParams();
 
     const redirectUrl: string = params.get('next') ?? '/';
 
+    if (isAuthenticated) router.push(redirectUrl);
     const login = () => {
         createToken(
             {
