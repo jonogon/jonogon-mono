@@ -10,9 +10,6 @@ const firebaseConfig = returnOf(() => {
     const defaultConfig = {
         apiKey: '-----',
         projectId: 'bangladesh2-jonogon',
-        authDomain: 'bangladesh2-jonogon.firebaseapp.com',
-        storageBucket: 'bangladesh2-jonogon.appspot.com',
-        messagingSenderId: '162943930438',
         appId: '1:162943930438:web:3650066f5b7bd3df37ba47',
     };
 
