@@ -4,18 +4,34 @@ import {type FirebaseApp, initializeApp} from 'firebase/app';
 import {getAuth, connectAuthEmulator, type Auth} from 'firebase/auth';
 import {getAnalytics} from 'firebase/analytics';
 import {decode} from 'universal-base64url';
+import {returnOf} from 'scope-utilities';
 
-const firebaseConfig = process.env.FIREBASE_WEB_CONFIG_JSON_BASE64URL
-    ? JSON.parse(decode(process.env.FIREBASE_WEB_CONFIG_JSON_BASE64URL))
-    : {
-          apiKey: '-----',
-          projectId: 'bangladesh2-jonogon',
-          authDomain: 'bangladesh2-jonogon.firebaseapp.com',
-          storageBucket: 'bangladesh2-jonogon.appspot.com',
-          messagingSenderId: '162943930438',
-          appId: '1:162943930438:web:3650066f5b7bd3df37ba47',
-          measurementId: 'G-BY995Q5BBE',
-      };
+const firebaseConfig = returnOf(() => {
+    const defaultConfig = {
+        apiKey: '-----',
+        projectId: 'bangladesh2-jonogon',
+        authDomain: 'bangladesh2-jonogon.firebaseapp.com',
+        storageBucket: 'bangladesh2-jonogon.appspot.com',
+        messagingSenderId: '162943930438',
+        appId: '1:162943930438:web:3650066f5b7bd3df37ba47',
+    };
+
+    if (process.env.NODE_ENV === 'development') {
+        return defaultConfig;
+    }
+
+    if (!process.env.NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL) {
+        return defaultConfig;
+    }
+
+    const parsed = JSON.parse(
+        decode(process.env.NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL),
+    );
+
+    console.log(parsed);
+
+    return parsed;
+});
 
 let app: null | FirebaseApp = null;
 
