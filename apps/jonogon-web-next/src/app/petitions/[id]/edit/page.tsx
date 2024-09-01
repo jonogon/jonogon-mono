@@ -1,12 +1,13 @@
 'use client';
 
+import {firebaseAuth} from '@/firebase';
+
 export const runtime = 'edge';
 
 import {useCallback, useEffect, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {scope} from 'scope-utilities';
 import {TrashIcon} from '@radix-ui/react-icons';
-import {useTokenManager} from '@/auth/token-manager';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {trpc} from '@/trpc/client';
 import z from 'zod';
@@ -29,7 +30,6 @@ import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
 
 export default function EditPetition() {
-    const {get: getToken} = useTokenManager();
     const utils = trpc.useUtils();
 
     const params = useSearchParams();
@@ -145,6 +145,12 @@ export default function EditPetition() {
 
     const {mutate: uploadAttachment} = useMutation({
         mutationFn: async (data: {type: 'image' | 'file'; file: File}) => {
+            const user = firebaseAuth().currentUser;
+
+            if (!user) {
+                return;
+            }
+
             const search = new URLSearchParams({
                 type: data.type,
                 filename: data.file.name,
@@ -158,7 +164,7 @@ export default function EditPetition() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/octet-stream',
-                        Authorization: `Bearer ${await getToken()}`,
+                        Authorization: `Bearer ${await user.getIdToken()}`,
                     },
                     body: data.file,
                 },
@@ -169,7 +175,7 @@ export default function EditPetition() {
             };
         },
         onSuccess: async (response) => {
-            if (response.message === 'image-added') {
+            if (response?.message === 'image-added') {
                 removeOne('image');
             } else {
                 removeOne('attachment');

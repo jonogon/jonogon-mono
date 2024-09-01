@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken';
 import {pick} from 'es-toolkit';
 import {getNumberOfAttempts} from './common.mjs';
 import {MAX_OTP_REQUESTS_PER_HOUR} from './request-otp.mjs';
+import {firebaseAuth} from '../../../../services/firebase/index.mjs';
 
 export const MAX_LOGIN_ATTEMPTS_PER_HOUR = MAX_OTP_REQUESTS_PER_HOUR * 4;
 
@@ -111,37 +112,12 @@ export const createTokenProcedure = publicProcedure
             );
         });
 
-        const accessToken = jwt.sign(
-            {
-                sub: user.id,
-                exp: Math.ceil(Date.now() / 1000) + 1 * 60 * 60, // one hour
-
-                is_adm: user.is_admin,
-                is_mod: user.is_mod,
-            },
-            env.COMMON_HMAC_SECRET,
-        );
-
-        const refreshToken = jwt.sign(
-            {
-                sub: user.id,
-
-                nbf: Math.ceil(Date.now() / 1000) + 1 * 55 * 60, // not valid until 5 minutes before access_token expiry.
-                exp: Math.ceil(Date.now() / 1000) + 60 * 24 * 60 * 60, // 60 days
-
-                is_adm: user.is_admin,
-                is_mod: user.is_mod,
-            },
-            env.COMMON_HMAC_SECRET,
-        );
+        const token = await firebaseAuth.createCustomToken(user.id.toString(), {
+            is_admin: user.is_admin,
+            is_mod: user.is_mod,
+        });
 
         return {
-            access_token: accessToken,
-            access_token_validity: 1 * 60 * 60,
-
-            refresh_token: refreshToken,
-            refresh_token_validity: 60 * 24 * 60 * 60,
-
-            user: pick(user, ['id', 'name', 'picture']), // to ensure we don't accidentally leak
+            firebase_custom_token: token,
         };
     });

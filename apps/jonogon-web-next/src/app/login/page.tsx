@@ -2,11 +2,12 @@
 
 import {useCallback, useEffect, useState} from 'react';
 import {trpc} from '@/trpc/client';
-import {useTokenManager} from '@/auth/token-manager';
 import {toast} from '@/components/ui/use-toast';
 import OTPStage from '@/components/custom/OTPStage';
 import NumberStage from '@/components/custom/NumberStage';
 import {useRouter, useSearchParams} from 'next/navigation';
+import {firebaseAuth} from '@/firebase';
+import {signInWithCustomToken} from 'firebase/auth';
 
 export default function Login() {
     const [number, setNumber] = useState(
@@ -55,7 +56,6 @@ export default function Login() {
         );
     };
 
-    const {set: setTokens} = useTokenManager();
     const router = useRouter();
     const params = useSearchParams();
 
@@ -69,15 +69,14 @@ export default function Login() {
             },
             {
                 onSuccess: async (data) => {
-                    await setTokens({
-                        accessToken: data.access_token,
-                        accessTokenValidity: data.access_token_validity * 1000,
-                        refreshToken: data.refresh_token,
-                        refreshTokenValidity:
-                            data.refresh_token_validity * 1000,
-                    });
+                    const credentials = await signInWithCustomToken(
+                        firebaseAuth(),
+                        data.firebase_custom_token,
+                    );
 
-                    router.push(redirectUrl);
+                    if (credentials.user) {
+                        router.push(redirectUrl);
+                    }
                 },
             },
         );

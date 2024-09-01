@@ -5,7 +5,6 @@ import '../styles/globals.css';
 import React, {Suspense} from 'react';
 import AuthWrapper from '@/auth/Wrapper';
 import {TRPCWrapper} from '@/trpc/Wrapper';
-import {RegisterTokenRefresher} from '@/auth/RegisterTokenRefresher';
 import Navigation from '@/components/custom/Navigation';
 import {Toaster} from '@/components/ui/toaster';
 
@@ -24,7 +23,6 @@ export default function RootLayout({
             <body className={''}>
                 <AuthWrapper>
                     <TRPCWrapper hostname={'localhost'}>
-                        <RegisterTokenRefresher />
                         <Suspense fallback={<>LOADING ...</>}>
                             <Navigation />
                             <div className={'mt-16'}>
