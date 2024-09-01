@@ -6,7 +6,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {scope} from 'scope-utilities';
 import {TrashIcon} from '@radix-ui/react-icons';
-import {useTokenManager} from '@/auth/token-manager';
+import {useTokenManager, useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {trpc} from '@/trpc/client';
 import z from 'zod';
@@ -36,6 +36,11 @@ export default function EditPetition() {
 
     const {id: petition_id} = useParams<{id: string}>();
     const router = useRouter();
+
+    const isAuthenticated = useAuthState();
+    const { data: selfResponse } = trpc.users.getSelf.useQuery(undefined, {
+        enabled: !!isAuthenticated,
+    });
 
     const freshValue = params.get('fresh');
 
@@ -208,6 +213,31 @@ export default function EditPetition() {
         })
         .safeParse(petitionData).success;
 
+        const isOwnPetition =
+        petitionRemoteData &&
+        selfResponse &&
+        `${petitionRemoteData?.data.created_by}` === `${selfResponse?.data.id}`;
+
+        const isAdmin = !!selfResponse?.meta.token.is_user_admin;
+        const isMod = !!selfResponse?.meta.token.is_user_moderator;
+
+        useEffect(() => {
+            if (!isAuthenticated) {
+                router.push(`/login?next=${encodeURIComponent(`/petitions/${petition_id}/edit`)}`);
+            } else if (!isPetitionLoading && petitionRemoteData && selfResponse) {
+                if (!(isOwnPetition || isAdmin || isMod)) {
+                    router.push(`/petitions/${petition_id}`);
+                    toast({
+                        title: 'You are not authorized to edit this petition',
+                        variant: 'destructive',
+                    });
+                }
+            }
+        }, [isAuthenticated, isPetitionLoading, petitionRemoteData, selfResponse, isOwnPetition, isAdmin, isMod, router, petition_id]);
+
+        if (!isAuthenticated || (!isPetitionLoading && !(isOwnPetition || isAdmin || isMod))) {
+            return null;
+        }
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
             <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
