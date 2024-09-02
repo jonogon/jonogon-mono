@@ -114,6 +114,7 @@ export const createPetition = protectedProcedure.mutation(
             .select(['petitions.id'])
             .where('created_by', '=', `${ctx.auth.user_id}`)
             .where('submitted_at', 'is', null)
+            .where('deleted_at', 'is', null)
             .executeTakeFirst();
 
         if (existingDraft) {
