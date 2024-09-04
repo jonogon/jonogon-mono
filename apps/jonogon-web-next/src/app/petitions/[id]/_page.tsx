@@ -12,6 +12,8 @@ import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
 import {trpc} from '@/trpc/client';
 import {useAuthState} from '@/auth/token-manager';
 import {useParams, useRouter} from 'next/navigation';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -264,7 +266,9 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown>
+                    <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}>
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}

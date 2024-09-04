@@ -1,0 +1,17 @@
+/* Style for the Quill toolbar */
+.ql-toolbar.ql-snow {
+    background-color: #fff;
+    border-bottom: none;
+    border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0 0;
+    padding: 4px;
+}
+
+/* Style for the Quill editor area */
+.ql-container {
+    min-height: 250px;
+    background-color: #fff;
+    border-top: none;
+    border-radius: 0 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px);
+    padding: 12px;
+    font-size: 14px;
+}

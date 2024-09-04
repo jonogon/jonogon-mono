@@ -27,8 +27,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
-const ReactQuill = dynamic(() => import('react-quill'), {ssr: false});
+const ReactQuill = dynamic(() => import('react-quill'), {ssr: true});
 
+import '@/styles/custom-quill.css';
 import 'react-quill/dist/quill.snow.css';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -441,26 +442,30 @@ export default function EditPetition() {
                         </div>
                         <div className={'text-stone-500'}>বিস্তারিত লিখুন</div>
                     </Label>
-                    {/* <textarea
-                        className={'font-mono p-3 h-48'}
-                        placeholder={'Enter Details Here...'}
-                        value={petitionData.description ?? ''}
-                        onChange={(e) =>
-                            handleUpdateData('description', e.target.value)
-                        }></textarea> */}
                     <ReactQuill
-                        className={'font-mono'}
+                        placeholder="Enter Details Here..."
+                        className={'font-mono min-h-80 text-black rounded-md'}
                         value={petitionData.description ?? ''}
                         onChange={(content) =>
                             handleUpdateData('description', content)
                         }
+                        theme="snow"
                         modules={{
                             toolbar: [
-                                [{header: '1'}, {header: '2'}],
-                                ['bold', 'italic', 'underline'],
-                                [{list: 'ordered'}, {list: 'bullet'}],
-                                ['link', 'image'],
-                                ['clean'],
+                                [{header: [1, 2, false]}],
+                                [
+                                    'bold',
+                                    'italic',
+                                    'underline',
+                                    'strike',
+                                    'blockquote',
+                                ],
+                                [
+                                    {list: 'ordered'},
+                                    {list: 'bullet'},
+                                    {indent: '-1'},
+                                    {indent: '+1'},
+                                ],
                             ],
                         }}
                     />
