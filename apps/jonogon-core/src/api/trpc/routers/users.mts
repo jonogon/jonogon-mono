@@ -1,11 +1,11 @@
-import {router} from '../index.mjs';
-import {z} from 'zod';
-import {protectedProcedure} from '../middleware/protected.mjs';
 import {TRPCError} from '@trpc/server';
-import {deriveKey} from '../../../lib/crypto/keys.mjs';
+import {pick} from 'es-toolkit';
+import {z} from 'zod';
 import {env} from '../../../env.mjs';
 import {decrypt} from '../../../lib/crypto/encryption.mjs';
-import {pick} from 'es-toolkit';
+import {deriveKey} from '../../../lib/crypto/keys.mjs';
+import {publicProcedure, router} from '../index.mjs';
+import {protectedProcedure} from '../middleware/protected.mjs';
 
 export const userRouter = router({
     getSelf: protectedProcedure.query(async ({ctx}) => {
@@ -85,4 +85,16 @@ export const userRouter = router({
                 message: 'updated',
             };
         }),
+    getTotalNumberOfUsers: publicProcedure.query(async ({ctx}) => {
+        const count = await ctx.services.postgresQueryBuilder
+            .selectFrom('users')
+            .select((eb) => eb.fn.count('id').as('count'))
+            .executeTakeFirst();
+
+        return {
+            data: {
+                count,
+            },
+        };
+    }),
 });

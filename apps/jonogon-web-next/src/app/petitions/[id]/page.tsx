@@ -6,14 +6,10 @@ export const runtime = 'edge';
 
 export async function generateMetadata({params}: {params: {id: string}}) {
     const response = await trpcVanilla.petitions.get.query({id: params.id});
-    const {
-        id,
-        title,
-        description,
-        petition_upvote_count,
-        petition_downvote_count,
-        attachments,
-    } = response.data;
+    const {id, title, description, attachments} = response.data;
+
+    const res = await trpcVanilla.users.getTotalNumberOfUsers.query();
+    const totalNumberOfUsers = res.data.count ? Number(res.data.count) : 0;
 
     const originalTitle = title ?? '';
     const originalDescription = description ?? '';
@@ -22,9 +18,8 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             ? `${originalTitle.substring(0, 64)}... - Jonogon`
             : `${originalTitle} - Jonogon`;
 
-    const totalVoteCount = petition_upvote_count + petition_downvote_count;
     const metaTitle = title ?? '';
-    const metaDescription = generateDescription(totalVoteCount);
+    const metaDescription = generateDescription(totalNumberOfUsers);
 
     return {
         title: siteTitle,
