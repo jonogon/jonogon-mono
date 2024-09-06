@@ -11,6 +11,13 @@ import {Toaster} from '@/components/ui/toaster';
 export const metadata: Metadata = {
     title: 'Jonogon — জনগণ',
     description: 'আমাদের দাবির প্লাটফর্ম',
+    openGraph: {
+        title: 'Jonogon — জনগণ',
+        description: 'আমাদের দাবির প্লাটফর্ম',
+        url: 'https://jonogon.org',
+        siteName: 'jonogon.org',
+        type: 'website',
+    },
 };
 
 export default function RootLayout({
