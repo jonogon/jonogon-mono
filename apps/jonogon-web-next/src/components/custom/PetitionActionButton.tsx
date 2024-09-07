@@ -15,7 +15,7 @@ const PetitionActionButton = () => {
 
     const handlePetitionCreate = async () => {
         if (!authState) {
-            router.push(`/login?next=${encodeURIComponent('/petitions/new')}`);
+            router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
         } else {
             createPetition();
         }
