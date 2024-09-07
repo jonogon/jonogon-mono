@@ -263,7 +263,11 @@ export default function EditPetition() {
     }, [isAuthenticated, petitionRemoteData, isAdmin, isOwnPetition, petition_id]);
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div>Loading...</div>
+            </div>
+        );
     }
 
     return (
