@@ -6,10 +6,16 @@ export const runtime = 'edge';
 
 export async function generateMetadata({params}: {params: {id: string}}) {
     const response = await trpcVanilla.petitions.get.query({id: params.id});
-    const {id, title, description, attachments} = response.data;
+    const {
+        id,
+        title,
+        description,
+        attachments,
+        petition_upvote_count,
+        petition_downvote_count,
+    } = response.data;
 
-    const users = await trpcVanilla.users.getTotalNumberOfUsers.query();
-    const totalNumberOfUsers = users.data.count ? Number(users.data.count) : 0;
+    const totalVoteCount = petition_upvote_count + petition_downvote_count;
 
     const originalTitle = title ?? '';
     const originalDescription = description ?? '';
@@ -19,7 +25,7 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             : `${originalTitle} - Jonogon`;
 
     const metaTitle = title ?? '';
-    const metaDescription = generateDescription(totalNumberOfUsers);
+    const metaDescription = generateDescription(totalVoteCount);
 
     return {
         title: siteTitle,
@@ -51,7 +57,12 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             description: metaDescription,
             images:
                 attachments.length > 0
-                    ? [`https://jonogon.org${attachments[0].thumbnail}`]
+                    ? [
+                          `${attachments[0].thumbnail}`.replace(
+                              '$CORE_HOSTNAME',
+                              'localhost',
+                          ),
+                      ]
                     : [],
         },
     };

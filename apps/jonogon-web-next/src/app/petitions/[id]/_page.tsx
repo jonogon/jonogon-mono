@@ -279,7 +279,7 @@ export default function Petition() {
                     {petition?.data.status !== 'rejected' &&
                         petition?.data.status !== 'draft' && (
                             <div
-                                className="flex items-center gap-1.5 mt-1 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                                className="flex items-center gap-1.5 mt-3 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
                                 role="button"
                                 onClick={() => openShareModal()}>
                                 <Share2 className="size-3" />
