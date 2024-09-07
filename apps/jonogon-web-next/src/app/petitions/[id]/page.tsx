@@ -40,7 +40,10 @@ export async function generateMetadata({params}: {params: {id: string}}) {
                 attachments.length > 0
                     ? [
                           {
-                              url: attachments[0].thumbnail,
+                              url: `${attachments[0].thumbnail}`.replace(
+                                  '$CORE_HOSTNAME',
+                                  'localhost',
+                              ),
                               width: 1200,
                               height: 630,
                               alt: originalTitle,
@@ -52,7 +55,15 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             card: 'summary_large_image',
             title: metaTitle,
             description: metaDescription,
-            images: attachments.length > 0 ? [attachments[0].thumbnail] : [],
+            images:
+                attachments.length > 0
+                    ? [
+                          `${attachments[0].thumbnail}`.replace(
+                              '$CORE_HOSTNAME',
+                              'localhost',
+                          ),
+                      ]
+                    : [],
         },
     };
 }

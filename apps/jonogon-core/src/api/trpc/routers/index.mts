@@ -3,6 +3,7 @@ import {publicProcedure, router} from '../index.mjs';
 import {userRouter} from './users.mjs';
 import {authRouter} from './auth.mjs';
 import {petitionRouter} from './petitions.mjs';
+import {commentRouter} from './comments.mjs';
 import {firebaseAuth} from '../../../services/firebase/index.mjs';
 
 export const appRouter = router({
@@ -14,6 +15,7 @@ export const appRouter = router({
     auth: authRouter,
     users: userRouter,
     petitions: petitionRouter,
+    comments: commentRouter,
 
     ...(process.env.NODE_ENV === 'development'
         ? {

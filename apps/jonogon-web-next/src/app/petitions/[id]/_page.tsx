@@ -8,13 +8,17 @@ import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
 import {useAuthState} from '@/auth/token-manager';
 import {Button} from '@/components/ui/button';
 import {trpc} from '@/trpc/client';
-import {Share2, ThumbsDown, ThumbsUp} from 'lucide-react';
+import {Share2} from 'lucide-react';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
+
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
 import {useSocialShareStore} from '@/store/useSocialShareStore';
+
+import {ThumbsDown, ThumbsUp} from 'lucide-react';
+import CommentThread from './_components/comments/Thread';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -268,19 +272,20 @@ export default function Petition() {
                         {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
                     </span>
                 </div>
-                <div className="flex items-start">
+                <div className="flex items-start flex-col">
                     <h1 className="text-4xl font-bold font-serif flex-1">
                         {petition?.data.title ?? 'Untiled Petition'}
                     </h1>
-                    {petition?.data.status === 'submitted' && (
-                        <div
-                            className="flex items-center gap-1.5 mt-1 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
-                            role="button"
-                            onClick={() => openShareModal()}>
-                            <Share2 className="size-3" />
-                            <p className="text-xs">Share</p>
-                        </div>
-                    )}
+                    {petition?.data.status !== 'rejected' &&
+                        petition?.data.status !== 'draft' && (
+                            <div
+                                className="flex items-center gap-1.5 mt-3 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                                role="button"
+                                onClick={() => openShareModal()}>
+                                <Share2 className="size-3" />
+                                <p className="text-xs">Share</p>
+                            </div>
+                        )}
                 </div>
                 <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
                     <span>It affects</span>
@@ -294,6 +299,7 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
+                {isAuthenticated && <CommentThread />}
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div
