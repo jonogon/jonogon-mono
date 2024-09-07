@@ -17,6 +17,11 @@ export const metadata: Metadata = {
         url: 'https://jonogon.org',
         siteName: 'jonogon.org',
         type: 'website',
+        images: [
+            {
+                url: '/opengraph-image.jpeg',
+            },
+        ],
     },
 };
 
