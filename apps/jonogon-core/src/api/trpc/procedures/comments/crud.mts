@@ -76,7 +76,7 @@ export const listComments = publicProcedure
                         .on('user_vote.user_id', '=', `${ctx.auth?.user_id}`),
             )
             .select(({fn}) => [
-                'users.username as username',
+                'users.name as username',
                 'users.id as user_id',
                 'users.picture as profile_picture',
                 'comments.created_by',
@@ -158,7 +158,7 @@ export const listReplies = publicProcedure
                         .on('user_vote.user_id', '=', `${ctx.auth?.user_id}`),
             )
             .select(({fn}) => [
-                'users.username as username',
+                'users.name as username',
                 'users.id as user_id',
                 'users.picture as profile_picture',
                 'comments.created_by',
@@ -263,7 +263,7 @@ export const createComment = protectedProcedure
                 (qb) =>
                     qb
                         .selectFrom('users')
-                        .select('users.username')
+                        .select('users.name')
                         .whereRef('users.id', '=', 'comments.created_by')
                         .as('username'),
                 (qb) =>

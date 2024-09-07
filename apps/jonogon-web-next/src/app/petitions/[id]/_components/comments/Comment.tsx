@@ -101,14 +101,16 @@ export default function Comment({data}: CommentProps) {
                 <div className="flex flex-col">
                     {data.username ? (
                         <>
-                            <p>@imtiaz</p>
+                            <p>{data.username}</p>
                             <p className="text-xs text-stone-500 ml-1">
-                                Jonogon-User-1
+                                Jonogon-User-{data.created_by}
                             </p>
                         </>
                     ) : (
                         <>
-                            <p className="ml-1">Jonogon-User-1</p>
+                            <p className="ml-1">
+                                Jonogon-User-{data.created_by}
+                            </p>
                         </>
                     )}
                 </div>
