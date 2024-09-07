@@ -4,19 +4,47 @@ import {CommentInterface} from './types';
 import {useEffect, useState} from 'react';
 import {trpc} from '@/trpc/client';
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {Button} from '@/components/ui/button';
+import {MoreVertical} from 'lucide-react';
+import {MdDelete} from 'react-icons/md';
+import {useAuthState} from '@/auth/token-manager';
+
 export default function Reply({
     setInputOpen,
     replyBtnSignal,
     setReplyBtnSignal,
     setFocusTag,
     data,
+    selfId,
+    selfDestruct,
 }: {
     setInputOpen: (x: boolean) => void;
     replyBtnSignal: boolean;
     setReplyBtnSignal: (x: boolean) => void;
     setFocusTag: (x: string) => void;
     data: CommentInterface;
+    selfId: number;
+    selfDestruct: (id: string) => void;
 }) {
+    const isAuthenticated = useAuthState();
+
     const [liked, setLiked] = useState(false);
     const [totalLikes, setTotalLikes] = useState(0);
 
@@ -44,35 +72,109 @@ export default function Reply({
         setTotalLikes(data.total_votes);
     }, []);
 
+    const [deleteOpened, setDeleteOpened] = useState(false);
+
+    const {mutateAsync: deleteReply} = trpc.comments.delete.useMutation();
+
     return (
         <div className="flex flex-col gap-1 my-2">
-            <div className="flex flex-row gap-1 items-center">
-                <div className="w-12 h-12 rounded-full bg-gray-200 border mt-1">
-                    <img
-                        src={(
-                            data.profile_picture ??
-                            `https://static.jonogon.org/placeholder-images/${((Number(data.created_by) + 1) % 11) + 1}.jpg`
-                        ).replace('$CORE_HOSTNAME', window.location.hostname)}
-                        className="rounded-full"
-                    />
+            <div className="flex flex-row justify-between">
+                <div className="flex flex-row gap-1 items-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 border mt-1">
+                        <img
+                            src={(
+                                data.profile_picture ??
+                                `https://static.jonogon.org/placeholder-images/${((Number(data.created_by) + 1) % 11) + 1}.jpg`
+                            ).replace(
+                                '$CORE_HOSTNAME',
+                                window.location.hostname,
+                            )}
+                            className="rounded-full"
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        {data.username ? (
+                            <>
+                                <p>{data.username}</p>
+                                <p className="text-xs text-stone-500 ml-1">
+                                    Jonogon-User-{data.created_by}
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="ml-1">
+                                    Jonogon-User-{data.created_by}
+                                </p>
+                            </>
+                        )}
+                    </div>
                 </div>
-                <div className="flex flex-col">
-                    {data.username ? (
+                <div>
+                    {isAuthenticated && selfId == Number(data.created_by) && (
                         <>
-                            <p>{data.username}</p>
-                            <p className="text-xs text-stone-500 ml-1">
-                                Jonogon-User-{data.created_by}
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            <p className="ml-1">
-                                Jonogon-User-{data.created_by}
-                            </p>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 mt-4">
+                                        <span className="sr-only">
+                                            Open menu
+                                        </span>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>
+                                        <div
+                                            className="flex flex-row gap-1 items-center"
+                                            onClick={() =>
+                                                setDeleteOpened(true)
+                                            }>
+                                            <MdDelete />
+                                            Delete Reply
+                                        </div>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialog
+                                open={deleteOpened}
+                                onOpenChange={setDeleteOpened}>
+                                <AlertDialogTrigger
+                                    asChild></AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                            Are you absolutely sure?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This
+                                            will permanently delete your reply.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel
+                                            onClick={() => {
+                                                setDeleteOpened(false);
+                                            }}>
+                                            Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={async () => {
+                                                await deleteReply({
+                                                    id: Number(data.id),
+                                                });
+                                                selfDestruct(data.id);
+                                            }}>
+                                            Continue
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </>
                     )}
                 </div>
             </div>
+
             <p className="">{data.body}</p>
             <div className="flex flex-row text-sm justify-between items-center">
                 <div className="flex flex-row gap-2">

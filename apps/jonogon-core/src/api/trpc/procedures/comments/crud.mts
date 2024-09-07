@@ -16,6 +16,7 @@ export const countComments = publicProcedure
             .selectFrom('comments')
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', 'is', null)
+            .where('comments.deleted_at', 'is', null)
             .select((eb) => eb.fn.count('comments.id').as('count'))
             .executeTakeFirst();
 
@@ -39,6 +40,7 @@ export const countReplies = publicProcedure
             .selectFrom('comments')
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', '=', `${input.parent_id}`)
+            .where('comments.deleted_at', 'is', null)
             .select((eb) => eb.fn.count('comments.id').as('count'))
             .executeTakeFirst();
 
@@ -59,7 +61,7 @@ export const listComments = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 3;
+        const limit = 8;
         const comments = await ctx.services.postgresQueryBuilder
             .selectFrom('comments')
             .innerJoin('users', 'comments.created_by', 'users.id')
@@ -103,19 +105,11 @@ export const listComments = publicProcedure
             .execute();
 
         const data = await Promise.all(
-            comments.map(async (comment) => {
-                if (comment.deleted_at !== null) {
-                    return {
-                        ...comment,
-                        body: '(deleted)',
-                        profile_picture: comment.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  comment.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(comment.total_votes),
-                    };
-                } else {
+            comments
+                .filter((comment) => {
+                    return comment.deleted_at === null;
+                })
+                .map(async (comment) => {
                     return {
                         ...comment,
                         profile_picture: comment.profile_picture
@@ -125,8 +119,7 @@ export const listComments = publicProcedure
                             : null,
                         total_votes: Number(comment.total_votes),
                     };
-                }
-            }),
+                }),
         );
 
         return {data};
@@ -141,7 +134,7 @@ export const listReplies = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 3;
+        const limit = 4;
         const replies = await ctx.services.postgresQueryBuilder
             .selectFrom('comments')
             .innerJoin('users', 'comments.created_by', 'users.id')
@@ -179,19 +172,11 @@ export const listReplies = publicProcedure
             .execute();
 
         const data = await Promise.all(
-            replies.map(async (reply) => {
-                if (reply.deleted_at !== null) {
-                    return {
-                        ...reply,
-                        body: '(deleted)',
-                        profile_picture: reply.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  reply.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(reply.total_votes),
-                    };
-                } else {
+            replies
+                .filter((reply) => {
+                    return reply.deleted_at === null;
+                })
+                .map(async (reply) => {
                     return {
                         ...reply,
                         profile_picture: reply.profile_picture
@@ -201,8 +186,7 @@ export const listReplies = publicProcedure
                             : null,
                         total_votes: Number(reply.total_votes),
                     };
-                }
-            }),
+                }),
         );
 
         return {data};
