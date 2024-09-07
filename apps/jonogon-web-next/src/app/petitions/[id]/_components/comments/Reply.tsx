@@ -97,13 +97,13 @@ export default function Reply({
                             <>
                                 <p>{data.username}</p>
                                 <p className="text-xs text-stone-500 ml-1">
-                                    Jonogon-User-{data.created_by}
+                                    Citizen #{data.created_by}
                                 </p>
                             </>
                         ) : (
                             <>
                                 <p className="ml-1">
-                                    Jonogon-User-{data.created_by}
+                                    Citizen #{data.created_by}
                                 </p>
                             </>
                         )}
@@ -206,7 +206,7 @@ export default function Reply({
                             setFocusTag(
                                 data.username
                                     ? `@${data.username} `
-                                    : `@Jonogon-User-${data.created_by} `,
+                                    : `@Citizen #${data.created_by} `,
                             );
                             setInputOpen(true);
                             setReplyBtnSignal(!replyBtnSignal);
