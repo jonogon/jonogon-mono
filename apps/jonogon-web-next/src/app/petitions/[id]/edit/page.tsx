@@ -28,8 +28,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
-import {petitionLocations, petitionTargets} from '@/lib/constants';
+
+// import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
+// import {petitionLocations, petitionTargets} from '@/lib/constants';
 
 export default function EditPetition() {
     const utils = trpc.useUtils();
@@ -213,14 +214,17 @@ export default function EditPetition() {
             },
         });
 
-    const isValid = z
+    const validation = z
         .object({
-            title: z.string().min(12),
-            target: z.string().min(6),
+            title: z.string().min(3),
+            target: z.string().min(3),
             location: z.string().min(3),
             description: z.string().optional(),
         })
-        .safeParse(petitionData).success;
+        .safeParse(petitionData);
+
+    const isValid = validation.success;
+    const validationErrors = !validation.success ? validation.error : undefined;
 
     const isOwnPetition =
         petitionRemoteData &&
@@ -231,38 +235,24 @@ export default function EditPetition() {
     const isMod = !!selfResponse?.meta.token.is_user_moderator;
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            router.push(
+        if (isAuthenticated === false) {
+            router.replace(
                 `/login?next=${encodeURIComponent(`/petitions/${petition_id}/edit`)}`,
             );
-        } else if (!isPetitionLoading && petitionRemoteData && selfResponse) {
-            if (!(isOwnPetition || isAdmin || isMod)) {
-                router.push(`/petitions/${petition_id}`);
-
-                toast({
-                    title: 'You are not authorized to edit this petition',
-                    variant: 'destructive',
-                });
-            }
         }
-    }, [
-        isAuthenticated,
-        isPetitionLoading,
-        petitionRemoteData,
-        selfResponse,
-        isOwnPetition,
-        isAdmin,
-        isMod,
-        router,
-        petition_id,
-    ]);
+    }, [isAuthenticated]);
 
-    if (
-        !isAuthenticated ||
-        (!isPetitionLoading && !(isOwnPetition || isAdmin || isMod))
-    ) {
-        return null;
-    }
+    useEffect(() => {
+        if (isAuthenticated && !isOwnPetition && !isAdmin) {
+            router.push(`/petitions/${petition_id}`);
+
+            toast({
+                title: 'You are not authorized to edit this petition',
+                variant: 'destructive',
+            });
+        }
+    }, [isAdmin, isOwnPetition]);
+
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
             <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
@@ -332,8 +322,8 @@ export default function EditPetition() {
                             আপনি কার কাছে দাবি করছেন?
                         </div>
                     </Label>
-                    <AutoCompleteInput
-                        options={petitionTargets}
+                    <Input
+                        // options={petitionTargets}
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.target ?? ''}
@@ -352,8 +342,8 @@ export default function EditPetition() {
                             কোন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
-                    <AutoCompleteInput
-                        options={petitionLocations}
+                    <Input
+                        // options={petitionLocations}
                         id="target"
                         value={petitionData.location ?? ''}
                         className="bg-card text-card-foreground"
