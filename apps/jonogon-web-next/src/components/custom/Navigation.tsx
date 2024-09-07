@@ -61,7 +61,7 @@ const Navigation = () => {
 								className={`w-8 h-8 text-red-500`}
 							/>
 						</DialogTrigger>
-						<DialogContent className="bg-red-500 border-none w-full md:w-2/3 max-w-none overflow-y-auto max-h-[100vh] ">
+						<DialogContent className="bg-red-500 border-none w-full md:w-11/12 max-w-none overflow-y-auto max-h-[100vh] ">
 							<DialogTitle className="text-2xl font-medium text-white">
 								About Us
 							</DialogTitle>
