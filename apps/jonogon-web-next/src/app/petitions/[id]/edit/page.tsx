@@ -234,6 +234,14 @@ export default function EditPetition() {
     const isAdmin = !!selfResponse?.meta.token.is_user_admin;
     const isMod = !!selfResponse?.meta.token.is_user_moderator;
 
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (petitionRemoteData) {
+            setIsLoading(false);
+        }
+    }, [petitionRemoteData]);
+
     useEffect(() => {
         if (isAuthenticated === false) {
             router.replace(
@@ -243,15 +251,20 @@ export default function EditPetition() {
     }, [isAuthenticated]);
 
     useEffect(() => {
-        if (isAuthenticated && !isOwnPetition && !isAdmin) {
-            router.push(`/petitions/${petition_id}`);
-
-            toast({
-                title: 'You are not authorized to edit this petition',
-                variant: 'destructive',
-            });
+        if (isAuthenticated && petitionRemoteData) {
+            if (!isOwnPetition && !isAdmin) {
+                router.push(`/petitions/${petition_id}`);
+                toast({
+                    title: 'You are not authorized to edit this petition',
+                    variant: 'destructive',
+                });
+            }
         }
-    }, [isAdmin, isOwnPetition]);
+    }, [isAuthenticated, petitionRemoteData, isAdmin, isOwnPetition, petition_id]);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
