@@ -64,6 +64,12 @@ export default function Login() {
 
     const redirectUrl: string = params.get('next') ?? '/';
 
+    const {mutate: createPetition} = trpc.petitions.create.useMutation({
+        onSuccess(response) {
+            router.push(`/petitions/${response.data.id}/edit?fresh=true`);
+        },
+    });
+
     if (isAuthenticated) router.push(redirectUrl);
     const login = () => {
         createToken(
@@ -79,6 +85,12 @@ export default function Login() {
                     );
 
                     if (credentials.user) {
+                        // TODO: fix properly with logged out draft petition
+                        if (redirectUrl === '/petition/draft') {
+                            createPetition();
+                            return;
+                        }
+
                         router.push(redirectUrl);
                     }
                 },
