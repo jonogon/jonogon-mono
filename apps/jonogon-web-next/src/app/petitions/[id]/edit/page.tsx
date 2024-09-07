@@ -71,7 +71,7 @@ export default function EditPetition() {
         trpc.petitions.update.useMutation({
             onSuccess: async () => {
                 await utils.petitions.get.invalidate({id: petition_id});
-                router.push(`/petitions/${petition_id}`);
+                router.push(`/petitions/${petition_id}?status=submitted`);
             },
         });
 

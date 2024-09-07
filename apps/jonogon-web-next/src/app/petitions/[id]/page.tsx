@@ -8,8 +8,8 @@ export async function generateMetadata({params}: {params: {id: string}}) {
     const response = await trpcVanilla.petitions.get.query({id: params.id});
     const {id, title, description, attachments} = response.data;
 
-    const res = await trpcVanilla.users.getTotalNumberOfUsers.query();
-    const totalNumberOfUsers = res.data.count ? Number(res.data.count) : 0;
+    const users = await trpcVanilla.users.getTotalNumberOfUsers.query();
+    const totalNumberOfUsers = users.data.count ? Number(users.data.count) : 0;
 
     const originalTitle = title ?? '';
     const originalDescription = description ?? '';
@@ -34,8 +34,7 @@ export async function generateMetadata({params}: {params: {id: string}}) {
                 attachments.length > 0
                     ? [
                           {
-                              url: 'https://static.jonogon.org/attachment_thumbnail_i725qf3XqN6PNw39A0Uh4.jpg',
-                              // url: `https://jonogon.org${attachments[0].thumbnail}`,
+                              url: `https://jonogon.org${attachments[0].thumbnail}`,
                               width: 1200,
                               height: 630,
                               alt: originalTitle,
@@ -49,9 +48,7 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             description: metaDescription,
             images:
                 attachments.length > 0
-                    ? [
-                          'https://static.jonogon.org/attachment_thumbnail_i725qf3XqN6PNw39A0Uh4.jpg',
-                      ]
+                    ? [`https://jonogon.org${attachments[0].thumbnail}`]
                     : [],
         },
     };

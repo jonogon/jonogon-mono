@@ -4,19 +4,23 @@ import Loading from '@/app/petitions/[id]/loading';
 
 export const runtime = 'edge';
 
+import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
+import {useAuthState} from '@/auth/token-manager';
+import {Button} from '@/components/ui/button';
+import {trpc} from '@/trpc/client';
+import {Share2, ThumbsDown, ThumbsUp} from 'lucide-react';
+import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
-import {ThumbsDown, ThumbsUp} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
-import {trpc} from '@/trpc/client';
-import {useAuthState} from '@/auth/token-manager';
-import {useParams, useRouter} from 'next/navigation';
+import {PetitionShareModal} from './_components/PetitionShareModal';
+import {SocialShareSheet} from './_components/SocialShareSheet';
+import {useSocialShareStore} from '@/store/useSocialShareStore';
 
 export default function Petition() {
     const utils = trpc.useUtils();
 
     const router = useRouter();
+    const searchParams = useSearchParams();
     const isAuthenticated = useAuthState();
 
     const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
@@ -33,7 +37,18 @@ export default function Petition() {
         id: petition_id!!,
     });
 
+    const {openShareModal} = useSocialShareStore();
+
+    const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
+
     const [userVote, setUserVote] = useState(0);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    useEffect(() => {
+        if (isSubmitted) {
+            setShowSuccessModal(true);
+        }
+    }, [isSubmitted]);
 
     useEffect(() => {
         if (petition) {
@@ -253,9 +268,20 @@ export default function Petition() {
                         {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
                     </span>
                 </div>
-                <h1 className="text-4xl font-bold font-serif">
-                    {petition?.data.title ?? 'Untiled Petition'}
-                </h1>
+                <div className="flex items-start">
+                    <h1 className="text-4xl font-bold font-serif flex-1">
+                        {petition?.data.title ?? 'Untiled Petition'}
+                    </h1>
+                    {petition?.data.status === 'submitted' && (
+                        <div
+                            className="flex items-center gap-1.5 mt-1 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                            role="button"
+                            onClick={() => openShareModal()}>
+                            <Share2 className="size-3" />
+                            <p className="text-xs">Share</p>
+                        </div>
+                    )}
+                </div>
                 <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
                     <span>It affects</span>
                     <span className={'italic font-semibold'}>
@@ -309,6 +335,15 @@ export default function Petition() {
                         <p className="ml-2">{downvoteCount}</p>
                     </Button>
                 </div>
+
+                {showSuccessModal && (
+                    <PetitionShareModal
+                        isOpen={showSuccessModal}
+                        setIsOpen={setShowSuccessModal}
+                    />
+                )}
+
+                <SocialShareSheet />
             </div>
         </>
     );
