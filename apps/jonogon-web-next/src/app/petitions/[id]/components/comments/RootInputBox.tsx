@@ -1,13 +1,16 @@
 import {trpc} from '@/trpc';
 import {useParams} from 'next/navigation';
 import {useEffect, useRef, useState} from 'react';
+import {CommentInterface} from './types';
 
 function ActualInputBox({
     setClicked,
     refetch,
+    optimisticSetter,
 }: {
     setClicked: (x: boolean) => void;
     refetch: () => void;
+    optimisticSetter: (x: CommentInterface) => void;
 }) {
     const [textInput, setTextInput] = useState('');
 
@@ -16,16 +19,27 @@ function ActualInputBox({
     const createCommentMutation = trpc.comments.create.useMutation();
 
     const createComment = async () => {
-        createCommentMutation.mutate({
+        const comment = await createCommentMutation.mutateAsync({
             petition_id: petition_id,
             body: textInput,
         });
 
         setTextInput('');
         setClicked(false);
-        console.log('running refetch');
-        await refetch();
-        console.log('refetch done');
+
+        if (comment.data) {
+            optimisticSetter({
+                id: comment.data.id!!,
+                total_votes: 0,
+                created_by: comment.data.created_by!!,
+                body: comment.data.body!!,
+                deleted_at: null,
+                highlighted_at: null,
+                username: comment.data.username!!,
+                user_vote: 0,
+                profile_picture: comment.data.profile_picture,
+            });
+        }
     };
 
     const commentBoxRef = useRef<HTMLTextAreaElement>(null);
@@ -72,13 +86,23 @@ function FakeInputBox() {
     );
 }
 
-export default function RootInputBox({refetch}: {refetch: () => void}) {
+export default function RootInputBox({
+    refetch,
+    optimisticSetter,
+}: {
+    refetch: () => void;
+    optimisticSetter: (x: CommentInterface) => void;
+}) {
     const [clicked, setClicked] = useState(false);
 
     return (
         <>
             {clicked ? (
-                <ActualInputBox setClicked={setClicked} refetch={refetch} />
+                <ActualInputBox
+                    setClicked={setClicked}
+                    refetch={refetch}
+                    optimisticSetter={optimisticSetter}
+                />
             ) : (
                 <div
                     onClick={() => {

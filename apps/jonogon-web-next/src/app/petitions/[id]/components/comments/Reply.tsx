@@ -49,24 +49,26 @@ export default function Reply({
             <div className="flex flex-row gap-1 items-center">
                 <div className="w-12 h-12 rounded-full bg-gray-200 border mt-1">
                     <img
-                        src={`${data.profile_picture}`.replace(
-                            '$CORE_HOSTNAME',
-                            window.location.hostname,
-                        )}
+                        src={(
+                            data.profile_picture ??
+                            `https://static.jonogon.org/placeholder-images/${((Number(data.created_by) + 1) % 11) + 1}.jpg`
+                        ).replace('$CORE_HOSTNAME', window.location.hostname)}
                         className="rounded-full"
                     />
                 </div>
                 <div className="flex flex-col">
                     {data.username ? (
                         <>
-                            <p>{data.username}</p>
+                            <p>@{data.username}</p>
                             <p className="text-xs text-stone-500 ml-1">
-                                Jonogon-User-{data.user_id}
+                                Jonogon-User-{data.created_by}
                             </p>
                         </>
                     ) : (
                         <>
-                            <p className="ml-1">Jonogon-User-{data.user_id}</p>
+                            <p className="ml-1">
+                                Jonogon-User-{data.created_by}
+                            </p>
                         </>
                     )}
                 </div>
@@ -102,7 +104,7 @@ export default function Reply({
                             setFocusTag(
                                 data.username
                                     ? `@${data.username} `
-                                    : `@Jonogon-User-${data.user_id} `,
+                                    : `@Jonogon-User-${data.created_by} `,
                             );
                             setInputOpen(true);
                             setReplyBtnSignal(!replyBtnSignal);

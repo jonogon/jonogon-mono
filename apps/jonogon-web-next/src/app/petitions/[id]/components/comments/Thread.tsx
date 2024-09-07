@@ -3,67 +3,83 @@ import Comment from './Comment';
 import RootInputBox from './RootInputBox';
 import {trpc} from '@/trpc';
 import {useParams} from 'next/navigation';
-import {CommentTreeInterface, NestedCommentInterface} from './types';
+import {
+    CommentInterface,
+    CommentTreeInterface,
+    NestedCommentInterface,
+} from './types';
 
 export default function CommentThread() {
-    const [commentTree, setCommentTree] = useState<NestedCommentInterface[]>();
+    const [commentList, setCommentList] = useState<CommentInterface[]>([]);
+
+    const [page, setPage] = useState(1);
 
     const {id: petition_id} = useParams<{id: string}>();
 
     const {data: comments, refetch: refetchComments} =
         trpc.comments.list.useQuery({
             petition_id: petition_id,
+            page: page,
         });
 
-    const {data: replies, refetch: refetchReplies} =
-        trpc.comments.list.useQuery({
-            petition_id: petition_id,
-            parent_id: '-1',
-        });
+    const {data: totalComments} = trpc.comments.count.useQuery({
+        petition_id: petition_id,
+    });
 
-    const refetch = async () => {
+    // append to the list of comments everytime more comments are loaded
+    useEffect(() => {
+        const forbiddenIds = optimisticComments.map((c) => c.id);
+        const newCommentsList = comments?.data.filter((c) => {
+            return !forbiddenIds.includes(c.id);
+        });
+        if (newCommentsList?.length) {
+            setCommentList([...commentList, ...newCommentsList]);
+        }
+    }, [comments]);
+
+    // increment page and load more comments
+    const incremendPage = async () => {
+        setPage(page + 1);
         await refetchComments();
-        await refetchReplies();
     };
 
-    useEffect(() => {
-        const tree = comments?.data.reduce((map, comment) => {
-            map[comment.id] = {
-                ...comment,
-                children: [],
-            };
-            return map;
-        }, {} as CommentTreeInterface);
+    const [optimisticComments, setOptimisticComments] = useState<
+        CommentInterface[]
+    >([]);
 
-        replies?.data.map((reply) => {
-            if (tree) {
-                const parent = tree[reply.parent_id ?? ''];
-                parent.children?.push(reply);
-            }
-        });
-
-        const commentTree = Object.values(tree ?? {});
-        const sortedCommentTree = commentTree.sort(
-            (a, b) => b.total_votes - a.total_votes,
-        );
-
-        setCommentTree(sortedCommentTree);
-    }, [comments, replies]);
+    const appendToOptimistic = (comment: CommentInterface) => {
+        setOptimisticComments([...optimisticComments, comment]);
+    };
 
     return (
         <div className="mt-8">
-            <p className="font-bold">{comments?.data.length} comments</p>
-            <RootInputBox refetch={refetch} />
+            <p className="font-bold">
+                {Number(totalComments?.data.count ?? 0) +
+                    optimisticComments.length}{' '}
+                comments
+            </p>
+            <RootInputBox
+                refetch={refetchComments}
+                optimisticSetter={appendToOptimistic}
+            />
             <div>
-                {commentTree?.map((comment) => {
-                    return (
-                        <Comment
-                            data={comment}
-                            key={comment.id}
-                            refetch={refetch}
-                        />
-                    );
+                {optimisticComments?.map((comment) => {
+                    return <Comment key={comment.id} data={comment} />;
                 })}
+                {commentList?.map((comment) => {
+                    return <Comment key={comment.id} data={comment} />;
+                })}
+                {!!(
+                    commentList.length < Number(totalComments?.data?.count ?? 0)
+                ) && (
+                    <p
+                        className="text-sm font-bold cursor-pointer"
+                        onClick={() => {
+                            incremendPage();
+                        }}>
+                        Load more comments
+                    </p>
+                )}
             </div>
         </div>
     );

@@ -4,23 +4,21 @@ import {GoReply} from 'react-icons/go';
 import {AiOutlineLike, AiFillLike} from 'react-icons/ai';
 import {useEffect, useRef, useState} from 'react';
 import {GoTriangleUp, GoTriangleDown} from 'react-icons/go';
-import {NestedCommentInterface} from './types';
+import {CommentInterface, NestedCommentInterface} from './types';
 import {trpc} from '@/trpc';
 import {useParams} from 'next/navigation';
 
 interface CommentProps {
-    data: NestedCommentInterface;
-    refetch: () => void;
+    data: CommentInterface;
 }
 
-export default function Comment({data, refetch}: CommentProps) {
+export default function Comment({data}: CommentProps) {
     const [inputOpened, setInputOpened] = useState(false);
     const [replyInputOpened, setReplyInputOpened] = useState(false);
-    const [replyBtnSignal, setReplyBtnSignal] = useState(false); // dis some weird hacking to do dependency inversion magic lol
+    const [replyBtnSignal, setReplyBtnSignal] = useState(false); // dis some weird hacking to do dependencyp-inversion-ish magic lol
     const [repliesHiiden, setRepliesHidden] = useState(false);
 
     const [focusTag, setFocusTag] = useState('');
-
     const [liked, setLiked] = useState(false);
     const [totalLikes, setTotalLikes] = useState(0);
 
@@ -48,15 +46,55 @@ export default function Comment({data, refetch}: CommentProps) {
         setTotalLikes(data.total_votes);
     }, []);
 
+    const [page, setPage] = useState(1);
+    const {id: petition_id} = useParams<{id: string}>();
+
+    const [replyList, setReplyList] = useState<CommentInterface[]>([]);
+    const {data: replies, refetch: refetchReplies} =
+        trpc.comments.listReplies.useQuery({
+            petition_id: petition_id,
+            parent_id: data.id,
+            page: page,
+        });
+
+    useEffect(() => {
+        const forbiddenIds = optimisticReplies.map((r) => r.id);
+        const newReplyList = replies?.data.filter((r) => {
+            return !forbiddenIds.includes(r.id);
+        });
+        if (newReplyList?.length) {
+            setReplyList([...replyList, ...newReplyList]);
+        }
+    }, [replies]);
+
+    // increment page and load more replies
+    const incrementPage = async () => {
+        setPage(page + 1);
+        await refetchReplies();
+    };
+
+    const {data: replyCount} = trpc.comments.countReplies.useQuery({
+        petition_id: petition_id,
+        parent_id: data.id,
+    });
+
+    const [optimisticReplies, setOptimisticReplies] = useState<
+        CommentInterface[]
+    >([]);
+
+    const appendToOptimistic = (reply: CommentInterface) => {
+        setOptimisticReplies([...optimisticReplies, reply]);
+    };
+
     return (
         <div className="flex flex-col my-2 p-2 gap-1">
             <div className="flex flex-row gap-1 items-center">
                 <div className="w-12 h-12 rounded-full bg-gray-200 border mt-1">
                     <img
-                        src={`${data.profile_picture}`.replace(
-                            '$CORE_HOSTNAME',
-                            window.location.hostname,
-                        )}
+                        src={(
+                            data.profile_picture ??
+                            `https://static.jonogon.org/placeholder-images/${((Number(data.created_by) + 1) % 11) + 1}.jpg`
+                        ).replace('$CORE_HOSTNAME', window.location.hostname)}
                         className="rounded-full"
                     />
                 </div>
@@ -79,7 +117,7 @@ export default function Comment({data, refetch}: CommentProps) {
             <div className="flex flex-row text-sm justify-between items-center">
                 <div className="flex flex-row gap-2">
                     <p>{totalLikes} likes</p>
-                    <p>{data.children?.length ?? 0} replies</p>
+                    <p>{replyCount?.data.count ?? 0} replies</p>
                 </div>
                 <div className="flex flex-row gap-3 items-center justify-center h-full">
                     {liked ? (
@@ -107,14 +145,13 @@ export default function Comment({data, refetch}: CommentProps) {
                         onClick={() => {
                             setInputOpened(true);
                             setReplyBtnSignal(!replyBtnSignal);
-                            console.log('clicked on reply btn');
                         }}>
                         <GoReply />
                         Reply
                     </p>
                     {repliesHiiden ? (
                         <>
-                            {!!data.children?.length && (
+                            {!!replyList?.length && (
                                 <p
                                     className="flex flex-row items-center cursor-pointer"
                                     onClick={() => {
@@ -127,7 +164,7 @@ export default function Comment({data, refetch}: CommentProps) {
                         </>
                     ) : (
                         <>
-                            {!!data.children?.length && (
+                            {!!replyList?.length && (
                                 <p
                                     className="flex flex-row items-center cursor-pointer"
                                     onClick={() => {
@@ -147,12 +184,12 @@ export default function Comment({data, refetch}: CommentProps) {
                         replyBtnSignal={replyBtnSignal}
                         setInputOpened={setInputOpened}
                         parentId={data.id}
-                        refetch={refetch}
                         tag={
                             data.username
-                                ? `${data.username} `
-                                : `@Jonogon-User-${data.user_id} `
+                                ? `@${data.username} `
+                                : `@Jonogon-User-${data.created_by} `
                         }
+                        optimisticSetter={appendToOptimistic}
                     />
                 </div>
             )}
@@ -160,7 +197,31 @@ export default function Comment({data, refetch}: CommentProps) {
             <div>
                 {!repliesHiiden && (
                     <div className="ml-3 pl-6 mt-2 border-l">
-                        {data.children?.map((reply) => (
+                        {replyList.map((reply) => (
+                            <Reply
+                                key={reply.id}
+                                setInputOpen={setReplyInputOpened}
+                                replyBtnSignal={replyBtnSignal}
+                                setReplyBtnSignal={setReplyBtnSignal}
+                                setFocusTag={setFocusTag}
+                                data={reply}
+                            />
+                        ))}
+
+                        {!!(
+                            replyList.length <
+                            Number(replyCount?.data?.count ?? 0)
+                        ) && (
+                            <p
+                                className="font-bold text-sm my-3 cursor-pointer"
+                                onClick={() => {
+                                    incrementPage();
+                                }}>
+                                Load more replies
+                            </p>
+                        )}
+
+                        {optimisticReplies.map((reply) => (
                             <Reply
                                 key={reply.id}
                                 setInputOpen={setReplyInputOpened}
@@ -179,8 +240,8 @@ export default function Comment({data, refetch}: CommentProps) {
                             setInputOpened={setReplyInputOpened}
                             replyBtnSignal={replyBtnSignal}
                             parentId={data.id}
-                            refetch={refetch}
                             tag={focusTag}
+                            optimisticSetter={appendToOptimistic}
                         />
                     )}
                 </div>

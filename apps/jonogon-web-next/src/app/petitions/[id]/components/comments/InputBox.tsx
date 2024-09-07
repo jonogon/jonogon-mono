@@ -1,19 +1,20 @@
 import {trpc} from '@/trpc';
 import {useParams} from 'next/navigation';
 import {RefObject, useEffect, useRef, useState} from 'react';
+import {CommentInterface} from './types';
 
 export default function InputBox({
     setInputOpened,
     replyBtnSignal,
     parentId,
-    refetch,
     tag,
+    optimisticSetter,
 }: {
     setInputOpened: (x: boolean) => void;
     replyBtnSignal: boolean;
     parentId: string;
-    refetch: () => void;
     tag: string;
+    optimisticSetter: (x: CommentInterface) => void;
 }) {
     const [inputValue, setInputValue] = useState('');
     const replyInputRef = useRef<HTMLTextAreaElement>(null);
@@ -22,15 +23,30 @@ export default function InputBox({
 
     const createCommentMutation = trpc.comments.create.useMutation();
 
-    const createComment = () => {
-        createCommentMutation.mutate({
+    const createComment = async () => {
+        const newReply = await createCommentMutation.mutateAsync({
             petition_id: petition_id,
             body: inputValue,
             parent_id: parentId,
         });
-        setInputValue('');
-        setInputOpened(false);
-        refetch();
+
+        if (newReply.data) {
+            const reply = {
+                id: newReply.data.id!!,
+                total_votes: 0,
+                created_by: newReply.data.created_by!!,
+                body: newReply.data.body!!,
+                deleted_at: null,
+                highlighted_at: null,
+                username: newReply.data.username!!,
+                user_vote: 0,
+                profile_picture: newReply.data.profile_picture,
+            };
+
+            optimisticSetter(reply);
+            setInputValue('');
+            setInputOpened(false);
+        }
     };
 
     const scroll = () => {
