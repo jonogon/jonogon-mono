@@ -59,7 +59,7 @@ export default function Reply({
                 <div className="flex flex-col">
                     {data.username ? (
                         <>
-                            <p>@{data.username}</p>
+                            <p>{data.username}</p>
                             <p className="text-xs text-stone-500 ml-1">
                                 Jonogon-User-{data.created_by}
                             </p>
