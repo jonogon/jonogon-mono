@@ -70,7 +70,7 @@ export function SocialShareSheet() {
                             </div>
                         </div>
 
-                        <div className="mt-4 flex items-center gap-2">
+                        <div className="mt-4 flex items-center justify-center sm:justify-start gap-2">
                             <FacebookShareButton url={petitionLink}>
                                 <FacebookIcon size={30} borderRadius={16} />
                             </FacebookShareButton>
