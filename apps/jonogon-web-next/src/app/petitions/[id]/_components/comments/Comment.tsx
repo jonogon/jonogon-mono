@@ -76,12 +76,17 @@ export default function Comment({data, selfId, selfDestruct}: CommentProps) {
     const {id: petition_id} = useParams<{id: string}>();
 
     const [replyList, setReplyList] = useState<CommentInterface[]>([]);
-    const {data: replies, refetch: refetchReplies} =
-        trpc.comments.listReplies.useQuery({
-            petition_id: petition_id,
-            parent_id: data.id,
-            page: page,
-        });
+    const {data: replies, refetch: refetchReplies} = isAuthenticated
+        ? trpc.comments.listReplies.useQuery({
+              petition_id: petition_id,
+              parent_id: data.id,
+              page: page,
+          })
+        : trpc.comments.listPublicReplies.useQuery({
+              petition_id: petition_id,
+              parent_id: data.id,
+              page: page,
+          });
 
     useEffect(() => {
         const forbiddenIds = optimisticReplies.map((r) => r.id);
@@ -150,13 +155,13 @@ export default function Comment({data, selfId, selfDestruct}: CommentProps) {
                             <>
                                 <p>{data.username}</p>
                                 <p className="text-xs text-stone-500 ml-1">
-                                    Jonogon-User-{data.created_by}
+                                    Citizen #{data.created_by}
                                 </p>
                             </>
                         ) : (
                             <>
                                 <p className="ml-1">
-                                    Jonogon-User-{data.created_by}
+                                    Citizen #{data.created_by}
                                 </p>
                             </>
                         )}
@@ -304,7 +309,7 @@ export default function Comment({data, selfId, selfDestruct}: CommentProps) {
                         tag={
                             data.username
                                 ? `@${data.username} `
-                                : `@Jonogon-User-${data.created_by} `
+                                : `@Citizen #${data.created_by} `
                         }
                         optimisticSetter={appendToOptimistic}
                     />

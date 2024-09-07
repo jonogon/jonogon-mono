@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import Comment from './Comment';
-import RootInputBox from './RootInputBox';
+import RootInputBox, {FakeInputBox} from './RootInputBox';
 import {trpc} from '@/trpc/client';
 import {useParams, useRouter} from 'next/navigation';
 import {
@@ -23,11 +23,15 @@ export default function CommentThread() {
 
     const {id: petition_id} = useParams<{id: string}>();
 
-    const {data: comments, refetch: refetchComments} =
-        trpc.comments.list.useQuery({
-            petition_id: petition_id,
-            page: page,
-        });
+    const {data: comments, refetch: refetchComments} = isAuthenticated
+        ? trpc.comments.list.useQuery({
+              petition_id: petition_id,
+              page: page,
+          })
+        : trpc.comments.listPublic.useQuery({
+              petition_id: petition_id,
+              page: page,
+          });
 
     const {data: commentCount} = trpc.comments.count.useQuery({
         petition_id: petition_id,
@@ -43,7 +47,6 @@ export default function CommentThread() {
 
     // append to the list of comments everytime more comments are loaded
     useEffect(() => {
-        console.log(comments, 'comments rn');
         const forbiddenIds = optimisticComments.map((c) => c.id);
         const newCommentsList = comments?.data.filter((c) => {
             return !forbiddenIds.includes(c.id);
@@ -83,19 +86,13 @@ export default function CommentThread() {
                     optimisticSetter={appendToOptimistic}
                 />
             ) : (
-                <p className="my-4">
-                    <span
-                        className="text-blue underline cursor-pointer text-blue-500"
-                        onClick={() => {
-                            const next = `/petitions/${petition_id}`;
-                            router.push(
-                                `/login?next=${encodeURIComponent(next)}`,
-                            );
-                        }}>
-                        Login
-                    </span>{' '}
-                    to leave comments
-                </p>
+                <div
+                    onClick={() => {
+                        const next = `/petitions/${petition_id}`;
+                        router.push(`/login?next=${encodeURIComponent(next)}`);
+                    }}>
+                    <FakeInputBox />
+                </div>
             )}
 
             <div>
