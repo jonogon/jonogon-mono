@@ -85,6 +85,7 @@ export const listPublicComments = publicProcedure
             .groupBy(['users.id', 'comments.id'])
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', 'is', null)
+            .where('deleted_at', 'is', null)
             .orderBy('total_votes', 'asc')
             .orderBy('comments.created_at', 'asc')
             .limit(limit)
@@ -92,21 +93,17 @@ export const listPublicComments = publicProcedure
             .execute();
 
         const data = await Promise.all(
-            comments
-                .filter((comment) => {
-                    return comment.deleted_at === null;
-                })
-                .map(async (comment) => {
-                    return {
-                        ...comment,
-                        profile_picture: comment.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  comment.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(comment.total_votes),
-                    };
-                }),
+            comments.map(async (comment) => {
+                return {
+                    ...comment,
+                    profile_picture: comment.profile_picture
+                        ? await ctx.services.fileStorage.getFileURL(
+                              comment.profile_picture,
+                          )
+                        : null,
+                    total_votes: Number(comment.total_votes),
+                };
+            }),
         );
 
         return {data};
@@ -155,6 +152,7 @@ export const listComments = publicProcedure
             ])
             .groupBy(['user_vote.vote', 'users.id', 'comments.id'])
             .where('comments.petition_id', '=', `${input.petition_id}`)
+            .where('comments.deleted_at', 'is', null)
             .where('comments.parent_id', 'is', null)
             .orderBy('is_author desc')
             .orderBy('total_votes', 'asc')
@@ -164,21 +162,17 @@ export const listComments = publicProcedure
             .execute();
 
         const data = await Promise.all(
-            comments
-                .filter((comment) => {
-                    return comment.deleted_at === null;
-                })
-                .map(async (comment) => {
-                    return {
-                        ...comment,
-                        profile_picture: comment.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  comment.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(comment.total_votes),
-                    };
-                }),
+            comments.map(async (comment) => {
+                return {
+                    ...comment,
+                    profile_picture: comment.profile_picture
+                        ? await ctx.services.fileStorage.getFileURL(
+                              comment.profile_picture,
+                          )
+                        : null,
+                    total_votes: Number(comment.total_votes),
+                };
+            }),
         );
 
         return {data};
@@ -217,27 +211,24 @@ export const listPublicReplies = publicProcedure
             .groupBy(['users.id', 'comments.id'])
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', '=', `${input.parent_id}`)
+            .where('comments.deleted_at', 'is', null)
             .orderBy('comments.created_at', 'asc')
             .limit(limit)
             .offset((input.page - 1) * limit)
             .execute();
 
         const data = await Promise.all(
-            replies
-                .filter((reply) => {
-                    return reply.deleted_at === null;
-                })
-                .map(async (reply) => {
-                    return {
-                        ...reply,
-                        profile_picture: reply.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  reply.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(reply.total_votes),
-                    };
-                }),
+            replies.map(async (reply) => {
+                return {
+                    ...reply,
+                    profile_picture: reply.profile_picture
+                        ? await ctx.services.fileStorage.getFileURL(
+                              reply.profile_picture,
+                          )
+                        : null,
+                    total_votes: Number(reply.total_votes),
+                };
+            }),
         );
 
         return {data};
@@ -284,27 +275,24 @@ export const listReplies = publicProcedure
             .groupBy(['user_vote.vote', 'users.id', 'comments.id'])
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', '=', `${input.parent_id}`)
+            .where('comments.deleted_at', 'is', null)
             .orderBy('comments.created_at', 'asc')
             .limit(limit)
             .offset((input.page - 1) * limit)
             .execute();
 
         const data = await Promise.all(
-            replies
-                .filter((reply) => {
-                    return reply.deleted_at === null;
-                })
-                .map(async (reply) => {
-                    return {
-                        ...reply,
-                        profile_picture: reply.profile_picture
-                            ? await ctx.services.fileStorage.getFileURL(
-                                  reply.profile_picture,
-                              )
-                            : null,
-                        total_votes: Number(reply.total_votes),
-                    };
-                }),
+            replies.map(async (reply) => {
+                return {
+                    ...reply,
+                    profile_picture: reply.profile_picture
+                        ? await ctx.services.fileStorage.getFileURL(
+                              reply.profile_picture,
+                          )
+                        : null,
+                    total_votes: Number(reply.total_votes),
+                };
+            }),
         );
 
         return {data};

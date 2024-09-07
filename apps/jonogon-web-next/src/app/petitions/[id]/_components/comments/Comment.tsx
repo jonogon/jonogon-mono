@@ -90,9 +90,12 @@ export default function Comment({data, selfId, selfDestruct}: CommentProps) {
 
     useEffect(() => {
         const forbiddenIds = optimisticReplies.map((r) => r.id);
+        const existingIds = replyList.map((r) => r.id);
+
         const newReplyList = replies?.data.filter((r) => {
-            return !forbiddenIds.includes(r.id);
+            return ![...forbiddenIds, ...existingIds].includes(r.id);
         });
+
         if (newReplyList?.length) {
             setReplyList([...replyList, ...newReplyList]);
         }

@@ -48,8 +48,9 @@ export default function CommentThread() {
     // append to the list of comments everytime more comments are loaded
     useEffect(() => {
         const forbiddenIds = optimisticComments.map((c) => c.id);
+        const existingIds = commentList.map((c) => c.id);
         const newCommentsList = comments?.data.filter((c) => {
-            return !forbiddenIds.includes(c.id);
+            return ![...forbiddenIds, ...existingIds].includes(c.id);
         });
         if (newCommentsList?.length) {
             setCommentList([...commentList, ...newCommentsList]);
