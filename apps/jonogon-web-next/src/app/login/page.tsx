@@ -9,6 +9,30 @@ import NumberStage from '@/components/custom/NumberStage';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {firebaseAuth} from '@/firebase';
 import {signInWithCustomToken} from 'firebase/auth';
+import { z } from 'zod';
+
+function getLocalDraft() {
+    const draft = localStorage.getItem('draft-petition');
+
+    if (!draft) return null;
+
+    try {
+        const parsed = z
+            .object({
+                title: z.string(),
+                target: z.string(),
+                location: z.string(),
+                description: z.string(),
+            })
+            .partial()
+            .safeParse(JSON.parse(draft));
+
+        return parsed.success ? parsed.data : null;
+    }
+    catch (e) {
+        return null;
+    }
+}
 
 export default function Login() {
     const [number, setNumber] = useState(
@@ -20,6 +44,7 @@ export default function Login() {
     );
 
     const [stage, setStage] = useState<'number' | 'otp'>('number');
+    const [isLoginAndSideEffectsIncomplete, setIsLoginAndSideEffectsIncomplete] = useState(false);
 
     const {
         mutate: requestOTP,
@@ -64,14 +89,14 @@ export default function Login() {
 
     const redirectUrl: string = params.get('next') ?? '/';
 
-    const {mutate: createPetition} = trpc.petitions.create.useMutation({
+    const {mutate: createPetition, isLoading: isPetitionCreateOngoing} = trpc.petitions.create.useMutation({
         onSuccess(response) {
             router.push(`/petitions/${response.data.id}/edit?fresh=true`);
         },
     });
 
-    if (isAuthenticated) router.push(redirectUrl);
     const login = () => {
+        setIsLoginAndSideEffectsIncomplete(true);
         createToken(
             {
                 phoneNumber: `+88${number}`,
@@ -87,10 +112,17 @@ export default function Login() {
                     if (credentials.user) {
                         // TODO: fix properly with logged out draft petition
                         if (redirectUrl === '/petition/draft') {
-                            createPetition();
+                            const localDraft = getLocalDraft();
+                            createPetition(
+                                localDraft 
+                                    ? { loggedOutDraft: localDraft } 
+                                    : undefined
+                            );
+                            window.localStorage.removeItem('draft-petition');
                             return;
                         }
 
+                        setIsLoginAndSideEffectsIncomplete(false);
                         router.push(redirectUrl);
                     }
                 },
@@ -110,6 +142,10 @@ export default function Login() {
             });
         }
     }, [otpRequestError]);
+
+    useEffect(() => {
+        if (isAuthenticated && !isLoginAndSideEffectsIncomplete) router.replace("/");
+    }, [isAuthenticated, isLoginAndSideEffectsIncomplete]);
 
     return (
         <div className="max-w-screen-sm mx-auto px-4 flex flex-col justify-center">
@@ -135,7 +171,7 @@ export default function Login() {
                     onVerify={login}
                     onChangeNumPress={onChangeNumPress}
                     onOtpResendPress={sendOTPRequest}
-                    isLoading={isTokenLoading}
+                    isLoading={isTokenLoading || isPetitionCreateOngoing}
                 />
             )}
         </div>
