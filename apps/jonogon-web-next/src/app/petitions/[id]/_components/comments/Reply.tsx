@@ -2,7 +2,7 @@ import {AiFillLike, AiOutlineLike} from 'react-icons/ai';
 import {GoReply} from 'react-icons/go';
 import {CommentInterface} from './types';
 import {useEffect, useState} from 'react';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 
 export default function Reply({
     setInputOpen,

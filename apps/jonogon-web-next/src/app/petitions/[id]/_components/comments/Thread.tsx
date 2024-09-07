@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import Comment from './Comment';
 import RootInputBox from './RootInputBox';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {useParams} from 'next/navigation';
 import {
     CommentInterface,

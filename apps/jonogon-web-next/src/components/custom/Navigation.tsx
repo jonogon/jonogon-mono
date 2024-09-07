@@ -10,15 +10,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import {useAuthState, useTokenManager} from '@/auth/token-manager';
-import {trpc} from '@/trpc';
+import {useAuthState} from '@/auth/token-manager';
+import {trpc} from '@/trpc/client';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
+import {signOut} from 'firebase/auth';
+import {firebaseAuth} from '@/firebase';
 
 const Navigation = () => {
     const router = useRouter();
-
-    const {signout} = useTokenManager();
     const isAuthenticated = useAuthState();
 
     const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
@@ -83,8 +83,9 @@ const Navigation = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="flex items-center justify-between"
-                                    onSelect={() => {
-                                        signout();
+                                    onSelect={async () => {
+                                        await signOut(firebaseAuth());
+
                                         router.push('/');
                                     }}>
                                     <span>Sign Out</span>
@@ -92,7 +93,7 @@ const Navigation = () => {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    ) : (
+                    ) : isAuthenticated === false ? (
                         <>
                             <Link
                                 className={buttonVariants({
@@ -102,6 +103,8 @@ const Navigation = () => {
                                 Login
                             </Link>
                         </>
+                    ) : (
+                        <></>
                     )}
                 </div>
             </nav>

@@ -50,7 +50,13 @@ export default function PetitionCard(props: {
                         <div className={'flex-1'}>
                             <div
                                 className={
-                                    'font-normal text-base text-neutral-500 pb-1'
+                                    'leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle break-words overflow-hidden text-ellipsis'
+                                }>
+                                {props.title}
+                            </div>
+                            <div
+                                className={
+                                    'font-normal text-base text-neutral-500 pt-1'
                                 }>
                                 <div>
                                     <i>{props.name}</i> —{' '}
@@ -60,13 +66,6 @@ export default function PetitionCard(props: {
                                         {formatDate(props.date)}
                                     </time>
                                 </div>
-                            </div>
-
-                            <div
-                                className={
-                                    'leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle break-words overflow-hidden text-ellipsis'
-                                }>
-                                {props.title}
                             </div>
                         </div>
 

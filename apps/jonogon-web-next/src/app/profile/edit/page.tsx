@@ -2,12 +2,12 @@
 
 import {ChangeEvent, useCallback, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
-import {trpc} from '@/trpc';
-import {useTokenManager} from '@/auth/token-manager';
+import {trpc} from '@/trpc/client';
 import {useRouter} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
+import {firebaseAuth} from '@/firebase';
 
 export default function ProfileUpdate() {
     const utils = trpc.useUtils();
@@ -20,7 +20,6 @@ export default function ProfileUpdate() {
         : null;
 
     const [name, setName] = useState<null | string>(null);
-    const {get: getToken} = useTokenManager();
 
     const resolvedName = name ?? selfDataResponse?.data.name ?? '';
 
@@ -39,6 +38,12 @@ export default function ProfileUpdate() {
 
     const {mutate: uploadPhoto, isLoading: isPictureLoading} = useMutation({
         mutationFn: async (data: {file: File}) => {
+            const user = firebaseAuth().currentUser;
+
+            if (!user) {
+                return;
+            }
+
             await fetch(
                 process.env.NODE_ENV === 'development'
                     ? `http://${window.location.hostname}:12001/users/self/picture`
@@ -47,7 +52,7 @@ export default function ProfileUpdate() {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/octet-stream',
-                        Authorization: `Bearer ${await getToken()}`,
+                        Authorization: `Bearer ${await user.getIdToken()}`,
                     },
                     body: data.file,
                 },

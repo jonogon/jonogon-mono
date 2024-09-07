@@ -1,4 +1,4 @@
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {useParams} from 'next/navigation';
 import {useEffect, useRef, useState} from 'react';
 import {CommentInterface} from './types';

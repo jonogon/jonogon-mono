@@ -5,7 +5,7 @@ import {AiOutlineLike, AiFillLike} from 'react-icons/ai';
 import {useEffect, useRef, useState} from 'react';
 import {GoTriangleUp, GoTriangleDown} from 'react-icons/go';
 import {CommentInterface, NestedCommentInterface} from './types';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import {useParams} from 'next/navigation';
 
 interface CommentProps {

@@ -3,8 +3,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import * as trpcWS from '@trpc/server/adapters/ws';
 import {TServices} from '../../services.mjs';
 import {returnOf} from 'scope-utilities';
-import jwt from 'jsonwebtoken';
-import {env} from '../../env.mjs';
+import {firebaseAuth} from '../../services/firebase/index.mjs';
 
 export async function httpContextCreatorFactory(services: TServices) {
     return async function ({
@@ -25,27 +24,24 @@ export async function httpContextCreatorFactory(services: TServices) {
                 return;
             }
 
-            const decoded = jwt.verify(
-                bearerToken,
-                env.COMMON_HMAC_SECRET,
-            ) as jwt.JwtPayload;
+            const decoded = await firebaseAuth.verifyIdToken(bearerToken);
 
             if (!decoded) {
                 return;
             }
 
-            if (!decoded?.sub) {
+            if (!decoded.uid) {
                 throw new TRPCError({
                     code: 'UNAUTHORIZED',
-                    message: 'subject not present on token',
+                    message: 'uid not present on token',
                 });
             }
 
             return {
                 auth: {
-                    user_id: Number(decoded.sub),
+                    user_id: Number(decoded.uid),
 
-                    is_user_admin: !!decoded.is_adm,
+                    is_user_admin: !!decoded.is_admin,
                     is_user_moderator: !!decoded.is_mod,
                 },
             };

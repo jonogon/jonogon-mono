@@ -1,14 +1,17 @@
 'use client';
 
+import {firebaseAuth} from '@/firebase';
+
 export const runtime = 'edge';
 
 import {useCallback, useEffect, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {scope} from 'scope-utilities';
 import {TrashIcon} from '@radix-ui/react-icons';
-import {useTokenManager} from '@/auth/token-manager';
+import {useAuthState} from '@/auth/token-manager';
+
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
-import {trpc} from '@/trpc';
+import {trpc} from '@/trpc/client';
 import z from 'zod';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
@@ -25,15 +28,22 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
+import {petitionLocations, petitionTargets} from '@/lib/constants';
 
 export default function EditPetition() {
-    const {get: getToken} = useTokenManager();
     const utils = trpc.useUtils();
 
     const params = useSearchParams();
 
     const {id: petition_id} = useParams<{id: string}>();
     const router = useRouter();
+
+    const isAuthenticated = useAuthState();
+
+    const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
+        enabled: !!isAuthenticated,
+    });
 
     const freshValue = params.get('fresh');
 
@@ -143,6 +153,12 @@ export default function EditPetition() {
 
     const {mutate: uploadAttachment} = useMutation({
         mutationFn: async (data: {type: 'image' | 'file'; file: File}) => {
+            const user = firebaseAuth().currentUser;
+
+            if (!user) {
+                return;
+            }
+
             const search = new URLSearchParams({
                 type: data.type,
                 filename: data.file.name,
@@ -156,7 +172,7 @@ export default function EditPetition() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/octet-stream',
-                        Authorization: `Bearer ${await getToken()}`,
+                        Authorization: `Bearer ${await user.getIdToken()}`,
                     },
                     body: data.file,
                 },
@@ -167,7 +183,7 @@ export default function EditPetition() {
             };
         },
         onSuccess: async (response) => {
-            if (response.message === 'image-added') {
+            if (response?.message === 'image-added') {
                 removeOne('image');
             } else {
                 removeOne('attachment');
@@ -201,11 +217,52 @@ export default function EditPetition() {
         .object({
             title: z.string().min(12),
             target: z.string().min(6),
-            location: z.string().min(6),
+            location: z.string().min(3),
             description: z.string().optional(),
         })
         .safeParse(petitionData).success;
 
+    const isOwnPetition =
+        petitionRemoteData &&
+        selfResponse &&
+        `${petitionRemoteData?.data.created_by}` === `${selfResponse?.data.id}`;
+
+    const isAdmin = !!selfResponse?.meta.token.is_user_admin;
+    const isMod = !!selfResponse?.meta.token.is_user_moderator;
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push(
+                `/login?next=${encodeURIComponent(`/petitions/${petition_id}/edit`)}`,
+            );
+        } else if (!isPetitionLoading && petitionRemoteData && selfResponse) {
+            if (!(isOwnPetition || isAdmin || isMod)) {
+                router.push(`/petitions/${petition_id}`);
+
+                toast({
+                    title: 'You are not authorized to edit this petition',
+                    variant: 'destructive',
+                });
+            }
+        }
+    }, [
+        isAuthenticated,
+        isPetitionLoading,
+        petitionRemoteData,
+        selfResponse,
+        isOwnPetition,
+        isAdmin,
+        isMod,
+        router,
+        petition_id,
+    ]);
+
+    if (
+        !isAuthenticated ||
+        (!isPetitionLoading && !(isOwnPetition || isAdmin || isMod))
+    ) {
+        return null;
+    }
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
             <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
@@ -275,7 +332,8 @@ export default function EditPetition() {
                             আপনি কার কাছে দাবি করছেন?
                         </div>
                     </Label>
-                    <Input
+                    <AutoCompleteInput
+                        options={petitionTargets}
                         className="bg-card text-card-foreground"
                         id="target"
                         value={petitionData.target ?? ''}
@@ -294,10 +352,11 @@ export default function EditPetition() {
                             কোন এলাকার মানুষের জন্য প্রযোজ্য?
                         </div>
                     </Label>
-                    <Input
-                        className="bg-card text-card-foreground"
+                    <AutoCompleteInput
+                        options={petitionLocations}
                         id="target"
                         value={petitionData.location ?? ''}
+                        className="bg-card text-card-foreground"
                         onChange={(e) =>
                             handleUpdateData('location', e.target.value)
                         }

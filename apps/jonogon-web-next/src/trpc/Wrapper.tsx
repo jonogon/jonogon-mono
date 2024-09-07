@@ -9,13 +9,11 @@ import {
     splitLink,
     wsLink,
 } from '@trpc/client';
-import {trpc} from './index';
+import {trpc} from './client';
 import {scope} from 'scope-utilities';
-import {useTokenManager} from '@/auth/token-manager';
+import {firebaseAuth} from '@/firebase';
 
 export function TRPCWrapper(props: PropsWithChildren<{hostname: string}>) {
-    const {get: getToken} = useTokenManager();
-
     const [queryClient] = useState(() => new QueryClient());
 
     const [wsClient] = useState(() =>
@@ -57,7 +55,11 @@ export function TRPCWrapper(props: PropsWithChildren<{hostname: string}>) {
                                     ? `http://${props.hostname}:12001/trpc`
                                     : 'https://core.jonogon.org/trpc',
                             headers: async () => {
-                                return scope(await getToken()).let((token) => {
+                                const user = firebaseAuth().currentUser;
+
+                                return scope(
+                                    user ? await user.getIdToken() : null,
+                                ).let((token) => {
                                     return token
                                         ? {Authorization: `Bearer ${token}`}
                                         : {};

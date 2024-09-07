@@ -1,32 +1,21 @@
 'use client';
 
 import React, {type PropsWithChildren, useEffect, useState} from 'react';
-import {
-    AuthStateProvider,
-    createTokenManager,
-    TokenManagerProvider,
-} from '@/auth/token-manager';
+import {AuthStateProvider} from '@/auth/token-manager';
+import {firebaseAuth} from '@/firebase';
 
 export default function AuthWrapper(props: PropsWithChildren) {
     const [authState, setAuthState] = useState<boolean | null>(null);
 
-    const [manager] = useState(() => {
-        return createTokenManager({
-            prefix: 'auth',
-        });
-    });
-
     useEffect(() => {
-        manager.onToken((token) => {
-            setAuthState(!!token);
+        firebaseAuth().onAuthStateChanged((state) => {
+            setAuthState(!!state);
         });
-    }, [manager, setAuthState]);
+    }, [setAuthState]);
 
     return (
         <AuthStateProvider authState={authState}>
-            <TokenManagerProvider manager={manager}>
-                {props.children}
-            </TokenManagerProvider>
+            {props.children}
         </AuthStateProvider>
     );
 }
