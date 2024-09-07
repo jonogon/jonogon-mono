@@ -16,6 +16,9 @@ import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {signOut} from 'firebase/auth';
 import {firebaseAuth} from '@/firebase';
+import QuestionMarkCircleIcon from '@heroicons/react/24/outline/QuestionMarkCircleIcon';
+import {Dialog, DialogContent, DialogTrigger} from '../ui/dialog';
+import About from './About';
 
 const Navigation = () => {
     const router = useRouter();
@@ -45,7 +48,17 @@ const Navigation = () => {
                         </span>
                     </div>
                 </Link>
-                <div className="flex gap items-center">
+                <div className="flex gap-4 items-center">
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <QuestionMarkCircleIcon
+                                className={`w-8 h-8 text-red-500`}
+                            />
+                        </DialogTrigger>
+                        <DialogContent className="bg-red-500 border-none w-full md:w-2/3 max-w-none ">
+                            <About />
+                        </DialogContent>
+                    </Dialog>
                     {isAuthenticated ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger>
@@ -68,17 +81,20 @@ const Navigation = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 align="end"
-                                onCloseAutoFocus={(e) => e.preventDefault()}>
+                                onCloseAutoFocus={(e) => e.preventDefault()}
+                            >
                                 <DropdownMenuItem
                                     onSelect={() => {
                                         router.push('/profile/edit');
-                                    }}>
+                                    }}
+                                >
                                     Edit Profile
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onSelect={() => {
                                         router.push('/?type=own');
-                                    }}>
+                                    }}
+                                >
                                     My Petitions
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
@@ -87,7 +103,8 @@ const Navigation = () => {
                                         await signOut(firebaseAuth());
 
                                         router.push('/');
-                                    }}>
+                                    }}
+                                >
                                     <span>Sign Out</span>
                                     <PiSignOutLight />
                                 </DropdownMenuItem>
@@ -99,7 +116,8 @@ const Navigation = () => {
                                 className={buttonVariants({
                                     variant: 'default',
                                 })}
-                                href={'/login'}>
+                                href={'/login'}
+                            >
                                 Login
                             </Link>
                         </>
