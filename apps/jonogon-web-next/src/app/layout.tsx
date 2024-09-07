@@ -11,6 +11,7 @@ import {Toaster} from '@/components/ui/toaster';
 export const metadata: Metadata = {
     title: 'Jonogon — জনগণ',
     description: 'আমাদের দাবির প্লাটফর্ম',
+    metadataBase: new URL('https://jonogon.org'),
     openGraph: {
         title: 'Jonogon — জনগণ',
         description: 'আমাদের দাবির প্লাটফর্ম',
