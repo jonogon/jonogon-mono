@@ -66,7 +66,7 @@ export default function EditLoggedOutDraftPetition() {
         if (isAuthenticated) {
             router.replace('/');
         }
-    }, []);
+    }, [isAuthenticated]);
 
     return (
         <div className="flex flex-col gap-2 sm:gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
