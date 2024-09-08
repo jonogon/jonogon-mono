@@ -42,7 +42,7 @@ export default function EditPetition() {
 
     const isAuthenticated = useAuthState();
 
-    const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
+    const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
     });
 
@@ -243,6 +243,10 @@ export default function EditPetition() {
     }, [isAuthenticated]);
 
     useEffect(() => {
+        if (isPetitionLoading || isLoadingSelf) {
+            return;
+        }
+
         if (isAuthenticated && !isOwnPetition && !isAdmin) {
             router.push(`/petitions/${petition_id}`);
 
@@ -251,14 +255,14 @@ export default function EditPetition() {
                 variant: 'destructive',
             });
         }
-    }, [isAdmin, isOwnPetition]);
+    }, [isAdmin, isOwnPetition, isPetitionLoading, isLoadingSelf]);
 
     return (
-        <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
-            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
+        <div className="flex flex-col gap-2 sm:gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-4 sm:py-12 md:py-10">
                 <h1
                     className={
-                        'text-5xl font-regular text-stone-600 leading-0'
+                        'text-3xl sm:text-5xl font-regular text-stone-600 leading-0'
                     }>
                     {freshValue ? '✊ Create New দাবি' : '✊ Update দাবি'}
                 </h1>
@@ -295,7 +299,7 @@ export default function EditPetition() {
                     </AlertDialog>
                 )}
             </div>
-            <div className="flex flex-col gap-5 py-4">
+            <div className="flex flex-col gap-2 sm:gap-5 py-4">
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="title">
                         <div className={'font-bold text-lg'}>Title *</div>
@@ -304,7 +308,7 @@ export default function EditPetition() {
                         </div>
                     </Label>
                     <Input
-                        className="bg-card text-card-foreground text-2xl py-7"
+                        className="bg-card text-card-foreground px-3 sm:text-2xl py-2 sm:py-7"
                         id="title"
                         value={petitionData.title ?? ''}
                         onChange={(e) =>

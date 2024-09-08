@@ -328,7 +328,7 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
-                {isAuthenticated && <CommentThread />}
+                <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div

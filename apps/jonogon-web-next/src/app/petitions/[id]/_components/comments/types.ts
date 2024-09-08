@@ -6,7 +6,7 @@ export interface CommentInterface {
     deleted_at: string | null;
     highlighted_at: string | null;
     username: string | null;
-    user_vote: number | null;
+    user_vote?: number | null;
     profile_picture: string | null;
 }
 

@@ -107,27 +107,52 @@ export const getPetition = publicProcedure
         };
     });
 
-export const createPetition = protectedProcedure.mutation(
-    async ({input, ctx}) => {
-        const existingDraft = await ctx.services.postgresQueryBuilder
-            .selectFrom('petitions')
-            .select(['petitions.id'])
-            .where('created_by', '=', `${ctx.auth.user_id}`)
-            .where('submitted_at', 'is', null)
-            .where('deleted_at', 'is', null)
-            .executeTakeFirst();
-
-        if (existingDraft) {
-            return {
-                data: existingDraft,
-            };
+export const createPetition = protectedProcedure
+    .input(
+        z.object({
+            loggedOutDraft: 
+                z.object({
+                    title: z.string(),
+                    location: z.string(),
+                    target: z.string(),
+                    description: z.string(),
+                })
+                .partial(),
+        }).optional(),
+    )
+    .mutation(async ({input, ctx}) => {
+        if (!input) {
+            const existingDraft = await ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .select(['petitions.id'])
+                .where('created_by', '=', `${ctx.auth.user_id}`)
+                .where('submitted_at', 'is', null)
+                .where('deleted_at', 'is', null)
+                .orderBy('created_at', 'desc')
+                .executeTakeFirst();
+    
+            if (existingDraft) {
+                return {
+                    data: existingDraft,
+                };
+            }
         }
 
         const created = await ctx.services.postgresQueryBuilder
             .insertInto('petitions')
-            .values({
-                created_by: ctx.auth.user_id,
-            })
+            .values(
+                !input
+                    ? {
+                        created_by: ctx.auth.user_id,
+                    }
+                    : { 
+                        created_by: ctx.auth.user_id,
+                        ...pick(
+                            input.loggedOutDraft,
+                            ['title', 'location', 'target', 'description'],
+                        ),
+                    }
+            )
             .returning(['petitions.id'])
             .executeTakeFirst();
 

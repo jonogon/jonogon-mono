@@ -78,7 +78,7 @@ function ActualInputBox({
     );
 }
 
-function FakeInputBox() {
+export function FakeInputBox() {
     return (
         <div className="border rounded-full w-full p-3 my-4 cursor-pointer">
             Add a comment
