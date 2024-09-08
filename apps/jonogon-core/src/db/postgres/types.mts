@@ -62,6 +62,7 @@ export interface Petitions {
   target: string | null;
   title: string | null;
   updated_at: Generated<Timestamp>;
+  upvote_target: number | null;
 }
 
 export interface PetitionVotes {

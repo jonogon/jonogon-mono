@@ -58,6 +58,7 @@ export const formalize = protectedProcedure
     .input(
         z.object({
             petition_id: z.number(),
+            upvote_target: z.number(),
         }),
     )
     .mutation(async ({input, ctx}) => {
@@ -69,12 +70,14 @@ export const formalize = protectedProcedure
 
                 rejected_at: null,
                 rejection_reason: null,
+
+                upvote_target: input.upvote_target,
             })
             .where('id', '=', `${input.petition_id}`)
             .executeTakeFirst();
 
         return {
             input,
-            message: 'submitted',
+            message: 'formalized',
         };
     });

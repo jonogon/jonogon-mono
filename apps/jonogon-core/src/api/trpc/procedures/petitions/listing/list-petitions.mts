@@ -193,6 +193,7 @@ export const listPetitions = publicProcedure
                             'formalized_at',
                             'petition_upvote_count',
                             'petition_downvote_count',
+                            'upvote_target',
                         ]),
                         created_by: {
                             id: petition.created_by,
