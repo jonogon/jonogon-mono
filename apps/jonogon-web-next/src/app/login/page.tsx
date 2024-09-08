@@ -173,7 +173,7 @@ export default function Login() {
                     onVerify={login}
                     onChangeNumPress={onChangeNumPress}
                     onOtpResendPress={sendOTPRequest}
-                    isLoading={isTokenLoading || isPetitionCreateOngoing}
+                    isLoading={isTokenLoading || isPetitionCreateOngoing || isLoginAndSideEffectsIncomplete}
                 />
             )}
         </div>
