@@ -13,12 +13,14 @@ import {
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
 import Link from 'next/link';
-import {useRouter} from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import {signOut} from 'firebase/auth';
 import {firebaseAuth} from '@/firebase';
 
 const Navigation = () => {
     const router = useRouter();
+    const pathName = usePathname();
+
     const isAuthenticated = useAuthState();
 
     const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
@@ -95,7 +97,7 @@ const Navigation = () => {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    ) : isAuthenticated === false ? (
+                    ) : isAuthenticated === false && pathName !== '/petition/draft' ? (
                         <>
                             <Link
                                 className={buttonVariants({
