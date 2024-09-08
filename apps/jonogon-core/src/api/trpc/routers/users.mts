@@ -1,11 +1,11 @@
-import {TRPCError} from '@trpc/server';
-import {pick} from 'es-toolkit';
+import {publicProcedure, router} from '../index.mjs';
 import {z} from 'zod';
+import {protectedProcedure} from '../middleware/protected.mjs';
+import {TRPCError} from '@trpc/server';
+import {deriveKey} from '../../../lib/crypto/keys.mjs';
 import {env} from '../../../env.mjs';
 import {decrypt} from '../../../lib/crypto/encryption.mjs';
-import {deriveKey} from '../../../lib/crypto/keys.mjs';
-import {publicProcedure, router} from '../index.mjs';
-import {protectedProcedure} from '../middleware/protected.mjs';
+import {pick} from 'es-toolkit';
 
 export const userRouter = router({
     getSelf: protectedProcedure.query(async ({ctx}) => {
@@ -85,6 +85,16 @@ export const userRouter = router({
                 message: 'updated',
             };
         }),
+    getAllUserNames: publicProcedure.query(async ({ctx}) => {
+        const userNames = await ctx.services.postgresQueryBuilder
+            .selectFrom('users')
+            .select('users.name') // Select only user names
+            .where('users.name', 'is not', null) // Exclude any null names
+            .distinctOn('users.id') // Ensure unique users
+            .execute();
+
+        return userNames;
+    }),
     getTotalNumberOfUsers: publicProcedure.query(async ({ctx}) => {
         const count = await ctx.services.postgresQueryBuilder
             .selectFrom('users')

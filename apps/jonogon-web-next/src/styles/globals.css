@@ -88,3 +88,7 @@
 .ProseMirror:focus {
     outline: none;
 }
+
+*:focus {
+  outline: none;
+}
