@@ -42,7 +42,7 @@ export default function EditPetition() {
 
     const isAuthenticated = useAuthState();
 
-    const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
+    const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
     });
 
@@ -243,6 +243,10 @@ export default function EditPetition() {
     }, [isAuthenticated]);
 
     useEffect(() => {
+        if (isPetitionLoading || isLoadingSelf) {
+            return;
+        }
+
         if (isAuthenticated && !isOwnPetition && !isAdmin) {
             router.push(`/petitions/${petition_id}`);
 
@@ -251,7 +255,7 @@ export default function EditPetition() {
                 variant: 'destructive',
             });
         }
-    }, [isAdmin, isOwnPetition]);
+    }, [isAdmin, isOwnPetition, isPetitionLoading, isLoadingSelf]);
 
     return (
         <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">

@@ -15,7 +15,7 @@ const PetitionActionButton = () => {
 
     const handlePetitionCreate = async () => {
         if (!authState) {
-            router.push(`/login?next=${encodeURIComponent('/petitions/new')}`);
+            router.push('/petition/draft');
         } else {
             createPetition();
         }
@@ -26,7 +26,7 @@ const PetitionActionButton = () => {
             size={'lg'}
             className={'bg-red-500 font-bold shadow-2xl drop-shadow-xl'}
             onClick={handlePetitionCreate}>
-            {!authState ? 'Login to Submit a দাবি' : 'Submit a দাবি'}
+            Submit a দাবি
         </Button>
     );
 };
