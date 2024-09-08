@@ -2,7 +2,7 @@
 
 export const runtime = 'edge';
 
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 import {useRouter} from 'next/navigation';
 import z from 'zod';
@@ -11,12 +11,14 @@ import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
+import { useAuthState } from '@/auth/token-manager';
 
 function storeDraftPetition<T>(data: T) {
     localStorage.setItem('draft-petition', JSON.stringify(data));
 }
 
 export default function EditLoggedOutDraftPetition() {
+    const isAuthenticated = useAuthState()
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
@@ -60,17 +62,23 @@ export default function EditLoggedOutDraftPetition() {
         router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
     }
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/');
+        }
+    }, []);
+
     return (
-        <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
-            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-12 md:py-10">
+        <div className="flex flex-col gap-2 sm:gap-4 max-w-screen-sm mx-auto pt-5 pb-16 px-4">
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-2 justify-between py-4 sm:py-12 md:py-10">
                 <h1
                     className={
-                        'text-5xl font-regular text-stone-600 leading-0'
+                        'text-3xl sm:text-5xl font-regular text-stone-600 leading-0'
                     }>
                     ✊ Create New দাবি
                 </h1>
             </div>
-            <div className="flex flex-col gap-5 py-4">
+            <div className="flex flex-col gap-2 sm:gap-5 py-4">
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="title">
                         <div className={'font-bold text-lg'}>Title *</div>
@@ -79,7 +87,7 @@ export default function EditLoggedOutDraftPetition() {
                         </div>
                     </Label>
                     <Input
-                        className="bg-card text-card-foreground text-2xl py-7"
+                        className="bg-card text-card-foreground px-3 sm:text-2xl py-2 sm:py-7"
                         id="title"
                         value={petitionData.title ?? ''}
                         onChange={(e) =>
@@ -144,7 +152,7 @@ export default function EditLoggedOutDraftPetition() {
                     <div className={'flex flex-row flex-wrap gap-2'}>
                         <div
                             className={
-                                'flex justify-center items-center border-4 w-24 h-20 rounded-lg relative bg-card hover:bg-card/30 cursor-pointer'
+                                'flex justify-center items-center border-4 w-24 h-20 rounded-lg relative bg-card hover:bg-card/30 cursor-pointer opacity-30'
                             }>
                             <span
                                 className={
@@ -156,8 +164,13 @@ export default function EditLoggedOutDraftPetition() {
                                 className={
                                     'absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer m-0 p-0'
                                 }
-                                onClick={redirectToLogin}
+                                disabled={true}
                             />
+                        </div>
+                        <div className={'flex flex-row items-center flex-1'}>
+                            <p className={'text-stone-400 text-sm sm:text-lg'}>
+                                Image upload করতে draft save অথবা submit করুন
+                            </p>
                         </div>
                     </div>
                 </div>

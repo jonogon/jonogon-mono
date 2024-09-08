@@ -91,7 +91,7 @@ export default function Login() {
 
     const {mutate: createPetition, isLoading: isPetitionCreateOngoing} = trpc.petitions.create.useMutation({
         onSuccess(response) {
-            router.push(`/petitions/${response.data.id}/edit?fresh=true`);
+            router.push(`/petitions/${response.data.id}?status=submitted`);
         },
     });
 
