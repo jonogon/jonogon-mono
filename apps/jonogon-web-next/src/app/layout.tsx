@@ -20,7 +20,7 @@ export const metadata: Metadata = {
         type: 'website',
         images: [
             {
-                url: '/opengraph-image.jpeg',
+                url: 'https://jonogon.org/opengraph-image.jpeg',
             },
         ],
     },
