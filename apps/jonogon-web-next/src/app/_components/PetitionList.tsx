@@ -11,6 +11,11 @@ import {trpc} from '@/trpc/client';
 import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {useAutoAnimate} from '@formkit/auto-animate/react';
 import React, {Fragment, useEffect, useMemo, useState} from 'react';
+import {
+    getDabiType, 
+    getDefaultSortForDabiType,
+    getSortType,
+} from './petitionSortUtils';
 
 const PetitionCardsLoader = () =>
     Array(4)
@@ -37,21 +42,16 @@ const NoPetitionsView = () => (
 );
 
 const PetitionList = () => {
-    const [fuckUpOrder, setFuckupOrder] = useState(true);
-
     const [animationParent] = useAutoAnimate();
 
     const params = useSearchParams();
 
-    const type =
-        params.get('type') === 'formalized'
-            ? 'formalized'
-            : params.get('type') === 'own'
-              ? 'own'
-              : 'request';
-
+    const type = getDabiType(params.get('type'));
     const page = params.get('page') ? Number(params.get('page')) : 0;
-    const sort = params.get('sort') === 'latest' ? 'time' : 'votes';
+    const sort = getDefaultSortForDabiType(getSortType(params.get('sort')), type);
+
+    // Don't fuck up order if sorting by time
+    const [fuckUpOrder, setFuckupOrder] = useState(sort !== 'time');
 
     const {data: petitionRequestListResponse, isLoading} =
         trpc.petitions.list.useQuery(
