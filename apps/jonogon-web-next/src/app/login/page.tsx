@@ -119,9 +119,11 @@ export default function Login() {
                                     : undefined
                             );
                             window.localStorage.removeItem('draft-petition');
+
                             return;
                         }
 
+                        window.localStorage.removeItem('draft-petition');
                         setIsLoginAndSideEffectsIncomplete(false);
                         router.push(redirectUrl);
                     }

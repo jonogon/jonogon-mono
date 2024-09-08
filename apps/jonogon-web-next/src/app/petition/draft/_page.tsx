@@ -51,7 +51,12 @@ export default function EditLoggedOutDraftPetition() {
 
     const redirectToLogin = () => {
         setIsLoading(true);
-        storeDraftPetition(petitionData);
+
+        const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
+        if (hasPetitionDraftData) {
+            storeDraftPetition(petitionData);
+        }
+
         router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
     }
 
