@@ -125,7 +125,7 @@ const PetitionList = () => {
                             attachment={p.data.attachment ?? ''}
                             date={
                                 new Date(
-                                    p.data.submitted_at ??
+                                    p.data.created_at ??
                                         '1970-01-01',
                                 )
                             }
