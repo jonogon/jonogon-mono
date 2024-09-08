@@ -113,7 +113,11 @@ export default function Petition() {
 
     const upvoteCount = petition?.data.petition_upvote_count ?? 0;
     const downvoteCount = petition?.data.petition_downvote_count ?? 0;
+    const upvoteTarget = petition?.data.upvote_target ?? 0;
     const totalVoteCount = upvoteCount + downvoteCount;
+
+    const achievement = upvoteCount / Number(upvoteTarget);
+    const achievementPercentage = Math.round(achievement * 100);
 
     const isOwnPetition =
         petition &&
@@ -305,10 +309,50 @@ export default function Petition() {
                     <h1 className="text-4xl font-bold font-serif flex-1">
                         {petition?.data.title ?? 'Untiled Petition'}
                     </h1>
+
+                    {petition?.data.status === 'formalized' ? (
+                        <div className={'w-full my-4'}>
+                            <p
+                                className={
+                                    'font-semibold text-black px-1 flex items-center flex-row space-x-4'
+                                }>
+                                <div
+                                    className={
+                                        'px-2 py-1 bg-red-500 flex-1 flex flex-row items-center rounded-full'
+                                    }>
+                                    <div
+                                        className={
+                                            'h-2 flex-1 bg-background mr-2 rounded-full overflow-clip'
+                                        }>
+                                        <div
+                                            className={
+                                                'h-2 bg-black rounded-full'
+                                            }
+                                            style={{
+                                                width: `${achievementPercentage}%`,
+                                            }}></div>
+                                    </div>
+                                    <span className={''}>
+                                        {achievementPercentage}%
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className={'text-black'}>আরো</span>{' '}
+                                    <span className={'text-red-500'}>
+                                        {upvoteTarget}
+                                    </span>
+                                    <span className={'text-black'}>
+                                        -টা Vote দরকার
+                                    </span>{' '}
+                                </div>
+                            </p>
+                        </div>
+                    ) : null}
+
                     {petition?.data.status !== 'rejected' &&
                         petition?.data.status !== 'draft' && (
                             <div
-                                className="flex items-center gap-1.5 mt-3 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                                className="flex items-center gap-1.5 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
                                 role="button"
                                 onClick={() => openShareModal()}>
                                 <Share2 className="size-3" />
@@ -316,6 +360,7 @@ export default function Petition() {
                             </div>
                         )}
                 </div>
+
                 <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
                     <span>It affects</span>
                     <span className={'italic font-semibold'}>

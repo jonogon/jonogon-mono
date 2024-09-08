@@ -29,6 +29,8 @@ export default function PetitionCard(props: {
 
     userVote: number | null;
 
+    upvoteTarget: number | null;
+
     upvotes: number;
     downvotes: number;
 
@@ -40,6 +42,9 @@ export default function PetitionCard(props: {
     const totalVotes = props.upvotes + props.downvotes;
 
     const userVote = props.userVote;
+
+    const achievement = props.upvotes / Number(props.upvoteTarget);
+    const achievementPercentage = Math.round(achievement * 100);
 
     return (
         <Link href={`/petitions/${props.id}`}>
@@ -85,9 +90,32 @@ export default function PetitionCard(props: {
                 <CardFooter className="flex items-center justify-between p-2 px-4 border-t border-t-background">
                     {props.mode === 'formalized' ? (
                         <>
-                            <p className={'font-semibold text-red-600 px-1'}>
-                                {totalVotes}{' '}
-                                {totalVotes !== 1 ? 'votes' : 'vote'}
+                            <p
+                                className={
+                                    'font-semibold text-red-600 px-1 flex items-center flex-row'
+                                }>
+                                <div
+                                    className={
+                                        'h-2 w-8 md:w-24 inline-block bg-background mr-2'
+                                    }>
+                                    <div
+                                        className={'h-2 bg-red-500'}
+                                        style={{
+                                            width: `${achievementPercentage}%`,
+                                        }}></div>
+                                </div>
+                                <span className={'mr-4 md:mr-6'}>
+                                    {achievementPercentage}%
+                                </span>
+                                <div>
+                                    <span className={'text-black font-light'}>
+                                        আরো
+                                    </span>{' '}
+                                    {props.upvoteTarget}
+                                    <span className={'text-black font-light'}>
+                                        -টা Vote দরকার
+                                    </span>{' '}
+                                </div>
                             </p>
                             <Button
                                 size={'sm'}
