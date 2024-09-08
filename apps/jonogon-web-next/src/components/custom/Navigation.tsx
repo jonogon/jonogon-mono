@@ -1,7 +1,7 @@
 'use client';
 
 import {Avatar, AvatarFallback, AvatarImage} from '@radix-ui/react-avatar';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {PiSignOutLight} from 'react-icons/pi';
 import {buttonVariants} from '../ui/button';
 import {
@@ -13,15 +13,22 @@ import {
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
 import Link from 'next/link';
+
 import {usePathname, useRouter} from 'next/navigation';
 import {signOut} from 'firebase/auth';
 import {firebaseAuth} from '@/firebase';
+import QuestionMarkCircleIcon from '@heroicons/react/24/outline/QuestionMarkCircleIcon';
+import {Dialog, DialogClose, DialogContent, DialogTrigger} from '../ui/dialog';
+import About from './About';
+import {DialogTitle} from '@radix-ui/react-dialog';
+import {X} from 'lucide-react';
 
 const Navigation = () => {
     const router = useRouter();
     const pathName = usePathname();
 
     const isAuthenticated = useAuthState();
+    const [aboutModalOpen, setAboutModealOpen] = useState(false);
 
     const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
@@ -41,15 +48,28 @@ const Navigation = () => {
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/images/icon.svg" alt="logo" className="w-12" />
                     <div className={'flex flex-col -space-y-2'}>
-                        <span className="text-3xl font-black text-red-500">
-                            জনগণ
-                        </span>
+                        <span className="text-3xl font-black">জনগণ</span>
                         <span className="text-neutral-600">
                             সবার দাবির প্লাটফর্ম
                         </span>
                     </div>
                 </Link>
-                <div className="flex gap items-center">
+                <div className="flex gap-4 items-center">
+                    <Dialog
+                        open={aboutModalOpen}
+                        onOpenChange={setAboutModealOpen}>
+                        <DialogTrigger asChild>
+                            <QuestionMarkCircleIcon
+                                className={`w-8 h-8 text-red-500`}
+                            />
+                        </DialogTrigger>
+                        <DialogContent className="bg-red-500 border-none w-full md:w-11/12 max-w-none overflow-y-auto max-h-[100vh] ">
+                            <DialogTitle className="text-2xl font-medium text-white">
+                                About Us
+                            </DialogTitle>
+                            <About setOpen={setAboutModealOpen} />
+                        </DialogContent>
+                    </Dialog>
                     {isAuthenticated ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger>

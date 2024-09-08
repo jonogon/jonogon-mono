@@ -176,15 +176,44 @@ export default function Petition() {
                                     <Button
                                         size={'sm'}
                                         intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna elevate to this some next level shizz?',
-                                            ) &&
+                                        onClick={() => {
+                                            const confirmed = window.confirm(
+                                                '⚠️⚠️⚠️ You sure you wanna elevate to this some next level shizz? ⚠️⚠️⚠️',
+                                            );
+
+                                            if (!confirmed) {
+                                                return;
+                                            }
+
+                                            const target = window.prompt(
+                                                '🎯🎯🎯 Set the target number of up-votes required to elevate to authorities. 🎯🎯🎯',
+                                                '1000',
+                                            );
+
+                                            if (!target) {
+                                                return;
+                                            }
+
+                                            const parsed = Number(target);
+
+                                            if (
+                                                !(
+                                                    parsed > 0 &&
+                                                    parsed < Infinity
+                                                )
+                                            ) {
+                                                window.alert(
+                                                    'Invalid target number.',
+                                                );
+                                                return;
+                                            }
+
                                             formalize({
                                                 petition_id:
                                                     Number(petition_id),
-                                            })
-                                        }>
+                                                upvote_target: parsed,
+                                            });
+                                        }}>
                                         Formalize
                                     </Button>
                                 ) : null}
