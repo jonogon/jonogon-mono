@@ -339,7 +339,7 @@ export default function Petition() {
                                 <div>
                                     <span className={'text-black'}>আরো</span>{' '}
                                     <span className={'text-red-500'}>
-                                        {upvoteTarget}
+                                        {upvoteTarget - upvoteCount}
                                     </span>
                                     <span className={'text-black'}>
                                         -টা Vote দরকার

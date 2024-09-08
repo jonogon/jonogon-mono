@@ -111,7 +111,7 @@ export default function PetitionCard(props: {
                                     <span className={'text-black font-light'}>
                                         আরো
                                     </span>{' '}
-                                    {props.upvoteTarget}
+                                    {(props.upvoteTarget ?? 0) - props.upvotes}
                                     <span className={'text-black font-light'}>
                                         -টা Vote দরকার
                                     </span>{' '}
