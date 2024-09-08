@@ -13,13 +13,22 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import PetitionList from '@/app/_components/PetitionList';
 import PetitionActionButton from '@/components/custom/PetitionActionButton';
+import { 
+    getDabiType,
+    getDefaultSortForDabiType,
+    getDefaultSortLabelForDabiType,
+    getSortType,
+} from './_components/petitionSortUtils';
 
 function SortOption({
     sort,
     children,
-}: PropsWithChildren<{sort: 'latest' | 'votes'}>) {
+}: PropsWithChildren<{sort: 'time' | 'votes'}>) {
     const router = useRouter();
     const params = useSearchParams();
+
+    const selectedType = getDabiType(params.get('type'));
+    const selectedSort = getSortType(params.get('sort'));
 
     const updateParams = () => {
         const nextSearchParams = new URLSearchParams(params);
@@ -33,7 +42,11 @@ function SortOption({
             className="capitalize flex items-center justify-between"
             onSelect={updateParams}>
             <span>{children}</span>
-            {(params.get('sort') ?? 'votes') === sort ? <RxCheck /> : null}
+            {
+                getDefaultSortForDabiType(selectedSort, selectedType) === sort 
+                    ? <RxCheck /> 
+                    : null
+            }
         </DropdownMenuItem>
     );
 }
@@ -41,7 +54,7 @@ function SortOption({
 function Tab({
     type,
     children,
-}: PropsWithChildren<{type: 'requests' | 'formalized'}>) {
+}: PropsWithChildren<{type: 'request' | 'formalized'}>) {
     const router = useRouter();
     const params = useSearchParams();
 
@@ -58,7 +71,7 @@ function Tab({
                 'border-b-2 border-transparent px-3 pb-1 capitalize select-none',
                 {
                     'border-red-500 text-red-500':
-                        (params.get('type') ?? 'requests') === type,
+                        getDabiType(params.get('type')) === type,
                 },
             )}
             onClick={updateParams}>
@@ -70,11 +83,16 @@ function Tab({
 export default function Home() {
     const params = useSearchParams();
 
+    const type = getDabiType(params.get('type'));
+    const sort = getDefaultSortForDabiType(getSortType(params.get('sort')), type);
+    
+    const sortLabel = getDefaultSortLabelForDabiType(sort, type);
+
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
                 <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-red-500">
-                    {params.get('type') === 'own' ? (
+                    {type === 'own' ? (
                         'Your Own দাবিs'
                     ) : (
                         <>
@@ -85,9 +103,9 @@ export default function Home() {
                     )}
                 </h1>
                 <div className="flex items-center justify-between my-2">
-                    {params.get('type') === 'own' ? null : (
+                    {type === 'own' ? null : (
                         <div>
-                            <Tab type={'requests'}>সব দাবি</Tab>
+                            <Tab type={'request'}>সব দাবি</Tab>
                             <Tab type={'formalized'}>Formalized দাবিs</Tab>
                         </div>
                     )}
@@ -95,16 +113,14 @@ export default function Home() {
                         <DropdownMenuTrigger>
                             <div className="flex items-center gap-2 pb-1">
                                 <span className="capitalize text-sm select-none">
-                                    {`${params.get('sort')}` === 'latest'
-                                        ? 'Latest'
-                                        : 'বেশি Votes'}
+                                    {sortLabel}
                                 </span>
                                 <RxCaretSort />
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
-                            <SortOption sort={'latest'}>Latest</SortOption>
+                            <SortOption sort={'time'}>Latest</SortOption>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
