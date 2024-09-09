@@ -108,7 +108,7 @@ export default function Home() {
                                 500,
                                 'Submit. Vote.',
                                 500,
-                                'Submit. Vote. Reform.',
+                                'Submit. Vote.\nReform.',
                                 2000,
                             ]}
                             omitDeletionAnimation

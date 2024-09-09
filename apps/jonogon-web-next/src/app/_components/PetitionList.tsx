@@ -149,14 +149,18 @@ const PetitionList = () => {
                                 <div
                                     key={'formalization-line'}
                                     className={
-                                        'py-2 text-center text-green-700 flex flex-row items-center'
+                                        'py-2 text-center text-green-700 flex flex-col items-center'
                                     }>
                                     <div
                                         className={
-                                            'py-3 text-center w-full font-semibold border-b-2 border-green-600'
+                                            'py-3 text-center w-full font-semibold'
                                         }>
                                         ☝️ Formalizing in <MondayCountdown />
                                     </div>
+                                    <div
+                                        className={
+                                            'border-b-2 border-green-600 w-full scale-x-105 md:scale-x-110'
+                                        }></div>
                                 </div>
                             ) : null}
                         </Fragment>
