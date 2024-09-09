@@ -2,6 +2,8 @@ import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import {redirect} from 'next/navigation';
 
+export const runtime = 'edge';
+
 import '../styles/globals.css';
 
 import React, {Suspense} from 'react';
