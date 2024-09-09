@@ -121,30 +121,30 @@ export default function Contributors() {
 										leads to action.
 									</span>
 								</p>
-								<div className="flex flex-row gap-4 md:border-t border-white border-opacity-20 py-4">
-									<a
-										href="https://discreet-vise-e56.notion.site/Jongon-s-FAQ-642932045917456db0564021736af38c?pvs=4"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="w-full"
-									>
-										<Button className="w-full bg-[#F7F2EE] bg-opacity-10 text-black hover:text-white font-medium py-4 rounded-md border-2 border-black border-opacity-10">
-											FAQS
-										</Button>
-									</a>
-									<a
-										href="https://discord.gg/U9EcJesGXA"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="w-full"
-									>
-										<Button className="w-full bg-[#F7F2EE] bg-opacity-10 text-black hover:text-white font-medium py-4 rounded-md border-2 border-black border-opacity-10">
-											Join our community
-										</Button>
-									</a>
-								</div>
 							</CollapsibleContent>
 						</Collapsible>
+						<div className="flex flex-row gap-4 md:border-t border-white border-opacity-20 py-4">
+							<a
+								href="https://elvista.notion.site/Jonogon-962f56d9d6ea42d3839790c2146b7f6a"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="w-full"
+							>
+								<Button className="w-full bg-[#F7F2EE] bg-opacity-10 text-black hover:text-white font-medium py-4 rounded-md border-2 border-black border-opacity-10">
+									FAQS
+								</Button>
+							</a>
+							<a
+								href="https://discord.gg/U9EcJesGXA"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="w-full"
+							>
+								<Button className="w-full bg-[#F7F2EE] bg-opacity-10 text-black hover:text-white font-medium py-4 rounded-md border-2 border-black border-opacity-10">
+									Join our community
+								</Button>
+							</a>
+						</div>
 					</div>
 				</div>
 
