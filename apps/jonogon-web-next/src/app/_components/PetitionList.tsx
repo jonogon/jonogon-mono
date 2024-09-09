@@ -16,7 +16,7 @@ import {
     getDefaultSortForDabiType,
     getSortType,
 } from './petitionSortUtils';
-import {CountDown} from '@/app/_components/CountDown';
+import {MondayCountdown} from '@/app/_components/MondayCountdown';
 
 const PetitionCardsLoader = () =>
     Array(4)
@@ -149,13 +149,13 @@ const PetitionList = () => {
                                 <div
                                     key={'formalization-line'}
                                     className={
-                                        'py-3 text-center text-green-700 flex flex-row items-center border-b-2 border-green-600'
+                                        'py-2 text-center text-green-700 flex flex-row items-center'
                                     }>
                                     <div
                                         className={
-                                            'text-center w-full font-semibold'
+                                            'py-3 text-center w-full font-semibold border-b-2 border-green-600'
                                         }>
-                                        ☝️ Formalizing in <CountDown />
+                                        ☝️ Formalizing in <MondayCountdown />
                                     </div>
                                 </div>
                             ) : null}

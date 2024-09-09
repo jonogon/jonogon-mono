@@ -12,7 +12,7 @@ function getNextMondayMidnight() {
     return nextMonday;
 }
 
-export function CountDown() {
+export function MondayCountdown() {
     useRerenderInterval(1000);
 
     const nextMonday = getNextMondayMidnight().getTime();
@@ -42,11 +42,9 @@ export function CountDown() {
                     {minutes} {minutes > 1 ? 'minutes' : 'minute'}, and
                 </span>
             ) : null}
-            {seconds > 0 ? (
-                <span>
-                    {seconds} {seconds > 1 ? 'seconds' : 'second'}
-                </span>
-            ) : null}
+            <span>
+                {seconds} {seconds !== 1 ? 'seconds' : 'second'}
+            </span>
         </span>
     );
 }

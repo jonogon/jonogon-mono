@@ -13,12 +13,13 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import PetitionList from '@/app/_components/PetitionList';
 import PetitionActionButton from '@/components/custom/PetitionActionButton';
-import { 
+import {
     getDabiType,
     getDefaultSortForDabiType,
     getDefaultSortLabelForDabiType,
     getSortType,
 } from './_components/petitionSortUtils';
+import {TypeAnimation} from 'react-type-animation';
 
 function SortOption({
     sort,
@@ -42,11 +43,9 @@ function SortOption({
             className="capitalize flex items-center justify-between"
             onSelect={updateParams}>
             <span>{children}</span>
-            {
-                getDefaultSortForDabiType(selectedSort, selectedType) === sort 
-                    ? <RxCheck /> 
-                    : null
-            }
+            {getDefaultSortForDabiType(selectedSort, selectedType) === sort ? (
+                <RxCheck />
+            ) : null}
         </DropdownMenuItem>
     );
 }
@@ -84,22 +83,37 @@ export default function Home() {
     const params = useSearchParams();
 
     const type = getDabiType(params.get('type'));
-    const sort = getDefaultSortForDabiType(getSortType(params.get('sort')), type);
-    
+    const sort = getDefaultSortForDabiType(
+        getSortType(params.get('sort')),
+        type,
+    );
+
     const sortLabel = getDefaultSortLabelForDabiType(sort, type);
 
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
-                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-red-500">
+                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-red-500 min-h-20">
                     {type === 'own' ? (
                         'Your Own দাবিs'
                     ) : (
-                        <>
-                            যত বেশি ভোট,
-                            <br />
-                            তত তাড়াতাড়ি জবাব
-                        </>
+                        <TypeAnimation
+                            style={{whiteSpace: 'pre-line', display: 'inline'}}
+                            cursor={true}
+                            speed={80}
+                            sequence={[
+                                `যত বেশি ভোট,\nতত তাড়াতাড়ি জবাব`,
+                                2000,
+                                'Submit.',
+                                500,
+                                'Submit. Vote.',
+                                500,
+                                'Submit. Vote. Reform.',
+                                2000,
+                            ]}
+                            omitDeletionAnimation
+                            repeat={Infinity}
+                        />
                     )}
                 </h1>
                 <div className="flex items-center justify-between my-2">
