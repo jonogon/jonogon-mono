@@ -149,7 +149,9 @@ export default function Contributors() {
 				</div>
 
 				<div className="flex flex-col w-full md:border-l border-white border-opacity-20 pt-4 gap-4">
-					<p className="font-medium text-xl">Contributors:</p>
+					<p className="font-medium text-xl">
+						{dynamicContributors.length} Contributors:
+					</p>
 					<ul className="list-disc list-inside space-y-1 font-light">
 						{isLoading ? (
 							<li>Loading...</li>
@@ -168,6 +170,8 @@ export default function Contributors() {
 						) : (
 							<li>No contributors found</li>
 						)}
+
+						<p>and growing... ✊🏽</p>
 					</ul>
 				</div>
 			</div>
