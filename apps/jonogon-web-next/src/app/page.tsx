@@ -113,7 +113,7 @@ export default function Home() {
         userCount > 0
             ? [
                   ...defaultTypeSeq,
-                  `${userCount + DISCORD_COMMUNITY_SIZE} নাগরিক এর সাথে\nগোরে তুলুন নতুন দেশ`,
+                  `${userCount + DISCORD_COMMUNITY_SIZE} নাগরিক এর সাথে\nগড়ে তুলুন নতুন দেশ`,
                   2000,
               ]
             : defaultTypeSeq;
