@@ -6,7 +6,6 @@ services:
       dockerfile: Dockerfile
     working_dir: /mono
     command: pnpm run dev
-
     environment:
       NODE_ENV: development
       DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/postgres}" # useful for `misc/migrator`
@@ -22,7 +21,7 @@ services:
       CLOUDFLARE_SECRET_ACCESS_KEY: "${CLOUDFLARE_SECRET_ACCESS_KEY:-}"
 
       FIREBASE_AUTH_EMULATOR_HOST: "localhost:12005"
-      FIREBASE_WEB_CONFIG_JSON_BASE64URL: "${FIREBASE_WEB_CONFIG_JSON_BASE64URL:-}"
+      NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL: "${NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL:-}"
       FIREBASE_ADMIN_PRIVATE_KEY_JSON_BASE64URL: "${FIREBASE_ADMIN_PRIVATE_KEY_JSON_BASE64URL:-}"
 
     ports:
@@ -63,6 +62,10 @@ services:
         target: /jonogon-static/
         type: volume
 
+      - source: firebase-emulator-storage
+        target: /firebase-persistence
+        type: volume
+
     depends_on:
       - postgres
       - redis
@@ -99,5 +102,6 @@ volumes:
   # named volumes; they aren't removed on `docker compose down`
   mono-pnpm-store:
   core-static-storage:
+  firebase-emulator-storage:
   postgres-data:
   redis-data:

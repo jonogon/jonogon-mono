@@ -40,6 +40,7 @@ export const getPetition = publicProcedure
                 'petitions.approved_at',
                 'petitions.formalized_at',
                 'petition_votes.vote as user_vote',
+                'petitions.upvote_target as upvote_target',
             ])
             .where('petitions.id', '=', input.id)
             .where('petitions.deleted_at', 'is', null)
@@ -107,27 +108,56 @@ export const getPetition = publicProcedure
         };
     });
 
-export const createPetition = protectedProcedure.mutation(
-    async ({input, ctx}) => {
-        const existingDraft = await ctx.services.postgresQueryBuilder
-            .selectFrom('petitions')
-            .select(['petitions.id'])
-            .where('created_by', '=', `${ctx.auth.user_id}`)
-            .where('submitted_at', 'is', null)
-            .where('deleted_at', 'is', null)
-            .executeTakeFirst();
+export const createPetition = protectedProcedure
+    .input(
+        z
+            .object({
+                loggedOutDraft: z
+                    .object({
+                        title: z.string(),
+                        location: z.string(),
+                        target: z.string(),
+                        description: z.string(),
+                    })
+                    .partial(),
+            })
+            .optional(),
+    )
+    .mutation(async ({input, ctx}) => {
+        if (!input) {
+            const existingDraft = await ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .select(['petitions.id'])
+                .where('created_by', '=', `${ctx.auth.user_id}`)
+                .where('submitted_at', 'is', null)
+                .where('deleted_at', 'is', null)
+                .orderBy('created_at', 'desc')
+                .executeTakeFirst();
 
-        if (existingDraft) {
-            return {
-                data: existingDraft,
-            };
+            if (existingDraft) {
+                return {
+                    data: existingDraft,
+                };
+            }
         }
 
         const created = await ctx.services.postgresQueryBuilder
             .insertInto('petitions')
-            .values({
-                created_by: ctx.auth.user_id,
-            })
+            .values(
+                !input
+                    ? {
+                          created_by: ctx.auth.user_id,
+                      }
+                    : {
+                          created_by: ctx.auth.user_id,
+                          ...pick(input.loggedOutDraft, [
+                              'title',
+                              'location',
+                              'target',
+                              'description',
+                          ]),
+                      },
+            )
             .returning(['petitions.id'])
             .executeTakeFirst();
 
@@ -162,8 +192,7 @@ export const createPetition = protectedProcedure.mutation(
         return {
             data: created,
         };
-    },
-);
+    });
 
 export const updatePetition = protectedProcedure
     .input(

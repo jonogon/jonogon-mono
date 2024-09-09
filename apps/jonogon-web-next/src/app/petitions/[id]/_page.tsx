@@ -4,19 +4,27 @@ import Loading from '@/app/petitions/[id]/loading';
 
 export const runtime = 'edge';
 
+import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
+import {useAuthState} from '@/auth/token-manager';
+import {Button} from '@/components/ui/button';
+import {trpc} from '@/trpc/client';
+import {Share2} from 'lucide-react';
+import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
+
+import {PetitionShareModal} from './_components/PetitionShareModal';
+import {SocialShareSheet} from './_components/SocialShareSheet';
+import {useSocialShareStore} from '@/store/useSocialShareStore';
+
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
-import {trpc} from '@/trpc/client';
-import {useAuthState} from '@/auth/token-manager';
-import {useParams, useRouter} from 'next/navigation';
+import CommentThread from './_components/comments/Thread';
 
 export default function Petition() {
     const utils = trpc.useUtils();
 
     const router = useRouter();
+    const searchParams = useSearchParams();
     const isAuthenticated = useAuthState();
 
     const {data: selfResponse} = trpc.users.getSelf.useQuery(undefined, {
@@ -33,7 +41,18 @@ export default function Petition() {
         id: petition_id!!,
     });
 
+    const {openShareModal} = useSocialShareStore();
+
+    const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
+
     const [userVote, setUserVote] = useState(0);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+    useEffect(() => {
+        if (isSubmitted) {
+            setShowSuccessModal(true);
+        }
+    }, [isSubmitted]);
 
     useEffect(() => {
         if (petition) {
@@ -94,7 +113,11 @@ export default function Petition() {
 
     const upvoteCount = petition?.data.petition_upvote_count ?? 0;
     const downvoteCount = petition?.data.petition_downvote_count ?? 0;
+    const upvoteTarget = petition?.data.upvote_target ?? 0;
     const totalVoteCount = upvoteCount + downvoteCount;
+
+    const achievement = upvoteCount / Number(upvoteTarget);
+    const achievementPercentage = Math.round(achievement * 100);
 
     const isOwnPetition =
         petition &&
@@ -157,15 +180,44 @@ export default function Petition() {
                                     <Button
                                         size={'sm'}
                                         intent={'success'}
-                                        onClick={() =>
-                                            window.confirm(
-                                                'You sure you wanna elevate to this some next level shizz?',
-                                            ) &&
+                                        onClick={() => {
+                                            const confirmed = window.confirm(
+                                                '⚠️⚠️⚠️ You sure you wanna elevate to this some next level shizz? ⚠️⚠️⚠️',
+                                            );
+
+                                            if (!confirmed) {
+                                                return;
+                                            }
+
+                                            const target = window.prompt(
+                                                '🎯🎯🎯 Set the target number of up-votes required to elevate to authorities. 🎯🎯🎯',
+                                                '1000',
+                                            );
+
+                                            if (!target) {
+                                                return;
+                                            }
+
+                                            const parsed = Number(target);
+
+                                            if (
+                                                !(
+                                                    parsed > 0 &&
+                                                    parsed < Infinity
+                                                )
+                                            ) {
+                                                window.alert(
+                                                    'Invalid target number.',
+                                                );
+                                                return;
+                                            }
+
                                             formalize({
                                                 petition_id:
                                                     Number(petition_id),
-                                            })
-                                        }>
+                                                upvote_target: parsed,
+                                            });
+                                        }}>
                                         Formalize
                                     </Button>
                                 ) : null}
@@ -253,9 +305,62 @@ export default function Petition() {
                         {petition?.data.target ?? 'UNKNOWN MINISTRY'}.
                     </span>
                 </div>
-                <h1 className="text-4xl font-bold font-serif">
-                    {petition?.data.title ?? 'Untiled Petition'}
-                </h1>
+                <div className="flex items-start flex-col">
+                    <h1 className="text-4xl font-bold font-serif flex-1">
+                        {petition?.data.title ?? 'Untiled Petition'}
+                    </h1>
+
+                    {petition?.data.status === 'formalized' ? (
+                        <div className={'w-full my-4'}>
+                            <p
+                                className={
+                                    'font-semibold text-black px-1 flex items-center flex-row space-x-4'
+                                }>
+                                <div
+                                    className={
+                                        'px-2 py-1 bg-red-500 flex-1 flex flex-row items-center rounded-full'
+                                    }>
+                                    <div
+                                        className={
+                                            'h-2 flex-1 bg-background mr-2 rounded-full overflow-clip'
+                                        }>
+                                        <div
+                                            className={
+                                                'h-2 bg-black rounded-full'
+                                            }
+                                            style={{
+                                                width: `${achievementPercentage}%`,
+                                            }}></div>
+                                    </div>
+                                    <span className={''}>
+                                        {achievementPercentage}%
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className={'text-black'}>আরো</span>{' '}
+                                    <span className={'text-red-500'}>
+                                        {upvoteTarget - upvoteCount}
+                                    </span>
+                                    <span className={'text-black'}>
+                                        -টা Vote দরকার
+                                    </span>{' '}
+                                </div>
+                            </p>
+                        </div>
+                    ) : null}
+
+                    {petition?.data.status !== 'rejected' &&
+                        petition?.data.status !== 'draft' && (
+                            <div
+                                className="flex items-center gap-1.5 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                                role="button"
+                                onClick={() => openShareModal()}>
+                                <Share2 className="size-3" />
+                                <p className="text-xs">Share</p>
+                            </div>
+                        )}
+                </div>
+
                 <div className="space-x-2 border-l-4 pl-4 text-neutral-700 text-lg">
                     <span>It affects</span>
                     <span className={'italic font-semibold'}>
@@ -268,6 +373,7 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
+                <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
                 <div
@@ -309,6 +415,15 @@ export default function Petition() {
                         <p className="ml-2">{downvoteCount}</p>
                     </Button>
                 </div>
+
+                {showSuccessModal && (
+                    <PetitionShareModal
+                        isOpen={showSuccessModal}
+                        setIsOpen={setShowSuccessModal}
+                    />
+                )}
+
+                <SocialShareSheet />
             </div>
         </>
     );
