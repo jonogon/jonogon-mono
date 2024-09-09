@@ -13,6 +13,7 @@ import {TRPCWrapper} from '@/trpc/Wrapper';
 import Navigation from '@/components/custom/Navigation';
 import {Toaster} from '@/components/ui/toaster';
 import {RedirectType} from 'next/dist/client/components/redirect';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
     title: 'Jonogon — জনগণ',
@@ -58,6 +59,15 @@ export default function RootLayout({
                         </Suspense>
                     </TRPCWrapper>
                 </AuthWrapper>
+                <Script id={'ms-clarity'}>
+                    {`
+                        (function(c,l,a,r,i,t,y){
+                            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                        })(window, document, "clarity", "script", "o0jgdp84rn");
+                    `}
+                </Script>
             </body>
             <GoogleAnalytics gaId={'G-BY995Q5BBE'} />
         </html>
