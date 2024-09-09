@@ -16,6 +16,7 @@ import {
     getDefaultSortForDabiType,
     getSortType,
 } from './petitionSortUtils';
+import {CountDown} from '@/app/_components/CountDown';
 
 const PetitionCardsLoader = () =>
     Array(4)
@@ -148,18 +149,13 @@ const PetitionList = () => {
                                 <div
                                     key={'formalization-line'}
                                     className={
-                                        'py-5 text-center text-green-700 flex flex-row items-center relative'
+                                        'py-3 text-center text-green-700 flex flex-row items-center border-b-2 border-green-600'
                                     }>
                                     <div
                                         className={
-                                            'border-t-2 border-dashed border-t-green-500 w-full absolute'
-                                        }></div>
-                                    <div
-                                        className={
-                                            'top-0 pr-4 left-0 bg-background z-[1] font-semibold'
+                                            'text-center w-full font-semibold'
                                         }>
-                                        ☝️ যেসব দাবি, Formalization-এর জন্য
-                                        review করা হবে
+                                        ☝️ Formalizing in <CountDown />
                                     </div>
                                 </div>
                             ) : null}
