@@ -20,10 +20,6 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { firebaseAuth } from '@/firebase';
 import QuestionMarkCircleIcon from '@heroicons/react/24/outline/QuestionMarkCircleIcon';
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from '../ui/dialog';
-import About from './About';
-import { DialogTitle } from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
 
 const Navigation = () => {
 	const router = useRouter();
