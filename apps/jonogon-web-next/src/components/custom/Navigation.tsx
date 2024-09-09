@@ -46,7 +46,7 @@ const Navigation = () => {
 				<Link href="/" className="flex items-center gap-2">
 					<img src="/images/icon.svg" alt="logo" className="w-12" />
 					<div className={'flex flex-col -space-y-2'}>
-						<span className="text-3xl font-black">জনগণ</span>
+						<span className="text-3xl font-black text-red-500">জনগণ</span>
 						<span className="text-neutral-600">
 							সবার দাবির প্লাটফর্ম
 						</span>
