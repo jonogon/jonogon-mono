@@ -373,7 +373,7 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
-                {petition?.data.attachments.filter(
+                {!!petition?.data.attachments.filter(
                     (attachment) => attachment.type === 'file',
                     ).length && (
                     <div>
