@@ -28,7 +28,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
+import PetitionFileUploader from '@/components/custom/PetitionFileUploader';
 // import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 // import {petitionLocations, petitionTargets} from '@/lib/constants';
 
@@ -47,26 +47,6 @@ export default function EditPetition() {
     });
 
     const freshValue = params.get('fresh');
-
-    const [attachmentQueue, setAttachmentQueue] = useState<
-        {
-            type: 'image' | 'attachment';
-            file: File;
-        }[]
-    >([]);
-
-    const removeOne = useCallback(
-        (type: 'image' | 'attachment') => {
-            setAttachmentQueue((queue) => {
-                const lastIndex = queue.findLastIndex(
-                    (attachment) => attachment.type === type,
-                );
-
-                return queue.filter((_attachment, i) => i !== lastIndex);
-            });
-        },
-        [setAttachmentQueue],
-    );
 
     const {mutate: updatePetition, isLoading: isPetitionSaving} =
         trpc.petitions.update.useMutation({
@@ -184,29 +164,16 @@ export default function EditPetition() {
             };
         },
         onSuccess: async (response) => {
-            if (response?.message === 'image-added') {
-                removeOne('image');
-            } else {
-                removeOne('attachment');
-            }
-
             await utils.petitions.get.invalidate({id: petition_id});
         },
     });
 
-    useEffect(() => {
-        if (!attachmentQueue.length) {
-            return;
-        }
-
-        const attachment = attachmentQueue[attachmentQueue.length - 1];
-
+    const handleAttachmentUpload = (attachment: { type: 'image' | 'file', file: File }) => {
         uploadAttachment({
-            type: attachment.type === 'image' ? 'image' : 'file',
+            type: attachment.type,
             file: attachment.file,
         });
-    }, [attachmentQueue]);
-
+    };
     const {mutate: removeAttachment} =
         trpc.petitions.removeAttachment.useMutation({
             onSuccess: async () => {
@@ -357,127 +324,24 @@ export default function EditPetition() {
                         placeholder="Ex: Entire Bangladesh"
                     />
                 </div>
-                <div className="flex flex-col gap-2">
-                    <Label htmlFor="pictures">
-                        <div className={'font-bold text-lg'}>
-                            Pictures{' '}
-                            <span
-                                className={'font-light italic text-stone-600'}>
-                                (optional)
-                            </span>
-                        </div>
-                        <div className={'text-stone-500'}>
-                            কিছু ছবি upload করতে পারেন
-                        </div>
-                    </Label>
-                    <div className={'flex flex-row flex-wrap gap-2'}>
-                        <div
-                            className={
-                                'flex justify-center items-center border-4 w-24 h-20 rounded-lg relative bg-card hover:bg-card/30 cursor-pointer'
-                            }>
-                            <span
-                                className={
-                                    'text-5xl text-stone-400 drop-shadow-sm cursor-pointer'
-                                }>
-                                +
-                            </span>
-                            <input
-                                id={'pictures'}
-                                type={'file'}
-                                multiple
-                                accept={'image/*'}
-                                className={
-                                    'absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer'
-                                }
-                                onChange={(ev) => {
-                                    setAttachmentQueue((queue) => [
-                                        ...queue,
-                                        ...scope(ev.target.files).let(
-                                            (files) => {
-                                                if (!files) {
-                                                    return [];
-                                                }
-
-                                                const attachments = [];
-
-                                                for (
-                                                    let i = 0;
-                                                    i < files.length;
-                                                    i++
-                                                ) {
-                                                    const file = files.item(i);
-
-                                                    if (!file) {
-                                                        continue;
-                                                    }
-
-                                                    attachments.push({
-                                                        type: 'image' as const,
-                                                        file: file,
-                                                    });
-                                                }
-
-                                                return attachments;
-                                            },
-                                        ),
-                                    ]);
-                                }}
-                            />
-                        </div>
-
-                        {attachmentQueue
-                            .filter((attachment) => attachment.type === 'image')
-                            .map((attachment, i) => (
-                                <div
-                                    key={i}
-                                    className={
-                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg'
-                                    }>
-                                    <div
-                                        className={
-                                            'animate-spin border-4 border-b-transparent border-l-transparent border-red-500 w-8 h-8 rounded-full'
-                                        }></div>
-                                </div>
-                            ))}
-
-                        {petitionRemoteData?.data?.attachments
-                            .filter((attachment) => attachment.type === 'image')
-                            .map((attachment) => (
-                                <div
-                                    key={attachment.id}
-                                    className={
-                                        'flex justify-center items-center border-4 w-24 h-20 rounded-lg bg-black relative'
-                                    }>
-                                    <img
-                                        src={attachment.thumbnail!!.replace(
-                                            '$CORE_HOSTNAME',
-                                            window.location.hostname,
-                                        )}
-                                        alt={attachment.filename}
-                                        className={
-                                            'w-full h-full object-contain object-center'
-                                        }
-                                    />
-                                    <button
-                                        className={
-                                            'absolute bottom-1 right-1 bg-red-500/90 text-sm hover:bg-red-600 p-2 rounded-sm'
-                                        }
-                                        onClick={() =>
-                                            removeAttachment({
-                                                petition_id: Number(
-                                                    petition_id ?? '0',
-                                                ),
-                                                attachment_id: Number(
-                                                    attachment.id,
-                                                ),
-                                            })
-                                        }>
-                                        <TrashIcon />
-                                    </button>
-                                </div>
-                            ))}
-                    </div>
-                </div>
+                <PetitionFileUploader
+                    label="Pictures"
+                    banglaLabel="ছবি"
+                    fileType="image"
+                    files={petitionRemoteData?.data?.attachments || []}
+                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
+                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    petitionId={Number(petition_id)}
+                />
+                <PetitionFileUploader
+                    label="Files"
+                    banglaLabel="ফাইল"
+                    fileType="file"
+                    files={petitionRemoteData?.data?.attachments || []}
+                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
+                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    petitionId={Number(petition_id)}
+                />
                 <div className="flex flex-col gap-2">
                     <Label>
                         <div className={'font-bold text-lg'}>
