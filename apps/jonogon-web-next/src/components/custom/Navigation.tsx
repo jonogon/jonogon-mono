@@ -25,7 +25,6 @@ import { X } from 'lucide-react';
 const Navigation = () => {
 	const router = useRouter();
 	const isAuthenticated = useAuthState();
-	const [aboutModalOpen, setAboutModealOpen] = useState(false);
 
 	const { data: selfDataResponse } = trpc.users.getSelf.useQuery(undefined, {
 		enabled: !!isAuthenticated,
@@ -45,29 +44,21 @@ const Navigation = () => {
 				<Link href="/" className="flex items-center gap-2">
 					<img src="/images/icon.svg" alt="logo" className="w-12" />
 					<div className={'flex flex-col -space-y-2'}>
-						<span className="text-3xl font-black">জনগণ</span>
+						<span className="text-3xl font-black text-red-500">
+							জনগণ
+						</span>
 						<span className="text-neutral-600">
 							সবার দাবির প্লাটফর্ম
 						</span>
 					</div>
 				</Link>
 				<div className="flex gap-4 items-center">
-					<Dialog 
-						open={aboutModalOpen}
-						onOpenChange={setAboutModealOpen}
-					>
-						<DialogTrigger asChild>
-							<QuestionMarkCircleIcon
-								className={`w-8 h-8 text-red-500`}
-							/>
-						</DialogTrigger>
-						<DialogContent className="bg-red-500 border-none w-full md:w-11/12 max-w-none overflow-y-auto max-h-[100vh] ">
-							<DialogTitle className="text-2xl font-medium text-white">
-								About Us
-							</DialogTitle>
-							<About setOpen={setAboutModealOpen} />
-						</DialogContent>
-					</Dialog>
+					<Link href="/contributors">
+						<QuestionMarkCircleIcon
+							className={`w-8 h-8 text-red-500`}
+						/>
+					</Link>
+
 					{isAuthenticated ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger>
