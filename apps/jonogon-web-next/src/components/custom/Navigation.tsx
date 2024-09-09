@@ -22,13 +22,15 @@ import {firebaseAuth} from '@/firebase';
 import QuestionMarkCircleIcon from '@heroicons/react/24/outline/QuestionMarkCircleIcon';
 import mixpanel from 'mixpanel-browser';
 
-mixpanel.init('f24ab91d5447c7c276709cbc8522e62a', {
-    debug: true,
-    track_pageview: true,
-    persistence: 'localStorage',
-});
-
 const Navigation = () => {
+    useEffect(() => {
+        mixpanel.init('f24ab91d5447c7c276709cbc8522e62a', {
+            debug: true,
+            track_pageview: true,
+            persistence: 'localStorage',
+        });
+    }, []);
+
     const router = useRouter();
     const pathName = usePathname();
 
