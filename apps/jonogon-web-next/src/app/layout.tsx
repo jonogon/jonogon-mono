@@ -1,4 +1,6 @@
 import type {Metadata} from 'next';
+import {headers} from 'next/headers';
+import {redirect} from 'next/navigation';
 
 import '../styles/globals.css';
 
@@ -7,6 +9,7 @@ import AuthWrapper from '@/auth/Wrapper';
 import {TRPCWrapper} from '@/trpc/Wrapper';
 import Navigation from '@/components/custom/Navigation';
 import {Toaster} from '@/components/ui/toaster';
+import {RedirectType} from 'next/dist/client/components/redirect';
 
 export const metadata: Metadata = {
     title: 'Jonogon — জনগণ',
@@ -31,6 +34,13 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const headersList = headers();
+    const host = headersList.get('host');
+
+    if (host === 'www.jonogon.org') {
+        redirect(`https://jonogon.org/`, RedirectType.replace);
+    }
+
     return (
         <html lang="en">
             <body className={''}>
