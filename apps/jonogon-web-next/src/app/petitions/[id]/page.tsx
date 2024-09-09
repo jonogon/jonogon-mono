@@ -26,7 +26,20 @@ export async function generateMetadata({params}: {params: {id: string}}) {
 
     const metaTitle = title ?? '';
     const metaDescription = generateDescription(totalVoteCount);
-
+    const imageAttachments = attachments.filter(attachment => attachment.type === 'image');
+    const metaImage = imageAttachments.length
+        ? [
+            {
+                url: `${imageAttachments[0].thumbnail}`.replace(
+                    '$CORE_HOSTNAME',
+                    'localhost',
+                ),
+                width: 1200,
+                height: 630,
+                alt: originalTitle,
+            },
+        ]
+        : [];
     return {
         title: siteTitle,
         description: originalDescription,
@@ -36,34 +49,13 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             url: `https://jonogon.org/petitions/${id}`,
             type: 'website',
             siteName: 'jonogon.org',
-            images:
-                attachments.length > 0
-                    ? [
-                          {
-                              url: `${attachments[0].thumbnail}`.replace(
-                                  '$CORE_HOSTNAME',
-                                  'localhost',
-                              ),
-                              width: 1200,
-                              height: 630,
-                              alt: originalTitle,
-                          },
-                      ]
-                    : [],
+            images: metaImage,
         },
         twitter: {
             card: 'summary_large_image',
             title: metaTitle,
             description: metaDescription,
-            images:
-                attachments.length > 0
-                    ? [
-                          `${attachments[0].thumbnail}`.replace(
-                              '$CORE_HOSTNAME',
-                              'localhost',
-                          ),
-                      ]
-                    : [],
+            images: metaImage,
         },
     };
 }
