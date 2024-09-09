@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import {redirect} from 'next/navigation';
+import {GoogleAnalytics} from '@next/third-parties/google';
 
 export const runtime = 'edge';
 
@@ -58,6 +59,7 @@ export default function RootLayout({
                     </TRPCWrapper>
                 </AuthWrapper>
             </body>
+            <GoogleAnalytics gaId={'G-BY995Q5BBE'} />
         </html>
     );
 }
