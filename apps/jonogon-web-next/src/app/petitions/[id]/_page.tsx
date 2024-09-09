@@ -373,6 +373,27 @@ export default function Petition() {
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
+                {petition?.data.attachments.filter(
+                    (attachment) => attachment.type === 'file',
+                    ).length && (
+                    <div>
+                        <h2 className="text-lg font-bold">Files</h2>
+                        {petition.data.attachments
+                            .filter((attachment) => attachment.type === 'file')
+                            .map((attachment, a) => (
+                            <a
+                                className="text-sm text-blue-400 underline block"
+                                key={a}
+                                    href={attachment.attachment.replace(
+                                        '$CORE_HOSTNAME',
+                                        window.location.hostname,
+                                    )} target="_blank"
+                            >
+                            {attachment.filename}
+                            </a>
+                        ))}
+                    </div>
+                )}
                 <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">

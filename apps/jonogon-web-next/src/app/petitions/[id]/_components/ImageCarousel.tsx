@@ -19,7 +19,11 @@ export function ImageCarousel() {
         id: petition_id!!,
     });
 
-    if (petition?.data.attachments.length) {
+    const imageAttachments = petition?.data.attachments.filter(
+        (attachment) => attachment.type === 'image',
+    );
+
+    if (imageAttachments?.length) {
         return (
             <div className="flex justify-center items-center w-full w-max-screen-xs">
                 <Carousel className="w-full relative rounded-lg overflow-clip">
@@ -29,7 +33,7 @@ export function ImageCarousel() {
                     />
                     <CarouselContent className="z-0">
                         {Array.from({
-                            length: petition?.data.attachments.length ?? 0,
+                            length: imageAttachments.length,
                         }).map((_, index) => (
                             <CarouselItem
                                 key={index}
@@ -40,9 +44,8 @@ export function ImageCarousel() {
                                     <CardContent className="flex items-center justify-center p-0">
                                         <img
                                             src={`${
-                                                petition?.data.attachments[
-                                                    index
-                                                ].attachment
+                                                imageAttachments[index]
+                                                    .attachment
                                             }`.replace(
                                                 '$CORE_HOSTNAME',
                                                 window.location.hostname,
