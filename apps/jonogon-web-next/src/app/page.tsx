@@ -13,12 +13,14 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import PetitionList from '@/app/_components/PetitionList';
 import PetitionActionButton from '@/components/custom/PetitionActionButton';
-import { 
+import {
     getDabiType,
     getDefaultSortForDabiType,
     getDefaultSortLabelForDabiType,
     getSortType,
 } from './_components/petitionSortUtils';
+import {TypeAnimation} from 'react-type-animation';
+import {trpc} from '@/trpc/client';
 
 function SortOption({
     sort,
@@ -42,11 +44,9 @@ function SortOption({
             className="capitalize flex items-center justify-between"
             onSelect={updateParams}>
             <span>{children}</span>
-            {
-                getDefaultSortForDabiType(selectedSort, selectedType) === sort 
-                    ? <RxCheck /> 
-                    : null
-            }
+            {getDefaultSortForDabiType(selectedSort, selectedType) === sort ? (
+                <RxCheck />
+            ) : null}
         </DropdownMenuItem>
     );
 }
@@ -80,26 +80,60 @@ function Tab({
     );
 }
 
+const DISCORD_COMMUNITY_SIZE = 2500;
+
 export default function Home() {
     const params = useSearchParams();
 
     const type = getDabiType(params.get('type'));
-    const sort = getDefaultSortForDabiType(getSortType(params.get('sort')), type);
-    
+    const sort = getDefaultSortForDabiType(
+        getSortType(params.get('sort')),
+        type,
+    );
+
     const sortLabel = getDefaultSortLabelForDabiType(sort, type);
+
+    const {data: userCountResponse} =
+        trpc.users.getTotalNumberOfUsers.useQuery();
+
+    const defaultTypeSeq = [
+        'Submit.',
+        500,
+        'Submit. Vote.',
+        500,
+        'Submit. Vote.\nReform.',
+        2000,
+        `যত বেশি ভোট,\nতত তাড়াতাড়ি জবাব`,
+        2000,
+    ];
+
+    const userCount = Number(userCountResponse?.data.count?.count ?? 0);
+
+    const typeSeq =
+        userCount > 0
+            ? [
+                  ...defaultTypeSeq,
+                  `${userCount + DISCORD_COMMUNITY_SIZE} নাগরিক এর সাথে\nগড়ে তুলুন নতুন দেশ`,
+                  2000,
+              ]
+            : defaultTypeSeq;
 
     return (
         <>
             <div className="flex flex-col gap-4 max-w-screen-sm mx-auto pb-16 px-4">
-                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-red-500">
+                <h1 className="mt-12 my-5 text-3xl md:text-4xl font-bold text-red-500 min-h-20">
                     {type === 'own' ? (
                         'Your Own দাবিs'
                     ) : (
-                        <>
-                            যত বেশি ভোট,
-                            <br />
-                            তত তাড়াতাড়ি জবাব
-                        </>
+                        <TypeAnimation
+                            key={userCount > 0 ? 'tomato' : 'potato'}
+                            style={{whiteSpace: 'pre-line', display: 'inline'}}
+                            cursor={true}
+                            speed={80}
+                            sequence={typeSeq}
+                            omitDeletionAnimation
+                            repeat={Infinity}
+                        />
                     )}
                 </h1>
                 <div className="flex items-center justify-between my-2">
