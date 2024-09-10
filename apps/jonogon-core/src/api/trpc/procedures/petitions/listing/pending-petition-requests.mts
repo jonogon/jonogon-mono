@@ -1,9 +1,6 @@
 import {publicProcedure} from '../../../index.mjs';
 import {z} from 'zod';
-import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
-import {pick} from 'es-toolkit';
-import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
 
 export const listPendingPetitionRequests = publicProcedure
     .input(
@@ -31,9 +28,10 @@ export const listPendingPetitionRequests = publicProcedure
             .where('petitions.approved_at', 'is', null)
             .where('petitions.rejected_at', 'is', null)
             .where('petitions.submitted_at', 'is not', null)
+            .where('petitions.deleted_at', 'is', null)
             .orderBy('petitions.submitted_at', 'asc')
-            .offset(input.page * 32)
-            .limit(32)
+            .offset(input.page * 256)
+            .limit(256)
             .execute();
 
         return {
