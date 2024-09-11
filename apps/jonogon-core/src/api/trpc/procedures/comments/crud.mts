@@ -15,7 +15,6 @@ export const countComments = publicProcedure
         const commentCount = await ctx.services.postgresQueryBuilder
             .selectFrom('comments')
             .where('comments.petition_id', '=', `${input.petition_id}`)
-            .where('comments.parent_id', 'is', null)
             .where('comments.deleted_at', 'is', null)
             .select((eb) => eb.fn.count('comments.id').as('count'))
             .executeTakeFirst();
@@ -86,7 +85,7 @@ export const listPublicComments = publicProcedure
             .where('comments.petition_id', '=', `${input.petition_id}`)
             .where('comments.parent_id', 'is', null)
             .where('deleted_at', 'is', null)
-            .orderBy('total_votes', 'asc')
+            .orderBy('total_votes', 'desc')
             .orderBy('comments.created_at', 'asc')
             .limit(limit)
             .offset((input.page - 1) * limit)
@@ -155,7 +154,7 @@ export const listComments = publicProcedure
             .where('comments.deleted_at', 'is', null)
             .where('comments.parent_id', 'is', null)
             .orderBy('is_author desc')
-            .orderBy('total_votes', 'asc')
+            .orderBy('total_votes', 'desc')
             .orderBy('comments.created_at', 'asc')
             .limit(limit)
             .offset((input.page - 1) * limit)
