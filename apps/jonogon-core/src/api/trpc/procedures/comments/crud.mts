@@ -15,6 +15,7 @@ export const countComments = publicProcedure
         const commentCount = await ctx.services.postgresQueryBuilder
             .selectFrom('comments')
             .where('comments.petition_id', '=', `${input.petition_id}`)
+            .where('comments.parent_id', 'is', null)
             .where('comments.deleted_at', 'is', null)
             .select((eb) => eb.fn.count('comments.id').as('count'))
             .executeTakeFirst();
@@ -79,7 +80,10 @@ export const listPublicComments = publicProcedure
                 'comments.body',
                 'comments.highlighted_at',
                 'comments.deleted_at',
-                fn.sum('comment_votes.vote').as('total_votes'),
+                (eb) =>
+                    sql`COALESCE(${eb.fn.sum('comment_votes.vote')}, 0)`.as(
+                        'total_votes',
+                    ),
             ])
             .groupBy(['users.id', 'comments.id'])
             .where('comments.petition_id', '=', `${input.petition_id}`)
@@ -142,7 +146,10 @@ export const listComments = publicProcedure
                 'comments.body',
                 'comments.highlighted_at',
                 'comments.deleted_at',
-                fn.sum('comment_votes.vote').as('total_votes'),
+                (eb) =>
+                    sql`COALESCE(${eb.fn.sum('comment_votes.vote')}, 0)`.as(
+                        'total_votes',
+                    ),
                 'user_vote.vote as user_vote',
                 sql`CASE 
                     WHEN comments.created_by = ${ctx.auth?.user_id} THEN TRUE 
