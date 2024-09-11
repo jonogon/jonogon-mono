@@ -118,9 +118,8 @@ export default function CommentThread() {
                     );
                 })}
                 {!!(
-                    isAuthenticated &&
                     commentList.length <
-                        totalComments - optimisticComments.length
+                    totalComments - optimisticComments.length
                 ) && (
                     <p
                         className="text-sm font-bold cursor-pointer"
