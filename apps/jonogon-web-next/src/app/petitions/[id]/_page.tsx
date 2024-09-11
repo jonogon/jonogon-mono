@@ -370,7 +370,10 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown remarkPlugins={[remarkGfm]}>
+                    <Markdown 
+                    remarkPlugins={[remarkGfm]} 
+                    className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
+                >
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
