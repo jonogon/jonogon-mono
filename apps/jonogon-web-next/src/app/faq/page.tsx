@@ -9,7 +9,13 @@ import { faqItems, FAQItem } from './faqData';
 export default function FAQ() {
   const [openItems, setOpenItems] = useState<number[]>([]);
 
+  const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
   const toggleItem = (index: number) => {
+    setOpenItems(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
     setOpenItems(prev => 
       prev.includes(index) ? prev.filter((i: number) => i !== index) : [...prev, index]
     );
