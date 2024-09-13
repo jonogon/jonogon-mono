@@ -28,7 +28,7 @@ export default function FAQ() {
         {faqItems.map((item, index) => (
           <Collapsible
             key={index}
-            open={openItems.includes(index)}
+            open={openItems[index] || false}
             onOpenChange={() => toggleItem(index)}
           >
             <CollapsibleTrigger className="flex justify-between items-center w-full py-4 px-6 bg-[#F7F2EE] bg-opacity-10 text-black hover:text-red-500 font-medium rounded-md border-2 border-black border-opacity-10 transition-colors duration-200">
