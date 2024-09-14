@@ -2,6 +2,7 @@ import {Button} from '@/components/ui/button';
 import {FaceFrownIcon} from '@heroicons/react/24/solid';
 import {Ban, ServerCrash, Wifi} from 'lucide-react';
 import Link from 'next/link';
+import PetitionActionButton from './PetitionActionButton';
 
 interface ErrorGuiProps {
     errorCode: 400 | 403 | 404 | 427 | 500;
@@ -56,7 +57,7 @@ export default function ErrorGui({
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
             <div className="max-w-md w-full text-center">
                 <div className="flex justify-center mb-4">{icon}</div>
-                <h1 className="text-4xl font-bold text-destructive mb-4">
+                <h1 className="text-3xl lg:text-4xl font-bold text-destructive mb-4">
                     {customErrorCode || title}
                 </h1>
                 <p className="text-lg text-secondary-foreground mb-8">
@@ -67,9 +68,10 @@ export default function ErrorGui({
                         <Link href="/">Go to Homepage</Link>
                     </Button>
                     {errorCode !== 403 && (
-                        <Button asChild variant="outline">
-                            <Link href="/submit">Submit a দাবি</Link>
-                        </Button>
+                        <PetitionActionButton
+                            variant={'outline'}
+                            className="shadow-none"
+                        />
                     )}
                     {errorCode === 500 && (
                         <Button variant="outline">Try Again</Button>

@@ -42,10 +42,6 @@ export default function Petition() {
         id: petition_id!!,
     });
 
-    if (!petition) {
-        throw notFound();
-    }
-
     const {openShareModal} = useSocialShareStore();
     const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
 
@@ -149,6 +145,21 @@ export default function Petition() {
             await utils.petitions.get.invalidate({id: petition_id});
         },
     });
+
+    if (!isLoading && !petition?.data) {
+        throw notFound();
+    }
+
+    if (
+        !isLoading &&
+        petition?.data.status === 'draft' &&
+        !isAuthenticated &&
+        !isOwnPetition &&
+        !isMod &&
+        !isAdmin
+    ) {
+        throw notFound();
+    }
 
     return isLoading ? (
         <Loading />
