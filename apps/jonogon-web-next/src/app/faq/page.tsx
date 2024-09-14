@@ -16,10 +16,7 @@ export default function FAQ() {
       [index]: !prev[index]
     }));
   };
-    setOpenItems(prev => 
-      prev.includes(index) ? prev.filter((i: number) => i !== index) : [...prev, index]
-    );
-  };
+    
 
   return (
     <div className="max-w-screen-sm mx-auto mt-28 px-4 flex flex-col justify-center mb-20">
