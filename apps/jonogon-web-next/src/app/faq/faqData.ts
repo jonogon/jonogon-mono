@@ -36,4 +36,8 @@ export interface FAQItem {
   
   [Change.org](http://change.org) is global and passive, [Jonogon.org](http://jonogon.org) is local and active. We love Change.org, and took a lot of inspiration from there!`
     },
+    {
+      question: "Where can I find the community guidelines, manifesto, and press information?",
+      answer: "You can explore our community guidelines, read our manifesto, and find the latest press releases by visiting our [Jonogon Information Hub](https://elvista.notion.site/Jonogon-962f56d9d6ea42d3839790c2146b7f6a)."
+    },
   ];

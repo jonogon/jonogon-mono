@@ -28,7 +28,7 @@ export default function FAQPage() {
             className="rounded-md border-2 border-black border-opacity-10 overflow-hidden"
           >
             <CollapsibleTrigger className="flex justify-between items-center w-full py-4 px-6 text-black hover:text-red-500 font-medium transition-colors duration-200">
-              <span className="font-sans text-left">{item.question}</span>
+              <span className="font-sans text-left prose">{item.question}</span>
               {openItems[index] ? (
                 <ChevronUp className="w-5 h-5 flex-shrink-0 ml-2" />
               ) : (
@@ -38,12 +38,7 @@ export default function FAQPage() {
             <CollapsibleContent>
               <div className="px-6 pb-4">
                 <ReactMarkdown 
-                  className="font-sans text-gray-700 faq-content"
-                  components={{
-                    ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                    ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                    li: ({node, ...props}) => <li className="my-1" {...props} />
-                  }}
+                  className="font-sans text-gray-700 faq-content prose"
                 >
                   {item.answer}
                 </ReactMarkdown>
