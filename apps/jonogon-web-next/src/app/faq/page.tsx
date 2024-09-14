@@ -6,9 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/app/compo
 import ReactMarkdown from 'react-markdown';
 import { faqItems, FAQItem } from './faqData';
 
-export default function FAQ() {
-  const [openItems, setOpenItems] = useState<number[]>([]);
-
+export default function FAQPage() {
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
   const toggleItem = (index: number) => {
     setOpenItems(prev => ({
@@ -27,8 +25,9 @@ export default function FAQ() {
             key={index}
             open={openItems[index] || false}
             onOpenChange={() => toggleItem(index)}
+            className="rounded-md border-2 border-black border-opacity-10 overflow-hidden"
           >
-            <CollapsibleTrigger className="flex justify-between items-center w-full py-4 px-6 bg-[#F7F2EE] bg-opacity-10 text-black hover:text-red-500 font-medium rounded-md border-2 border-black border-opacity-10 transition-colors duration-200">
+            <CollapsibleTrigger className="flex justify-between items-center w-full py-4 px-6 text-black hover:text-red-500 font-medium transition-colors duration-200">
               <span className="font-sans text-left">{item.question}</span>
               {openItems[index] ? (
                 <ChevronUp className="w-5 h-5 flex-shrink-0 ml-2" />
@@ -37,7 +36,7 @@ export default function FAQ() {
               )}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-2 mb-4 px-6 py-4 bg-white rounded-md shadow-sm">
+              <div className="px-6 pb-4">
                 <ReactMarkdown 
                   className="font-sans text-gray-700 faq-content"
                   components={{

@@ -126,8 +126,6 @@ export default function Contributors() {
 						<div className="flex flex-row gap-4 md:border-t border-white border-opacity-20 py-4">
 							<a
 								href="/faq"
-								target="_blank"
-								rel="noopener noreferrer"
 								className="w-full"
 							>
 								<Button className="w-full bg-[#F7F2EE] bg-opacity-10 text-black hover:text-white font-medium py-4 rounded-md border-2 border-black border-opacity-10">
