@@ -14,10 +14,11 @@ import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import {useSocialShareStore} from '@/store/useSocialShareStore';
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
-import {useSocialShareStore} from '@/store/useSocialShareStore';
 
+import ErrorGui from '@/components/custom/ErrorGui';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import CommentThread from './_components/comments/Thread';
 
@@ -34,6 +35,15 @@ export default function Petition() {
 
     const {id: petition_id} = useParams<{id: string}>();
 
+    if (!/^\d+$/.test(petition_id)) {
+        return (
+            <ErrorGui
+                errorCode={400}
+                customMessage={`The petition ID is invalid. Please try with a valid ID.`}
+            />
+        );
+    }
+
     const {
         data: petition,
         refetch,
@@ -41,6 +51,12 @@ export default function Petition() {
     } = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
+
+    if (!petition) {
+        return (
+            <ErrorGui errorCode={404} customErrorCode="PETITION_NOT_FOUND" />
+        );
+    }
 
     const {openShareModal} = useSocialShareStore();
 
@@ -370,32 +386,31 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown 
-                    remarkPlugins={[remarkGfm]} 
-                    className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
-                >
+                    <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline">
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
                 {!!petition?.data.attachments.filter(
                     (attachment) => attachment.type === 'file',
-                    ).length && (
+                ).length && (
                     <div>
                         <h2 className="text-lg font-bold">Files</h2>
                         {petition.data.attachments
                             .filter((attachment) => attachment.type === 'file')
                             .map((attachment, a) => (
-                            <a
-                                className="text-sm text-blue-400 underline block"
-                                key={a}
+                                <a
+                                    className="text-sm text-blue-400 underline block"
+                                    key={a}
                                     href={attachment.attachment.replace(
                                         '$CORE_HOSTNAME',
                                         window.location.hostname,
-                                    )} target="_blank"
-                            >
-                            {attachment.filename}
-                            </a>
-                        ))}
+                                    )}
+                                    target="_blank">
+                                    {attachment.filename}
+                                </a>
+                            ))}
                     </div>
                 )}
                 <CommentThread />
