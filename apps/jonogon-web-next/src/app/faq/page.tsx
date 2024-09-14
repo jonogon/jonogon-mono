@@ -33,7 +33,7 @@ export default function FAQ() {
           >
             <CollapsibleTrigger className="flex justify-between items-center w-full py-4 px-6 bg-[#F7F2EE] bg-opacity-10 text-black hover:text-red-500 font-medium rounded-md border-2 border-black border-opacity-10 transition-colors duration-200">
               <span className="font-sans text-left">{item.question}</span>
-              {openItems[index] ?
+              {openItems[index] ? (
                 <ChevronUp className="w-5 h-5 flex-shrink-0 ml-2" />
               ) : (
                 <ChevronDown className="w-5 h-5 flex-shrink-0 ml-2" />
