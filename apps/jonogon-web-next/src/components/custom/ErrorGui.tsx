@@ -1,6 +1,6 @@
 import {Button} from '@/components/ui/button';
 import {FaceFrownIcon} from '@heroicons/react/24/solid';
-import {AlertTriangle, Ban, ServerCrash, Wifi} from 'lucide-react';
+import {Ban, ServerCrash, Wifi} from 'lucide-react';
 import Link from 'next/link';
 
 interface ErrorGuiProps {
@@ -35,7 +35,7 @@ export default function ErrorGui({
             title: '404 - Page Not Found',
             message:
                 'Sorry, the page you are looking for does not exist or has been moved.',
-            icon: <AlertTriangle className="w-16 h-16 text-destructive" />,
+            icon: <FaceFrownIcon className="w-16 h-16 text-destructive" />,
         },
         427: {
             title: '427 - Connection Issue',

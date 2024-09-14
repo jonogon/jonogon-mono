@@ -9,7 +9,7 @@ import {useAuthState} from '@/auth/token-manager';
 import {Button} from '@/components/ui/button';
 import {trpc} from '@/trpc/client';
 import {Share2} from 'lucide-react';
-import {useParams, useRouter, useSearchParams} from 'next/navigation';
+import {notFound, useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -18,7 +18,6 @@ import {useSocialShareStore} from '@/store/useSocialShareStore';
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
 
-import ErrorGui from '@/components/custom/ErrorGui';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import CommentThread from './_components/comments/Thread';
 
@@ -35,15 +34,6 @@ export default function Petition() {
 
     const {id: petition_id} = useParams<{id: string}>();
 
-    if (!/^\d+$/.test(petition_id)) {
-        return (
-            <ErrorGui
-                errorCode={400}
-                customMessage={`The petition ID is invalid. Please try with a valid ID.`}
-            />
-        );
-    }
-
     const {
         data: petition,
         refetch,
@@ -53,13 +43,10 @@ export default function Petition() {
     });
 
     if (!petition) {
-        return (
-            <ErrorGui errorCode={404} customErrorCode="PETITION_NOT_FOUND" />
-        );
+        throw notFound();
     }
 
     const {openShareModal} = useSocialShareStore();
-
     const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
 
     const [userVote, setUserVote] = useState(0);
