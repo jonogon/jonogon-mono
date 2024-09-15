@@ -12,6 +12,7 @@ import {Share2} from 'lucide-react';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
@@ -369,7 +370,10 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown>
+                    <Markdown 
+                    remarkPlugins={[remarkGfm]} 
+                    className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
+                >
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
