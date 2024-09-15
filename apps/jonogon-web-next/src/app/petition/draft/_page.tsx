@@ -12,6 +12,7 @@ import {Button} from '@/components/ui/button';
 import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
 import { useAuthState } from '@/auth/token-manager';
+import { useLoginModal } from '@/contexts/LoginModalContext';
 
 function storeDraftPetition<T>(data: T) {
     localStorage.setItem('draft-petition', JSON.stringify(data));
@@ -22,6 +23,7 @@ export default function EditLoggedOutDraftPetition() {
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
+	const {openModal} = useLoginModal();
 
     const [nextPetitionData, setNextPetitionData] = useState<{
         target?: string;
@@ -58,8 +60,7 @@ export default function EditLoggedOutDraftPetition() {
         if (hasPetitionDraftData) {
             storeDraftPetition(petitionData);
         }
-
-        router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
+		openModal('/petition/draft');
     }
 
     useEffect(() => {

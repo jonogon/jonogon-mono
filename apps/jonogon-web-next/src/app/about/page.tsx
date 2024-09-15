@@ -12,7 +12,7 @@ import {
 } from '../components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 
-export default function Contributors() {
+export default function About() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isDesktop, setIsDesktop] = useState(false);
 
