@@ -137,6 +137,7 @@ const PetitionList = () => {
                                 downvotes={
                                     Number(p.data.petition_downvote_count) ?? 0
                                 }
+                                comments={Number(p.data.petition_comment_count)}
                                 upvoteTarget={Number(p.data.upvote_target) ?? 0}
                             />
                             {type === 'request' &&

@@ -5,6 +5,28 @@ import {TRPCError} from '@trpc/server';
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {sql} from 'kysely';
 
+export const countAllComments = publicProcedure
+    .input(
+        z.object({
+            petition_id: z.string(),
+        }),
+    )
+    .query(async ({input, ctx}) => {
+        const commentCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('comments')
+            .where('comments.petition_id', '=', `${input.petition_id}`)
+            .where('comments.deleted_at', 'is', null)
+            .select((eb) => eb.fn.count('comments.id').as('count'))
+            .executeTakeFirst();
+
+        const count = commentCount?.count ?? 0;
+        return {
+            data: {
+                count,
+            },
+        };
+    });
+
 export const countComments = publicProcedure
     .input(
         z.object({

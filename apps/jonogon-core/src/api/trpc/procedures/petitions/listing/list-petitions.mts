@@ -114,6 +114,17 @@ export const listPetitions = publicProcedure
                     ])
                     .groupBy(['results.id', 'results.petition_upvote_count']);
             })
+            .with('result_with_comment_count', (db) => {
+                return db
+                    .selectFrom('results')
+                    .leftJoin('comments', 'results.id', 'comments.petition_id')
+                    .selectAll('results')
+                    .where('comments.deleted_at', 'is', null)
+                    .select(({fn}) => [
+                        fn.count('comments.id').as('petition_comment_count'),
+                    ])
+                    .groupBy(['results.id', 'results.petition_upvote_count']);
+            })
             .with('first_attachments', (db) => {
                 return db
                     .selectFrom('results')
@@ -137,6 +148,11 @@ export const listPetitions = publicProcedure
             })
             .selectFrom('result_with_downvotes')
             .innerJoin('petitions', 'petitions.id', 'result_with_downvotes.id')
+            .innerJoin(
+                'result_with_comment_count',
+                'petitions.id',
+                'result_with_comment_count.id',
+            )
             .innerJoin('users', 'users.id', 'petitions.created_by')
             .leftJoin('petition_votes as votes', (join) =>
                 join
@@ -154,6 +170,7 @@ export const listPetitions = publicProcedure
                 'users.picture as user_picture',
                 'result_with_downvotes.petition_upvote_count',
                 'result_with_downvotes.petition_downvote_count',
+                'result_with_comment_count.petition_comment_count',
                 'votes.vote as user_vote',
                 'first_attachments.attachment as attachment',
             ]);
@@ -193,6 +210,7 @@ export const listPetitions = publicProcedure
                             'formalized_at',
                             'petition_upvote_count',
                             'petition_downvote_count',
+                            'petition_comment_count',
                             'upvote_target',
                         ]),
                         created_by: {

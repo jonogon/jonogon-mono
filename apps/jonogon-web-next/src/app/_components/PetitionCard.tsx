@@ -6,6 +6,8 @@ import {
     HandThumbDownIcon as ThumbsDownIconSolid,
 } from '@heroicons/react/24/solid';
 
+import {FaRegComment as CommentIconOutline} from 'react-icons/fa';
+
 import {
     HandThumbUpIcon as ThumbsUpIconOutline,
     HandThumbDownIcon as ThumbsDownIconOutline,
@@ -33,6 +35,7 @@ export default function PetitionCard(props: {
 
     upvotes: number;
     downvotes: number;
+    comments: number;
 
     mode: 'request' | 'formalized' | 'own';
 }) {
@@ -164,6 +167,15 @@ export default function PetitionCard(props: {
 
                                     {props.downvotes}
                                 </div>
+                                <div className="text-stone-500 flex flex-row gap-2 mx-1 items-center">
+                                    <CommentIconOutline className={'w-5 h-5'} />
+                                    <div className="flex flex-row gap-1">
+                                        {props.comments}{' '}
+                                        <span className="hidden sm:block">
+                                            Comments
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <Button
                                 size={'sm'}
@@ -211,6 +223,15 @@ export default function PetitionCard(props: {
                                     )}
 
                                     {props.downvotes}
+                                </div>
+                                <div className="text-stone-500 flex flex-row gap-2 mx-1 items-center">
+                                    <CommentIconOutline className={'w-5 h-5'} />
+                                    <div className="flex flex-row gap-1">
+                                        {props.comments}{' '}
+                                        <span className="hidden sm:block">
+                                            Comments
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div className={'font-mono text-sm'}>

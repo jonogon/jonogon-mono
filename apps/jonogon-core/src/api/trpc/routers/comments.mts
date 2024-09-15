@@ -1,5 +1,6 @@
 import {router} from '../index.mjs';
 import {
+    countAllComments,
     countComments,
     countReplies,
     createComment,
@@ -12,6 +13,8 @@ import {
 import {clearVote, vote} from '../procedures/comments/voting.mjs';
 
 export const commentRouter = router({
+    totalCount: countAllComments,
+
     count: countComments,
     list: listComments,
     listPublic: listPublicComments,

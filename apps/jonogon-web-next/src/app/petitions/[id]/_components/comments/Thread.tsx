@@ -43,6 +43,10 @@ export default function CommentThread() {
         setTotalComments(Number(commentCount?.data.count ?? 0));
     }, [commentCount]);
 
+    const {data: totalCount} = trpc.comments.totalCount.useQuery({
+        petition_id: petition_id,
+    });
+
     const router = useRouter();
 
     // append to the list of comments everytime more comments are loaded
@@ -80,7 +84,7 @@ export default function CommentThread() {
 
     return (
         <div className="mt-8">
-            <p className="font-bold">{totalComments} comments</p>
+            <p className="font-bold">{totalCount?.data?.count ?? 0} comments</p>
             {isAuthenticated ? (
                 <RootInputBox
                     refetch={refetchComments}
