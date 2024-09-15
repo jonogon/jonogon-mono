@@ -21,6 +21,8 @@ import {useSocialShareStore} from '@/store/useSocialShareStore';
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import CommentThread from './_components/comments/Thread';
 
+import {useToast} from '@/components/ui/use-toast';
+
 export default function Petition() {
     const utils = trpc.useUtils();
 
@@ -65,6 +67,8 @@ export default function Petition() {
     const thumbsDownMutation = trpc.petitions.vote.useMutation();
     const clearVoteMutation = trpc.petitions.clearVote.useMutation();
 
+    const {toast} = useToast();
+
     const clickThumbsUp = async () => {
         if (!isAuthenticated) {
             redirectToLoginPage();
@@ -82,6 +86,10 @@ export default function Petition() {
                 vote: 'up',
             });
             setUserVote(1);
+            toast({
+                title: '👍🏽 Upvoted দাবি',
+                description: 'You have successfully upvoted the দাবি',
+            });
         }
         refetch();
     };
@@ -103,6 +111,10 @@ export default function Petition() {
                 vote: 'down',
             });
             setUserVote(-1);
+            toast({
+                title: '👎🏽 Downvoted দাবি',
+                description: 'You have successfully downvoted the দাবি',
+            });
         }
         refetch();
     };
@@ -370,32 +382,31 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown 
-                    remarkPlugins={[remarkGfm]} 
-                    className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
-                >
+                    <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline">
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
                 {!!petition?.data.attachments.filter(
                     (attachment) => attachment.type === 'file',
-                    ).length && (
+                ).length && (
                     <div>
                         <h2 className="text-lg font-bold">Files</h2>
                         {petition.data.attachments
                             .filter((attachment) => attachment.type === 'file')
                             .map((attachment, a) => (
-                            <a
-                                className="text-sm text-blue-400 underline block"
-                                key={a}
+                                <a
+                                    className="text-sm text-blue-400 underline block"
+                                    key={a}
                                     href={attachment.attachment.replace(
                                         '$CORE_HOSTNAME',
                                         window.location.hostname,
-                                    )} target="_blank"
-                            >
-                            {attachment.filename}
-                            </a>
-                        ))}
+                                    )}
+                                    target="_blank">
+                                    {attachment.filename}
+                                </a>
+                            ))}
                     </div>
                 )}
                 <CommentThread />
