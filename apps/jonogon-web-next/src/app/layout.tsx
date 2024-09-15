@@ -12,6 +12,7 @@ import {TRPCWrapper} from '@/trpc/Wrapper';
 import Navigation from '@/components/custom/Navigation';
 import {Toaster} from '@/components/ui/toaster';
 import {RedirectType} from 'next/dist/client/components/redirect';
+import {LoginModalProvider} from '@/contexts/LoginModalContext';
 
 export const metadata: Metadata = {
     title: 'Jonogon — জনগণ',
@@ -49,11 +50,13 @@ export default function RootLayout({
                 <AuthWrapper>
                     <TRPCWrapper hostname={'localhost'}>
                         <Suspense fallback={<>LOADING ...</>}>
-                            <Navigation />
-                            <div className={'mt-16'}>
-                                <Toaster />
-                                {children}
-                            </div>
+                            <LoginModalProvider>
+                                <Navigation />
+                                <div className={'mt-16'}>
+                                    <Toaster />
+                                    {children}
+                                </div>
+                            </LoginModalProvider>
                         </Suspense>
                     </TRPCWrapper>
                 </AuthWrapper>

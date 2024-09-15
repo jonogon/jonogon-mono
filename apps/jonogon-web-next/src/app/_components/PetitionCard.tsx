@@ -15,6 +15,7 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import { useLoginModal } from '@/contexts/LoginModalContext';
 
 export default function PetitionCard(props: {
     id: string;
@@ -40,6 +41,8 @@ export default function PetitionCard(props: {
 
     const router = useRouter();
     const totalVotes = props.upvotes + props.downvotes;
+
+	const {openModal} = useLoginModal();
 
     const userVote = props.userVote;
 
@@ -128,9 +131,7 @@ export default function PetitionCard(props: {
 
                                     isAuthenticated
                                         ? router.push(href)
-                                        : router.push(
-                                              `/login?next=${encodeURIComponent(href)}`,
-                                          );
+                                        : openModal(`/petitions/${props.id}`);
                                 }}>
                                 {userVote === null ? 'VOTE' : 'VOTED'}
                             </Button>

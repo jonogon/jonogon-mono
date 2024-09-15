@@ -3,7 +3,7 @@
 import {Avatar, AvatarFallback, AvatarImage} from '@radix-ui/react-avatar';
 import {useEffect, useState} from 'react';
 import {PiSignOutLight} from 'react-icons/pi';
-import {buttonVariants} from '../ui/button';
+import {Button, buttonVariants} from '../ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,6 +21,8 @@ import {signOut} from 'firebase/auth';
 import {firebaseAuth} from '@/firebase';
 import QuestionMarkCircleIcon from '@heroicons/react/24/outline/QuestionMarkCircleIcon';
 import mixpanel from 'mixpanel-browser';
+import LoginModal from './LoginModal';
+import {useLoginModal} from '@/contexts/LoginModalContext';
 
 mixpanel.init('f24ab91d5447c7c276709cbc8522e62a', {
     debug: true,
@@ -33,11 +35,12 @@ const Navigation = () => {
     const pathName = usePathname();
 
     const isAuthenticated = useAuthState();
-    const [aboutModalOpen, setAboutModealOpen] = useState(false);
 
     const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
     });
+
+    const {openModal} = useLoginModal();
 
     const id = parseInt(`${selfDataResponse?.data.id ?? '0'}`);
 
@@ -72,7 +75,7 @@ const Navigation = () => {
                     </div>
                 </Link>
                 <div className="flex gap-4 items-center">
-                    <Link href="/contributors">
+                    <Link href="/about">
                         <QuestionMarkCircleIcon
                             className={`w-8 h-8 text-red-500`}
                         />
@@ -100,26 +103,29 @@ const Navigation = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 align="end"
-                                onCloseAutoFocus={(e) => e.preventDefault()}>
+                                onCloseAutoFocus={(e) => e.preventDefault()}
+                            >
                                 <DropdownMenuItem
                                     onSelect={() => {
                                         router.push('/profile/edit');
-                                    }}>
+                                    }}
+                                >
                                     Edit Profile
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onSelect={() => {
                                         router.push('/?type=own');
-                                    }}>
+                                    }}
+                                >
                                     My Petitions
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="flex items-center justify-between"
                                     onSelect={async () => {
                                         await signOut(firebaseAuth());
-
                                         router.push('/');
-                                    }}>
+                                    }}
+                                >
                                     <span>Sign Out</span>
                                     <PiSignOutLight />
                                 </DropdownMenuItem>
@@ -128,13 +134,14 @@ const Navigation = () => {
                     ) : isAuthenticated === false &&
                       pathName !== '/petition/draft' ? (
                         <>
-                            <Link
+                            <Button
                                 className={buttonVariants({
                                     variant: 'default',
                                 })}
-                                href={'/login'}>
+                                onClick={() => openModal('/')}
+                            >
                                 Login
-                            </Link>
+                            </Button>
                         </>
                     ) : (
                         <></>
