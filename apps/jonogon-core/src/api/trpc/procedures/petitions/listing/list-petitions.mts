@@ -2,7 +2,7 @@ import {publicProcedure} from '../../../index.mjs';
 import {z} from 'zod';
 import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
-import {pick} from 'es-toolkit';
+import {orderBy, pick} from 'es-toolkit';
 import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
 
 export const listPetitions = publicProcedure
@@ -237,3 +237,60 @@ export const listPetitions = publicProcedure
             ),
         };
     });
+
+export const listSuggestedPetitions = publicProcedure.query(async ({ctx}) => {
+    const voteLocation = 'Dhaka';
+    const voteTarget = 'ICT';
+
+    /**  Suggested feed based on similar location/target **/
+    // const data = await ctx.services.postgresQueryBuilder
+    //     .selectFrom('petitions')
+    //     .selectAll()
+    //     .where((eb) =>
+    //         eb.or([
+    //             eb('location', '=', voteLocation),
+    //             eb('target', '=', voteTarget),
+    //         ]),
+    //     )
+    //     .where('deleted_at', 'is', null)
+    //     .orderBy('created_at', 'desc')
+    //     .execute();
+
+    /**  Suggested feed based on trending petitions **/
+    const data = await ctx.services.postgresQueryBuilder
+        .selectFrom('petitions')
+        .where('petitions.deleted_at', 'is', null)
+        .leftJoin(
+            'petition_votes',
+            'petitions.id',
+            'petition_votes.petition_id',
+        )
+        .select(({fn}) => [
+            'petitions.id',
+            'petitions.title',
+            'petitions.location',
+            'petitions.target',
+            'petitions.created_at',
+            fn.count('petition_votes.id').as('vote_count'),
+        ])
+        .groupBy(['petitions.id'])
+        .orderBy('vote_count desc')
+        .orderBy('created_at', 'desc')
+        .execute();
+
+    return {
+        data: data,
+    };
+});
+
+//   const count = await ctx.services.postgresQueryBuilder
+//         .selectFrom('users')
+//         .select((eb) => eb.fn.count('id').as('count'))
+//         .executeTakeFirst();
+
+//     return {
+//         data: {
+//             count,
+//         },
+//     };
+// }),
