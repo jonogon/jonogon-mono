@@ -14,12 +14,13 @@ import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import {useSocialShareStore} from '@/store/useSocialShareStore';
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
-import {useSocialShareStore} from '@/store/useSocialShareStore';
 
 import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import CommentThread from './_components/comments/Thread';
+import SuggestedPetitions from './_components/SuggestedPetitions';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -48,6 +49,8 @@ export default function Petition() {
 
     const [userVote, setUserVote] = useState(0);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showSuggestedPetitionsModal, setShowSuggestedPetitionsModal] =
+        useState(false);
 
     useEffect(() => {
         if (isSubmitted) {
@@ -61,8 +64,12 @@ export default function Petition() {
         }
     }, [petition]);
 
-    const thumbsUpMutation = trpc.petitions.vote.useMutation();
-    const thumbsDownMutation = trpc.petitions.vote.useMutation();
+    const thumbsUpMutation = trpc.petitions.vote.useMutation({
+        onSuccess: () => setShowSuggestedPetitionsModal(true),
+    });
+    const thumbsDownMutation = trpc.petitions.vote.useMutation({
+        onSuccess: () => setShowSuggestedPetitionsModal(true),
+    });
     const clearVoteMutation = trpc.petitions.clearVote.useMutation();
 
     const clickThumbsUp = async () => {
@@ -353,7 +360,7 @@ export default function Petition() {
                     {petition?.data.status !== 'rejected' &&
                         petition?.data.status !== 'draft' && (
                             <div
-                                className="flex items-center gap-1.5 text-primary/80 rounded-2xl border px-4 py-2 hover:border-red-500 hover:text-red-500 transition-colors"
+                                className="flex items-center gap-1.5 text-primary/80 rounded-2xl border px-4 py-2 mt-4 hover:border-red-500 hover:text-red-500 transition-colors"
                                 role="button"
                                 onClick={() => openShareModal()}>
                                 <Share2 className="size-3" />
@@ -370,32 +377,31 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown 
-                    remarkPlugins={[remarkGfm]} 
-                    className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
-                >
+                    <Markdown
+                        remarkPlugins={[remarkGfm]}
+                        className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline">
                         {petition.data.description ?? 'No description yet.'}
                     </Markdown>
                 )}
                 {!!petition?.data.attachments.filter(
                     (attachment) => attachment.type === 'file',
-                    ).length && (
+                ).length && (
                     <div>
                         <h2 className="text-lg font-bold">Files</h2>
                         {petition.data.attachments
                             .filter((attachment) => attachment.type === 'file')
                             .map((attachment, a) => (
-                            <a
-                                className="text-sm text-blue-400 underline block"
-                                key={a}
+                                <a
+                                    className="text-sm text-blue-400 underline block"
+                                    key={a}
                                     href={attachment.attachment.replace(
                                         '$CORE_HOSTNAME',
                                         window.location.hostname,
-                                    )} target="_blank"
-                            >
-                            {attachment.filename}
-                            </a>
-                        ))}
+                                    )}
+                                    target="_blank">
+                                    {attachment.filename}
+                                </a>
+                            ))}
                     </div>
                 )}
                 <CommentThread />
@@ -445,6 +451,16 @@ export default function Petition() {
                     <PetitionShareModal
                         isOpen={showSuccessModal}
                         setIsOpen={setShowSuccessModal}
+                    />
+                )}
+
+                {showSuggestedPetitionsModal && (
+                    <SuggestedPetitions
+                        petitionId={petition?.data.id ?? ''}
+                        location={petition?.data.location ?? ''}
+                        target={petition?.data.target ?? ''}
+                        isOpen={showSuggestedPetitionsModal}
+                        setIsOpen={setShowSuggestedPetitionsModal}
                     />
                 )}
 

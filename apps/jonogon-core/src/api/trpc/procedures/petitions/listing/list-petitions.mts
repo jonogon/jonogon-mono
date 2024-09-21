@@ -4,6 +4,9 @@ import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
 import {orderBy, pick} from 'es-toolkit';
 import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
+import {sql} from 'kysely';
+import {jsonArrayFrom} from 'kysely/helpers/postgres';
+import {protectedProcedure} from '../../../middleware/protected.mjs';
 
 export const listPetitions = publicProcedure
     .input(
@@ -238,59 +241,121 @@ export const listPetitions = publicProcedure
         };
     });
 
-export const listSuggestedPetitions = publicProcedure.query(async ({ctx}) => {
-    const voteLocation = 'Dhaka';
-    const voteTarget = 'ICT';
+export const listSuggestedPetitions = protectedProcedure
+    .input(
+        z.object({
+            location: z.string(),
+            target: z.string(),
+            petitionId: z.string(),
+        }),
+    )
+    .query(async ({input, ctx}) => {
+        const TIME_PERIOD = '30 days';
 
-    /**  Suggested feed based on similar location/target **/
-    // const data = await ctx.services.postgresQueryBuilder
-    //     .selectFrom('petitions')
-    //     .selectAll()
-    //     .where((eb) =>
-    //         eb.or([
-    //             eb('location', '=', voteLocation),
-    //             eb('target', '=', voteTarget),
-    //         ]),
-    //     )
-    //     .where('deleted_at', 'is', null)
-    //     .orderBy('created_at', 'desc')
-    //     .execute();
+        /**  Suggested feed based on trending petitions **/
+        try {
+            const baseQuery = ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .where('petitions.deleted_at', 'is', null)
+                .where('petitions.approved_at', 'is not', null)
+                .where('petitions.id', '!=', input.petitionId) // Exclude the current petition
+                .leftJoin('petition_votes as votes', (join) =>
+                    join
+                        .onRef('petitions.id', '=', 'votes.petition_id')
+                        .on('votes.user_id', '=', `${ctx.auth?.user_id ?? 0}`),
+                )
+                .where('votes.petition_id', 'is', null) // Exclude petitions that have been voted by the user
+                .leftJoin(
+                    'petition_votes',
+                    'petitions.id',
+                    'petition_votes.petition_id',
+                )
+                .select((eb) => [
+                    'petitions.id',
+                    'petitions.title',
+                    'petitions.location',
+                    'petitions.target',
+                    'petitions.created_at',
+                    eb.fn.count('petition_votes.id').as('vote_count'),
+                    sql<number>`SUM(CASE WHEN "petition_votes"."vote" = 1 THEN 1 ELSE 0 END)`.as(
+                        'upvotes',
+                    ),
+                    sql<number>`SUM(CASE WHEN "petition_votes"."vote" = -1 THEN 1 ELSE 0 END)`.as(
+                        'downvotes',
+                    ),
+                    jsonArrayFrom(
+                        eb
+                            .selectFrom('petition_attachments')
+                            .selectAll()
+                            .whereRef(
+                                'petition_attachments.petition_id',
+                                '=',
+                                'petitions.id',
+                            )
+                            .where(
+                                'petition_attachments.deleted_at',
+                                'is',
+                                null,
+                            )
+                            .where('petition_attachments.is_image', '=', true),
+                    ).as('attachments'),
+                ])
+                .groupBy(['petitions.id'])
+                .orderBy('vote_count desc')
+                .orderBy('created_at', 'desc')
+                .limit(5);
 
-    /**  Suggested feed based on trending petitions **/
-    const data = await ctx.services.postgresQueryBuilder
-        .selectFrom('petitions')
-        .where('petitions.deleted_at', 'is', null)
-        .leftJoin(
-            'petition_votes',
-            'petitions.id',
-            'petition_votes.petition_id',
-        )
-        .select(({fn}) => [
-            'petitions.id',
-            'petitions.title',
-            'petitions.location',
-            'petitions.target',
-            'petitions.created_at',
-            fn.count('petition_votes.id').as('vote_count'),
-        ])
-        .groupBy(['petitions.id'])
-        .orderBy('vote_count desc')
-        .orderBy('created_at', 'desc')
-        .execute();
+            // Petitions for similar locations and targets
+            const similarPetitions = await baseQuery
+                .where((eb) =>
+                    eb.or([
+                        eb('location', '=', input.location),
+                        eb('target', '=', input.target),
+                    ]),
+                )
+                .execute();
 
-    return {
-        data: data,
-    };
-});
+            // Petitions for last 30 days
+            const recentPetitions = await baseQuery
+                .where(
+                    'petitions.created_at',
+                    '>=',
+                    sql<Date>`NOW() - INTERVAL ${sql.lit(TIME_PERIOD)}`,
+                )
+                .execute();
 
-//   const count = await ctx.services.postgresQueryBuilder
-//         .selectFrom('users')
-//         .select((eb) => eb.fn.count('id').as('count'))
-//         .executeTakeFirst();
+            const combinedPetitions = [...recentPetitions, ...similarPetitions];
+            const uniquePetitions = new Map<
+                string,
+                (typeof combinedPetitions)[number]
+            >();
 
-//     return {
-//         data: {
-//             count,
-//         },
-//     };
-// }),
+            combinedPetitions.forEach((petition) => {
+                if (!uniquePetitions.has(petition.id)) {
+                    uniquePetitions.set(petition.id, petition);
+                }
+            });
+
+            const suggestedPetitions = Array.from(uniquePetitions.values());
+
+            return {
+                data: await Promise.all(
+                    suggestedPetitions.map(async (petition) => ({
+                        ...petition,
+                        attachments:
+                            petition.attachments.length > 0
+                                ? await ctx.services.fileStorage.getFileURL(
+                                      petition.attachments[0].attachment,
+                                  )
+                                : null,
+                    })),
+                ),
+            };
+        } catch (error) {
+            console.error('Error fetching suggested petitions:', error);
+            throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: 'An error occurred while fetching suggested petitions',
+            });
+        }
+    });
