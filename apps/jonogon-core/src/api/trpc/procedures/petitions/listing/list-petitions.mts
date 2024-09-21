@@ -251,10 +251,13 @@ export const listSuggestedPetitions = protectedProcedure
     )
     .query(async ({input, ctx}) => {
         const TIME_PERIOD = '30 days';
+        const MAX_PETITIONS = 10;
 
-        /**  Suggested feed based on trending petitions **/
+        const LOCATION_TARGET_WEIGHT = 5; // Higher weight for location/target-based petitions
+        const TRENDING_VOTES_WEIGHT = 1; // Lower weight for trending (vote count) petitions
+
         try {
-            const baseQuery = ctx.services.postgresQueryBuilder
+            const petitions = await ctx.services.postgresQueryBuilder
                 .selectFrom('petitions')
                 .where('petitions.deleted_at', 'is', null)
                 .where('petitions.approved_at', 'is not', null)
@@ -299,38 +302,38 @@ export const listSuggestedPetitions = protectedProcedure
                             )
                             .where('petition_attachments.is_image', '=', true),
                     ).as('attachments'),
+                    // Calculate the weight based on matching location/target and vote count
+                    sql<number>`
+                        (
+                            CASE 
+                                WHEN petitions.location = ${input.location} AND petitions.target = ${input.target} 
+                                THEN ${LOCATION_TARGET_WEIGHT * 2}
+                                WHEN petitions.location = ${input.location} OR petitions.target = ${input.target} 
+                                THEN ${LOCATION_TARGET_WEIGHT} 
+                                ELSE 0 
+                            END
+                            + ${TRENDING_VOTES_WEIGHT} * COALESCE(SUM(petition_votes.vote), 0)
+                        )
+                    `.as('weighted_score'),
                 ])
+
                 .groupBy(['petitions.id'])
-                .orderBy('vote_count desc')
+                .orderBy('weighted_score', 'desc')
                 .orderBy('created_at', 'desc')
-                .limit(5);
-
-            // Petitions for similar locations and targets
-            const similarPetitions = await baseQuery
-                .where((eb) =>
-                    eb.or([
-                        eb('location', '=', input.location),
-                        eb('target', '=', input.target),
-                    ]),
-                )
-                .execute();
-
-            // Petitions for last 30 days
-            const recentPetitions = await baseQuery
                 .where(
                     'petitions.created_at',
                     '>=',
-                    sql<Date>`NOW() - INTERVAL ${sql.lit(TIME_PERIOD)}`,
+                    sql<Date>`NOW() - INTERVAL ${sql.lit(TIME_PERIOD)}`, // Trending within the last 30 days
                 )
+                .limit(MAX_PETITIONS)
                 .execute();
 
-            const combinedPetitions = [...recentPetitions, ...similarPetitions];
             const uniquePetitions = new Map<
                 string,
-                (typeof combinedPetitions)[number]
+                (typeof petitions)[number]
             >();
 
-            combinedPetitions.forEach((petition) => {
+            petitions.forEach((petition) => {
                 if (!uniquePetitions.has(petition.id)) {
                     uniquePetitions.set(petition.id, petition);
                 }
