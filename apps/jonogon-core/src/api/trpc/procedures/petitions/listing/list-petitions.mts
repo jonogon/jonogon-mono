@@ -253,7 +253,8 @@ export const listSuggestedPetitions = protectedProcedure
         const TIME_PERIOD = '30 days';
         const MAX_PETITIONS = 10;
 
-        const LOCATION_TARGET_WEIGHT = 5; // Higher weight for location/target-based petitions
+        const FORMALIZED_PETITION_WEIGHT = 20; // Higher weight for formalized petitions
+        const LOCATION_TARGET_WEIGHT = 5; // medium weight for location/target-based petitions
         const TRENDING_VOTES_WEIGHT = 1; // Lower weight for trending (vote count) petitions
 
         try {
@@ -306,13 +307,14 @@ export const listSuggestedPetitions = protectedProcedure
                     sql<number>`
                         (
                             CASE 
+                                WHEN petitions.formalized_at IS NOT NULL THEN ${FORMALIZED_PETITION_WEIGHT}
                                 WHEN petitions.location = ${input.location} AND petitions.target = ${input.target} 
                                 THEN ${LOCATION_TARGET_WEIGHT * 2}
                                 WHEN petitions.location = ${input.location} OR petitions.target = ${input.target} 
                                 THEN ${LOCATION_TARGET_WEIGHT} 
                                 ELSE 0 
                             END
-                            + ${TRENDING_VOTES_WEIGHT} * COALESCE(SUM(petition_votes.vote), 0)
+                            + ${TRENDING_VOTES_WEIGHT} * COUNT(petition_votes.id)
                         )
                     `.as('weighted_score'),
                 ])
