@@ -17,6 +17,7 @@ import {
     getSortType,
 } from './petitionSortUtils';
 import {MondayCountdown} from '@/app/_components/MondayCountdown';
+import AnimatedBadge from './AnimatedBadge';
 
 const PetitionCardsLoader = () =>
     Array(4)
@@ -109,7 +110,16 @@ const PetitionList = () => {
     const hasNoPetitions = petitions.length === 0;
 
     return (
-        <div>
+        <div className="relative">
+            <div className="absolute -top-[50px] left-[244px]">
+                <AnimatedBadge
+                    {...{
+                        count:
+                            petitionRequestListResponse?.unvoted_formalized_petitions_count ??
+                            0,
+                    }}
+                />
+            </div>
             <div className={'flex flex-col space-y-1'} ref={animationParent}>
                 {isLoading ? (
                     <PetitionCardsLoader />
