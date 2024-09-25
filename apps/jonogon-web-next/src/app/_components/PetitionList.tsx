@@ -18,6 +18,7 @@ import {
 } from './petitionSortUtils';
 import {MondayCountdown} from '@/app/_components/MondayCountdown';
 import AnimatedBadge from './AnimatedBadge';
+import {useAuthState} from '@/auth/token-manager';
 
 const PetitionCardsLoader = () =>
     Array(4)
@@ -43,6 +44,7 @@ const NoPetitionsView = () => (
 
 const PetitionList = () => {
     const [animationParent] = useAutoAnimate();
+    const isAuthenticated = useAuthState();
 
     const params = useSearchParams();
 
@@ -64,6 +66,7 @@ const PetitionList = () => {
                 sort: sort,
             },
             {
+                enabled: !!isAuthenticated,
                 refetchInterval:
                     process.env.NODE_ENV === 'development' ? 5_000 : 30_000,
             },
