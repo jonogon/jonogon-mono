@@ -18,17 +18,8 @@ import {
 } from './petitionSortUtils';
 import {MondayCountdown} from '@/app/_components/MondayCountdown';
 import AnimatedBadge from './AnimatedBadge';
-
-const PetitionCardsLoader = () =>
-    Array(4)
-        .fill(null)
-        .map((_, i) => {
-            return (
-                <div
-                    className={'w-full bg-border animate-pulse h-32'}
-                    key={i}></div>
-            );
-        });
+import {useAuthState} from '@/auth/token-manager';
+import PetitionCardSkeleton from './PetitionCardSkeleton';
 
 const NoPetitionsView = () => (
     <div>
@@ -43,6 +34,7 @@ const NoPetitionsView = () => (
 
 const PetitionList = () => {
     const [animationParent] = useAutoAnimate();
+    const isAuthenticated = useAuthState();
 
     const params = useSearchParams();
 
@@ -56,18 +48,25 @@ const PetitionList = () => {
     // Don't fuck up order if sorting by time
     const [fuckUpOrder, setFuckupOrder] = useState(sort !== 'time');
 
-    const {data: petitionRequestListResponse, isLoading} =
-        trpc.petitions.list.useQuery(
-            {
-                filter: type,
-                page: page,
-                sort: sort,
-            },
-            {
-                refetchInterval:
-                    process.env.NODE_ENV === 'development' ? 5_000 : 30_000,
-            },
-        );
+    const {
+        data: petitionRequestListResponse,
+        isLoading,
+        refetch,
+    } = trpc.petitions.list.useQuery(
+        {
+            filter: type,
+            page: page,
+            sort: sort,
+        },
+        {
+            refetchInterval:
+                process.env.NODE_ENV === 'development' ? 5_000 : 30_000,
+        },
+    );
+
+    useEffect(() => {
+        refetch();
+    }, [isAuthenticated, refetch]);
 
     useEffect(() => {
         if (petitionRequestListResponse?.data) {
@@ -122,7 +121,11 @@ const PetitionList = () => {
             </div>
             <div className={'flex flex-col space-y-1'} ref={animationParent}>
                 {isLoading ? (
-                    <PetitionCardsLoader />
+                    Array(4)
+                        .fill(null)
+                        .map((_, i) => {
+                            return <PetitionCardSkeleton key={i} mode={type} />;
+                        })
                 ) : hasNoPetitions ? (
                     <NoPetitionsView />
                 ) : (
@@ -178,31 +181,33 @@ const PetitionList = () => {
                     ))
                 )}
             </div>
-            <div className={'py-4'}>
-                <Pagination>
-                    <PaginationContent>
-                        {page !== 0 ? (
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() => setPage(page - 1)}
-                                />
-                            </PaginationItem>
-                        ) : null}
+            {!isLoading && petitions.length >= 32 && (
+                <div className={'py-4'}>
+                    <Pagination>
+                        <PaginationContent>
+                            {page !== 0 ? (
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        onClick={() => setPage(page - 1)}
+                                    />
+                                </PaginationItem>
+                            ) : null}
 
-                        <PaginationItem>
-                            <PaginationLink>Page {page + 1}</PaginationLink>
-                        </PaginationItem>
-
-                        {petitions.length === 33 ? (
                             <PaginationItem>
-                                <PaginationNext
-                                    onClick={() => setPage(page + 1)}
-                                />
+                                <PaginationLink>Page {page + 1}</PaginationLink>
                             </PaginationItem>
-                        ) : null}
-                    </PaginationContent>
-                </Pagination>
-            </div>
+
+                            {petitions.length === 33 ? (
+                                <PaginationItem>
+                                    <PaginationNext
+                                        onClick={() => setPage(page + 1)}
+                                    />
+                                </PaginationItem>
+                            ) : null}
+                        </PaginationContent>
+                    </Pagination>
+                </div>
+            )}
         </div>
     );
 };
