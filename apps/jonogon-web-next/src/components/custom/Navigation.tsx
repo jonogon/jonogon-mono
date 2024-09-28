@@ -37,9 +37,12 @@ const Navigation = () => {
     const isAuthenticated = useAuthState();
     const [aboutModalOpen, setAboutModealOpen] = useState(false);
 
-    const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
-        enabled: !!isAuthenticated,
-    });
+    const {data: selfDataResponse, isFetching} = trpc.users.getSelf.useQuery(
+        undefined,
+        {
+            enabled: !!isAuthenticated,
+        },
+    );
 
     const id = parseInt(`${selfDataResponse?.data.id ?? '0'}`);
 
@@ -97,7 +100,9 @@ const Navigation = () => {
                                             window.location.hostname,
                                         )}
                                     />
-                                    <AvatarFallback>CN</AvatarFallback>
+                                    <AvatarFallback>
+                                        <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
+                                    </AvatarFallback>
                                 </Avatar>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -145,7 +150,7 @@ const Navigation = () => {
                             </Link>
                         </>
                     ) : (
-                        <></>
+                        <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
                     )}
                 </div>
             </nav>

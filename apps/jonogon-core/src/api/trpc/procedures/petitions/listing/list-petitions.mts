@@ -194,10 +194,37 @@ export const listPetitions = publicProcedure
                       .orderBy('petition_upvote_count', input.order)
                       .execute();
 
+        // Fetch unvoted formalized petitions count
+        let unvotedFormalizedPetitionsCount = 0;
+
+        if (input.filter !== 'own') {
+            const result = await ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .leftJoin('petition_votes', (join) =>
+                    join
+                        .onRef(
+                            'petitions.id',
+                            '=',
+                            'petition_votes.petition_id',
+                        )
+                        .on(
+                            'petition_votes.user_id',
+                            '=',
+                            `${ctx.auth?.user_id ?? 0}`,
+                        ),
+                )
+                .where('petitions.formalized_at', 'is not', null)
+                .where('petitions.deleted_at', 'is', null)
+                .where('petition_votes.vote', 'is', null)
+                .select(({fn}) => fn.count('petitions.id').as('count'))
+                .execute();
+
+            unvotedFormalizedPetitionsCount = Number(result[0]?.count) || 0;
+        }
+
         return {
             input,
             data: await Promise.all(
-                // Use await here
                 data.map(async (petition) => ({
                     data: {
                         ...pick(petition, [
@@ -224,7 +251,6 @@ export const listPetitions = publicProcedure
                         status: deriveStatus(petition),
                         attachment: petition.attachment
                             ? await ctx.services.fileStorage.getFileURL(
-                                  // Await the promise here
                                   petition.attachment,
                               )
                             : null,
@@ -238,6 +264,10 @@ export const listPetitions = publicProcedure
                     },
                 })),
             ),
+            ...(input.filter !== 'own' && {
+                unvoted_formalized_petitions_count:
+                    unvotedFormalizedPetitionsCount,
+            }),
         };
     });
 
