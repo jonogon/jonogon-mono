@@ -67,6 +67,18 @@ function Tab({
     );
 }
 
+const ActivityCardsLoader = () =>
+    Array(4)
+        .fill(null)
+        .map((_, i) => {
+            return (
+                <Card
+                    className={'bg-border animate-pulse h-16'}
+                    key={i}
+                />
+            );
+        });
+
 const ACTIVITY_TYPE_TAB_OPTIONS = [
     {label: 'দাবি Votes', value: 'petition_votes'},
     {label: 'Comment Votes', value: 'comment_votes'},
@@ -103,7 +115,7 @@ export default function ActivityLog() {
     const {
         mutate: getUserActivityLog, 
         data: activityLog,
-        isLoading,
+        isLoading: isLoadingActivityLog,
         error,
     } = trpc.activity.userActivityLog.useMutation();
     
@@ -124,7 +136,12 @@ export default function ActivityLog() {
         });
     }
 
+
     function activityLogForSelectedTab() {
+        if (!isAuthenticated || isLoadingActivityLog) {
+            return <ActivityCardsLoader />;
+        }
+
         if (!activityLog) {
             return null;
         }
