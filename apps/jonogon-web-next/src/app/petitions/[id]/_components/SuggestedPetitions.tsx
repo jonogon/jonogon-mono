@@ -50,7 +50,7 @@ const SuggestedPetitions = ({
                             className="max-w-screen-sm mx-auto !rounded-t-2xl ring-0 border-0 focus-visible:ring-offset-0 focus-visible:ring-0">
                             <SheetHeader>
                                 <SheetTitle className="text-red-500 text-left">
-                                    Checkout other দাবি's that might interest
+                                    Checkout other দাবিs that might interest
                                     you
                                 </SheetTitle>
                                 <SheetDescription>
