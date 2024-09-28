@@ -4,12 +4,10 @@ import {PropsWithChildren, useEffect} from 'react';
 import {useRouter, useSearchParams, usePathname} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import Link from 'next/link';
-import PetitionActionButton from '@/components/custom/PetitionActionButton';
 import {trpc} from '@/trpc/client';
 import { z } from 'zod';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import page from '../page';
 import { useAuthState } from '@/auth/token-manager';
 
 const ACTIVITY_TYPES = [
@@ -254,14 +252,6 @@ export default function ActivityLog() {
                 )
                 :null
             }
-            <div className="fixed bottom-0 left-0 w-full bg-background/50">
-                <div
-                    className={
-                        'max-w-screen-sm w-full mx-auto flex flex-col py-4 px-8'
-                    }>
-                    <PetitionActionButton />
-                </div>
-            </div>
         </>
     );
 }
