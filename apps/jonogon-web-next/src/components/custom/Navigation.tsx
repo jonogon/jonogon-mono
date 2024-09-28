@@ -116,6 +116,12 @@ const Navigation = () => {
                                     My Petitions
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
+                                    onSelect={() => {
+                                        router.push('/activity-log');
+                                    }}>
+                                    My Activity
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                     className="flex items-center justify-between"
                                     onSelect={async () => {
                                         await signOut(firebaseAuth());
