@@ -393,6 +393,54 @@ export const createComment = protectedProcedure
             ])
             .executeTakeFirst();
 
+        if (created) {
+            // Create activity for petition owner.
+            if (!input.parent_id) {
+                const petition = await ctx.services.postgresQueryBuilder
+                    .selectFrom('petitions')
+                    .select(['created_by'])
+                    .where('id', '=', `${input.petition_id}`)
+                    .executeTakeFirst();
+
+                if (petition) {
+                    await ctx.services.postgresQueryBuilder
+                        .insertInto('activity')
+                        .values({
+                            interested_object_owner_user_id:
+                                petition.created_by,
+                            activity_object_owner_user_id: ctx.auth.user_id,
+                            event_type: 'comment',
+                            interested_object_id: input.petition_id,
+                            activity_object_id: created.id,
+                        })
+                        .executeTakeFirst();
+                }
+            }
+
+            // Create activity for comment owner if reply
+            if (input.parent_id) {
+                const parentComment = await ctx.services.postgresQueryBuilder
+                    .selectFrom('comments')
+                    .select(['created_by'])
+                    .where('id', '=', `${input.parent_id}`)
+                    .executeTakeFirst();
+
+                if (parentComment) {
+                    await ctx.services.postgresQueryBuilder
+                        .insertInto('activity')
+                        .values({
+                            interested_object_owner_user_id:
+                                parentComment.created_by,
+                            activity_object_owner_user_id: ctx.auth.user_id,
+                            event_type: 'reply',
+                            interested_object_id: input.petition_id,
+                            activity_object_id: created.id,
+                        })
+                        .executeTakeFirst();
+                }
+            }
+        }
+
         return {
             data: {
                 ...created,
@@ -435,14 +483,22 @@ export const deleteComment = protectedProcedure
             });
         }
 
-        await ctx.services.postgresQueryBuilder
+        const result = await ctx.services.postgresQueryBuilder
             .updateTable('comments')
             .set({
                 deleted_by: ctx.auth.user_id,
                 deleted_at: new Date(),
             })
             .where('id', '=', `${input.id}`)
+            .returning(['id'])
             .executeTakeFirst();
+
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('activity')
+                .where('activity_object_id', '=', `${input.id}`)
+                .execute();
+        }
 
         return {input, message: 'deleted'};
     });
