@@ -24,13 +24,12 @@ export const approve = protectedProcedure
 
         if (result) {
             await ctx.services.postgresQueryBuilder
-                .insertInto('activity')
+                .insertInto('notifications')
                 .values({
-                    interested_object_owner_user_id: result.created_by,
-                    activity_object_owner_user_id: ctx.auth.user_id,
-                    event_type: 'approve',
-                    interested_object_id: input.petition_id,
-                    activity_object_id: result.id,
+                    user_id: result.created_by,
+                    type: 'petition_approved',
+                    actor_user_id: ctx.auth.user_id,
+                    petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
         }
@@ -65,13 +64,12 @@ export const reject = protectedProcedure
 
         if (result) {
             await ctx.services.postgresQueryBuilder
-                .insertInto('activity')
+                .insertInto('notifications')
                 .values({
-                    interested_object_owner_user_id: result.created_by,
-                    activity_object_owner_user_id: ctx.auth.user_id,
-                    event_type: 'reject',
-                    interested_object_id: input.petition_id,
-                    activity_object_id: result.id,
+                    user_id: result.created_by,
+                    type: 'petition_rejected',
+                    actor_user_id: ctx.auth.user_id,
+                    petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
         }
@@ -107,13 +105,12 @@ export const formalize = protectedProcedure
 
         if (result) {
             await ctx.services.postgresQueryBuilder
-                .insertInto('activity')
+                .insertInto('notifications')
                 .values({
-                    interested_object_owner_user_id: result.created_by,
-                    activity_object_owner_user_id: ctx.auth.user_id,
-                    event_type: 'formalize',
-                    interested_object_id: input.petition_id,
-                    activity_object_id: result.id,
+                    user_id: result.created_by,
+                    type: 'petition_formalized',
+                    actor_user_id: ctx.auth.user_id,
+                    petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
         }

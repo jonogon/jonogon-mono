@@ -39,23 +39,22 @@ export const vote = protectedProcedure
                     .transaction()
                     .execute(async (t) => {
                         await t
-                            .deleteFrom('activity')
-                            .where('event_type', '=', 'vote')
-                            .where('activity_object_id', '=', result.id)
+                            .deleteFrom('notifications')
+                            .where('type', '=', 'vote')
+                            .where('vote_id', '=', result.id)
                             .execute();
 
                         await t
-                            .insertInto('activity')
+                            .insertInto('notifications')
                             .values({
-                                interested_object_owner_user_id:
-                                    petition.created_by,
-                                activity_object_owner_user_id: ctx.auth.user_id,
-                                event_type: 'vote',
-                                interested_object_id: input.petition_id,
-                                activity_object_id: result.id,
-                                meta: JSON.stringify({
+                                user_id: petition.created_by,
+                                type: 'vote',
+                                actor_user_id: ctx.auth.user_id,
+                                petition_id: result.id,
+                                vote_id: result.id,
+                                meta: {
                                     vote: input.vote === 'up' ? 1 : -1,
-                                }),
+                                },
                             })
                             .executeTakeFirst();
                     });
@@ -84,9 +83,9 @@ export const clearVote = protectedProcedure
 
         if (result) {
             await ctx.services.postgresQueryBuilder
-                .deleteFrom('activity')
-                .where('event_type', '=', 'vote')
-                .where('activity_object_id', '=', result.id)
+                .deleteFrom('notifications')
+                .where('type', '=', 'vote')
+                .where('vote_id', '=', result.id)
                 .execute();
         }
 
