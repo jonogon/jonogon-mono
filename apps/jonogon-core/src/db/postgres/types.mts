@@ -53,7 +53,7 @@ export interface Notifications {
   meta: Json | null;
   petition_id: Int8 | null;
   reply_comment_id: Int8 | null;
-  type: string | null;
+  type: string;
   user_id: Int8;
   vote_id: Int8 | null;
 }

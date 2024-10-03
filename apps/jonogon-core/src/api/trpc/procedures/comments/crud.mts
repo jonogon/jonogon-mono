@@ -450,7 +450,8 @@ export const createComment = protectedProcedure
                 // notify all the other users who commented on the same comment
                 const otherCommenters = await ctx.services.postgresQueryBuilder
                     .selectFrom('comments')
-                    .select(['created_by'])
+                    .select('created_by')
+                    .distinct()
                     .where('parent_id', '=', `${input.parent_id}`)
                     .where('id', '<>', `${created.id}`)
                     .execute();

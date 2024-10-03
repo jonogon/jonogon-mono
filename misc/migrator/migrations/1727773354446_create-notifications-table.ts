@@ -16,6 +16,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
             },
             type: {
                 type: 'varchar',
+                notNull: true,
             },
             actor_user_id: {
                 type: 'bigint',
