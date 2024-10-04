@@ -7,8 +7,8 @@ export async function initQueues() {
         {
             jobId: 'detect-milestone',
             repeat: {
-                // 6pm every day
-                cron: '0 18 * * *',
+                // 6pm every day (GMT+6)
+                cron: '0 12 * * *',
             },
         },
     );
@@ -18,8 +18,8 @@ export async function initQueues() {
         {
             jobId: 'aggregate-notifications',
             repeat: {
-                // 8pm every day
-                cron: '0 20 * * *',
+                // 8pm every day (GMT+6)
+                cron: '0 14 * * *',
             },
         },
     );
