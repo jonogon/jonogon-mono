@@ -141,70 +141,92 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
 
         const topPetitionCount = topPetitionIDs.size;
 
-        let message = `Your https://jonogon.org in the last 24 hours:\n`;
+        const messageParts = [
+            `Your https://jonogon.org in the last 24 hours:\n`,
+        ];
 
         if (topPetitionCount > 0) {
             if (topPetitionCount === 1) {
-                message += '- 1 petition is in top 5\n';
+                messageParts.push('- 1 petition is in top 5');
             } else {
-                message += `- ${topPetitionCount} petitions are top 5\n`;
+                messageParts.push(
+                    `- ${topPetitionCount} petitions are top 5\n`,
+                );
             }
         }
 
         if (petitionVoteCount > 0) {
             if (petitionVoteCount === 1) {
-                message += '- 1 vote on a petition\n';
+                messageParts.push('- 1 vote on a petition\n');
             } else {
-                message += `- ${petitionVoteCount} votes on your petitions\n`;
+                messageParts.push(
+                    `- ${petitionVoteCount} votes on your petitions\n`,
+                );
             }
         }
 
         if (petitionCommentCount > 0) {
             if (petitionCommentCount === 1) {
-                message += '- 1 new comment on a petition\n';
+                messageParts.push('- 1 new comment on a petition\n');
             } else {
-                message += `- ${petitionCommentCount} new comments across your petitions\n`;
+                messageParts.push(
+                    `- ${petitionCommentCount} new comments across your petitions\n`,
+                );
             }
         }
 
         if (commentReplyCount > 0) {
             if (commentReplyCount === 1) {
-                message += '- 1 reply to a comment\n';
+                messageParts.push('- 1 reply to a comment\n');
             } else {
-                message += `- ${commentReplyCount} replies to your comments\n`;
+                messageParts.push(
+                    `- ${commentReplyCount} replies to your comments\n`,
+                );
             }
         }
 
         if (commentVoteCount > 0) {
             if (commentVoteCount === 1) {
-                message += '- 1 vote on a comment\n';
+                messageParts.push('- 1 vote on a comment\n');
             } else {
-                message += `- ${commentVoteCount} votes on your comments\n`;
+                messageParts.push(
+                    `- ${commentVoteCount} votes on your comments\n`,
+                );
             }
         }
 
         if (approvedPetitionCount > 0) {
             if (approvedPetitionCount === 1) {
-                message += '- 1 petition was approved\n';
+                messageParts.push('- 1 petition was approved\n');
             } else {
-                message += `- ${approvedPetitionCount} petitions were approved\n`;
+                messageParts.push(
+                    `- ${approvedPetitionCount} petitions were approved\n`,
+                );
             }
         }
 
         if (rejectedPetitionCount > 0) {
             if (rejectedPetitionCount === 1) {
-                message += '- 1 petition was rejected\n';
+                messageParts.push('- 1 petition was rejected\n');
             } else {
-                message += `- ${rejectedPetitionCount} petitions were rejected\n`;
+                messageParts.push(
+                    `- ${rejectedPetitionCount} petitions were rejected\n`,
+                );
             }
         }
 
         if (formalizedPetitionCount > 0) {
             if (formalizedPetitionCount === 1) {
-                message += '- 1 petition was formalized\n';
+                messageParts.push('- 1 petition was formalized\n');
             } else {
-                message += `- ${formalizedPetitionCount} petitions were formalized\n`;
+                messageParts.push(
+                    `- ${formalizedPetitionCount} petitions were formalized\n`,
+                );
             }
+        }
+
+        if (messageParts.length <= 1) {
+            return;
         }
 
         const key = await deriveKey(
@@ -215,6 +237,6 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
         const iv = Buffer.from(user.phone_number_encryption_iv, 'base64');
         const number = decrypt(key, iv, user.encrypted_phone_number);
 
-        await services.smsService.sendSMS(number, message);
+        await services.smsService.sendSMS(number, messageParts.join('\n'));
     });
 }
