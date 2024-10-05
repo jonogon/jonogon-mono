@@ -17,6 +17,7 @@ import {
 import {
     listPetitions,
     listSuggestedPetitions,
+    searchSimilarPetitions,
 } from '../procedures/petitions/listing/list-petitions.mjs';
 import {listPendingPetitionRequests} from '../procedures/petitions/listing/pending-petition-requests.mjs';
 
@@ -35,6 +36,9 @@ export const petitionRouter = router({
 
     softDeletePetition: softDeletePetition,
     remove: remove,
+
+    // Search Similar Petitions
+    searchSimilar: searchSimilarPetitions,
 
     // Skibidi
     vote: vote,

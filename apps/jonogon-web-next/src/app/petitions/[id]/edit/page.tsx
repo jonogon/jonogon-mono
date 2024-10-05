@@ -29,6 +29,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import PetitionFileUploader from '@/components/custom/PetitionFileUploader';
+import SimilarPetitionsSearch from '@/components/custom/SimilarPetitionsSearch';
 // import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 // import {petitionLocations, petitionTargets} from '@/lib/constants';
 
@@ -284,6 +285,12 @@ export default function EditPetition() {
                         placeholder="Ex: Make Primary Education Better"
                     />
                 </div>
+                {showSimilarPetitions && (
+                    <SimilarPetitionsSearch
+                    title={petitionData.title ?? ''}
+                    onClose={() => setShowSimilarPetitions(false)}
+                    />
+                )}
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="target">
                         <div className={'font-bold text-lg'}>

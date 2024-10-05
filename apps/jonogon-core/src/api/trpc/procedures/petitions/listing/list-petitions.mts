@@ -336,13 +336,13 @@ export const listSuggestedPetitions = protectedProcedure
                     // Calculate the weight based on matching location/target and vote count
                     sql<number>`
                         (
-                            CASE 
+                            CASE
                                 WHEN petitions.formalized_at IS NOT NULL THEN ${FORMALIZED_PETITION_WEIGHT}
-                                WHEN petitions.location = ${input.location} AND petitions.target = ${input.target} 
+                                WHEN petitions.location = ${input.location} AND petitions.target = ${input.target}
                                 THEN ${LOCATION_TARGET_WEIGHT * 2}
-                                WHEN petitions.location = ${input.location} OR petitions.target = ${input.target} 
-                                THEN ${LOCATION_TARGET_WEIGHT} 
-                                ELSE 0 
+                                WHEN petitions.location = ${input.location} OR petitions.target = ${input.target}
+                                THEN ${LOCATION_TARGET_WEIGHT}
+                                ELSE 0
                             END
                             + ${TRENDING_VOTES_WEIGHT} * COUNT(petition_votes.id)
                         )
@@ -394,3 +394,28 @@ export const listSuggestedPetitions = protectedProcedure
             });
         }
     });
+
+export const searchSimilarPetitions = publicProcedure
+    .input(
+        z.object({
+        title: z.string().min(3),
+        })
+    )
+    .query(async ({ input, ctx }) => {
+        const keywords = input.title.split(' ').filter(word => word.length > 2);
+
+        const similarPetitions = await ctx.services.postgresQueryBuilder
+        .selectFrom('petitions')
+        .select(['id', 'title'])
+        .where(eb =>
+            eb.or(keywords.map(keyword =>
+            eb('title', 'ilike', `%${keyword}%`)
+            ))
+        )
+        .limit(5)
+        .execute();
+
+        return {
+            data: similarPetitions,
+        };
+});
