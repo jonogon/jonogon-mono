@@ -270,6 +270,9 @@ importers:
       scope-utilities:
         specifier: 1.2.2
         version: 1.2.2
+      stopword:
+        specifier: ^3.1.1
+        version: 3.1.1
       tailwind-merge:
         specifier: ^2.5.0
         version: 2.5.2
@@ -5936,6 +5939,9 @@ packages:
   stoppable@1.1.0:
     resolution: {integrity: sha512-KXDYZ9dszj6bzvnEMRYvxgeTHU74QBFL54XKtP3nyMuJ81CFYtABZ3bAzL2EdFUaEwJOBOgENyFj3R7oTzDyyw==}
     engines: {node: '>=4', npm: '>=6'}
+
+  stopword@3.1.1:
+    resolution: {integrity: sha512-TzJdIuzqJNo6IaFvrF3fYqu08uJ/0VMsdABl6d6+dt6daD7QeHJnMt9sPqhVIxEmNaaeE8+eandVPJv9RhAL5Q==}
 
   stream-events@1.0.5:
     resolution: {integrity: sha512-E1GUzBSgvct8Jsb3v2X15pjzN1tYebtbLaMg+eBOUOAxgbLoSbT2NS91ckc5lJD1KfLjId+jXJRgo0qnV5Nerg==}
@@ -13365,6 +13371,8 @@ snapshots:
       internal-slot: 1.0.7
 
   stoppable@1.1.0: {}
+
+  stopword@3.1.1: {}
 
   stream-events@1.0.5:
     dependencies:

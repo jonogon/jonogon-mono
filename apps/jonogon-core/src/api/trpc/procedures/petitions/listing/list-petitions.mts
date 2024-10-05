@@ -395,27 +395,30 @@ export const listSuggestedPetitions = protectedProcedure
         }
     });
 
-export const searchSimilarPetitions = publicProcedure
+    export const searchSimilarPetitions = publicProcedure
     .input(
         z.object({
-        title: z.string().min(3),
+            title: z.string().min(3),
         })
     )
-    .query(async ({ input, ctx }) => {
-        const keywords = input.title.split(' ').filter(word => word.length > 2);
+    .query(async ({input, ctx}) => {
+        const keywords = input.title
+            .split(' ')
+            .filter((word) => word.length > 2);
 
         const similarPetitions = await ctx.services.postgresQueryBuilder
-        .selectFrom('petitions')
-        .select(['id', 'title'])
-        .where(eb =>
-            eb.or(keywords.map(keyword =>
-            eb('title', 'ilike', `%${keyword}%`)
-            ))
-        )
-        .limit(5)
-        .execute();
+            .selectFrom('petitions')
+            .select(['id', 'title'])
+            .where(eb =>
+                eb.and(keywords.map(keyword =>
+                    eb('title', 'ilike', `%${keyword}%`)
+                ))
+            )
+            .orderBy(eb => eb.fn('length', eb.ref('title')), 'asc')
+            .limit(5)
+            .execute();
 
         return {
             data: similarPetitions,
         };
-});
+    });
