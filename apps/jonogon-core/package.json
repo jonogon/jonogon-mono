@@ -31,6 +31,7 @@
     "pg": "8.12.0",
     "scope-utilities": "1.2.2",
     "sharp": "^0.33.4",
+    "stopword": "^3.1.1",
     "universal-base64url": "^1.1.0",
     "winston": "3.14.0",
     "ws": "8.18.0",

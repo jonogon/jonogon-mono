@@ -7,6 +7,8 @@ import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
 import {sql} from 'kysely';
 import {jsonArrayFrom} from 'kysely/helpers/postgres';
 import {protectedProcedure} from '../../../middleware/protected.mjs';
+import { removeStopwords, eng, ben } from 'stopword';
+
 
 export const listPetitions = publicProcedure
     .input(
@@ -402,18 +404,25 @@ export const listSuggestedPetitions = protectedProcedure
         })
     )
     .query(async ({input, ctx}) => {
-        const keywords = input.title
-            .split(' ')
-            .filter((word) => word.length > 2);
+        const keywords = removeStopwords(
+            input.title.toLowerCase().split(' '),
+            [...eng, ...ben]
+        ).filter((word) => word.length > 2);
 
         const similarPetitions = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
             .select(['id', 'title'])
-            .where(eb =>
-                eb.and(keywords.map(keyword =>
+            .where((eb) => {
+                const conditions = keywords.map(keyword =>
                     eb('title', 'ilike', `%${keyword}%`)
-                ))
-            )
+                );
+                return eb.or(conditions);
+            })
+            .groupBy('id')
+            .select(eb => [
+                eb.fn.count('id').as('match_count'),
+            ])
+            .orderBy('match_count', 'desc')
             .orderBy(eb => eb.fn('length', eb.ref('title')), 'asc')
             .limit(5)
             .execute();
