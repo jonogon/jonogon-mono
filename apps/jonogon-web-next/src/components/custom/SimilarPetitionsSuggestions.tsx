@@ -20,12 +20,12 @@ interface SimilarPetitionsSuggestionsProps {
 export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarPetitionsSuggestionsProps) {
     const [similarPetitions, setSimilarPetitions] = useState<SimilarPetition[]>([]);
 
-    const { data: searchResults, refetch } = trpc.petitions.searchSimilar.useQuery(
+    const { data: suggestionResults, refetch } = trpc.petitions.suggestSimilar.useQuery(
         { title },
         { enabled: false }
     );
 
-    const debouncedSearch = useCallback(
+    const debouncedSuggest = useCallback(
         debounce((searchTerm: string) => {
             const words = searchTerm.split(' ');
             const cleanedWords = removeStopwords(words, [...eng, ...ben]);
@@ -41,14 +41,14 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
     );
 
     useEffect(() => {
-        debouncedSearch(title);
-    }, [title, debouncedSearch]);
+        debouncedSuggest(title);
+    }, [title, debouncedSuggest]);
 
     useEffect(() => {
-        if (searchResults) {
-            setSimilarPetitions(searchResults.data);
+        if (suggestionResults) {
+            setSimilarPetitions(suggestionResults.data);
         }
-    }, [searchResults]);
+    }, [suggestionResults]);
 
     if (similarPetitions.length === 0) {
         return null;

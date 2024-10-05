@@ -395,7 +395,7 @@ export const listSuggestedPetitions = protectedProcedure
         }
     });
 
-    export const searchSimilarPetitions = publicProcedure
+    export const suggestSimilarPetitions = publicProcedure
     .input(
         z.object({
             title: z.string().min(5),
