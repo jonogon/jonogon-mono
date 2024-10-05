@@ -29,7 +29,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import PetitionFileUploader from '@/components/custom/PetitionFileUploader';
-import SimilarPetitionsSearch from '@/components/custom/SimilarPetitionsSearch';
+import SimilarPetitionsSuggestions from '@/components/custom/SimilarPetitionsSuggestions';
 // import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 // import {petitionLocations, petitionTargets} from '@/lib/constants';
 
@@ -42,7 +42,6 @@ export default function EditPetition() {
     const router = useRouter();
 
     const isAuthenticated = useAuthState();
-
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
 
@@ -288,8 +287,8 @@ export default function EditPetition() {
                         placeholder="Ex: Make Primary Education Better"
                     />
                 </div>
-                {showSimilarPetitions && (
-                    <SimilarPetitionsSearch
+                {freshValue && showSimilarPetitions && (
+                    <SimilarPetitionsSuggestions
                     title={petitionData.title ?? ''}
                     onClose={() => setShowSimilarPetitions(false)}
                     />

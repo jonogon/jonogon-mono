@@ -398,7 +398,7 @@ export const listSuggestedPetitions = protectedProcedure
     export const searchSimilarPetitions = publicProcedure
     .input(
         z.object({
-            title: z.string().min(3),
+            title: z.string().min(5),
         })
     )
     .query(async ({input, ctx}) => {

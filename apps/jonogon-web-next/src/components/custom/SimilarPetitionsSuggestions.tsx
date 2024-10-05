@@ -12,12 +12,12 @@ interface SimilarPetition {
     title: string;
 }
 
-interface SimilarPetitionsSearchProps {
+interface SimilarPetitionsSuggestionsProps {
     title: string;
     onClose: () => void;
 }
 
-export default function SimilarPetitionsSearch({ title, onClose }: SimilarPetitionsSearchProps) {
+export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarPetitionsSuggestionsProps) {
     const [similarPetitions, setSimilarPetitions] = useState<SimilarPetition[]>([]);
 
     const { data: searchResults, refetch } = trpc.petitions.searchSimilar.useQuery(
@@ -31,7 +31,7 @@ export default function SimilarPetitionsSearch({ title, onClose }: SimilarPetiti
             const cleanedWords = removeStopwords(words, [...eng, ...ben]);
             const cleanedTitle = cleanedWords.join(' ').trim();
 
-            if (cleanedTitle.length >= 3) {
+            if (cleanedTitle.length >= 5) {
                 refetch({ title: cleanedTitle });
             } else {
                 setSimilarPetitions([]);
