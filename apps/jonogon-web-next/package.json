@@ -45,6 +45,7 @@
     "embla-carousel-react": "^8.1.8",
     "firebase": "10.13.1",
     "input-otp": "^1.2.4",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.427.0",
     "mixpanel-browser": "^2.55.1",
     "mobx": "^6.13.1",

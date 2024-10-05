@@ -53,40 +53,41 @@ const displayedPetitions = similarPetitions.slice(0, 5);
 const hasMorePetitions = similarPetitions.length > 5;
 
 return (
-    <Card className="mt-4 bg-background border-red-500">
-    <CardHeader className="flex items-center space-x-2">
-        <AlertCircle className="h-5 w-5 text-red-500" />
-        <CardTitle className="text-xl font-bold text-red-500">Similar Petitions Found</CardTitle>
-    </CardHeader>
-    <CardContent>
-        <p className="mb-4 text-sm text-stone-600 font-medium">
-        We found some petitions that might be similar to yours. Please check if your petition already exists:
-        </p>
-        <ul className="space-y-2 divide-y divide-gray-200">
-        {displayedPetitions.map((petition) => (
-            <li key={petition.id} className="py-2">
-            <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center">
-                <span className="mr-2">•</span>
-                {petition.title}
-            </Link>
-            </li>
-        ))}
-        </ul>
-        {hasMorePetitions && (
-        <p className="mt-2 text-sm text-stone-500 italic">
-            And {similarPetitions.length - 5} more similar petitions...
-        </p>
-        )}
-        <Button
-        variant="outline"
-        size="sm"
-        className="mt-4 w-full justify-between"
-        onClick={onClose}
-        >
-        Continue with my petition
-        <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-    </CardContent>
+    <Card className="mt-2 bg-background border-red-500">
+        <CardHeader className="flex flex-row items-center space-x-2 py-2">
+            <div className="flex items-center">
+                <AlertCircle className="h-6 w-6 text-red-500 mr-2" />
+                <CardTitle className="text-lg font-bold text-red-500">Similar Petitions Found</CardTitle>
+            </div>
+        </CardHeader>
+        <CardContent className="py-2">
+            <p className="mb-2 text-xs text-stone-600 font-medium">
+                We found some petitions that might be similar to yours. Please check if your petition already exists:
+            </p>
+            <ul className="space-y-1 divide-y divide-gray-200">
+                {displayedPetitions.map((petition) => (
+                    <li key={petition.id} className="py-1">
+                        <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center text-sm">
+                            <span className="mr-1">•</span>
+                            <span className="hover:underline">{petition.title}</span>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+            {hasMorePetitions && (
+                <p className="mt-1 text-xs text-stone-500 italic">
+                    And {similarPetitions.length - 5} more similar petitions...
+                </p>
+            )}
+            <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full justify-between text-xs py-1"
+                onClick={onClose}
+            >
+                Continue with my petition
+                <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+        </CardContent>
     </Card>
 );
-}

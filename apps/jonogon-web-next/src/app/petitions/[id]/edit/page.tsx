@@ -43,6 +43,9 @@ export default function EditPetition() {
 
     const isAuthenticated = useAuthState();
 
+
+    const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
+
     const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
     });
