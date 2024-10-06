@@ -409,6 +409,11 @@ export const listSuggestedPetitions = protectedProcedure
             [...eng, ...ben]
         ).filter((word) => word.length > 2);
 
+        if (keywords.length < 1) {
+            return { data: [] };
+        }
+
+        // TODO: Use pg_trgm for better search performance and accuracy
         const similarPetitions = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
             .select(['id', 'title'])
@@ -418,16 +423,23 @@ export const listSuggestedPetitions = protectedProcedure
                 );
                 return eb.or(conditions);
             })
-            .groupBy('id')
-            .select(eb => [
-                eb.fn.count('id').as('match_count'),
-            ])
-            .orderBy('match_count', 'desc')
             .orderBy(eb => eb.fn('length', eb.ref('title')), 'asc')
-            .limit(5)
+            .limit(20)
             .execute();
 
+        const petitionsWithMatchCount = similarPetitions.map(petition => ({
+            ...petition,
+            match_count: keywords.filter(keyword =>
+                petition.title.toLowerCase().includes(keyword.toLowerCase())
+            ).length
+        }));
+
+        const sortedPetitions = petitionsWithMatchCount
+            .filter(petition => petition.match_count >= 1)
+            .sort((a, b) => b.match_count - a.match_count)
+            .slice(0, 5);
+
         return {
-            data: similarPetitions,
+            data: sortedPetitions,
         };
     });

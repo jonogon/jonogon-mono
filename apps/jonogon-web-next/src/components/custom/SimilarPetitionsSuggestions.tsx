@@ -11,7 +11,7 @@ import Image from 'next/image';
 interface SimilarPetition {
     id: string;
     title: string | null;
-    match_count: string | number;
+    match_count: number;
 }
 
 interface SimilarPetitionsSuggestionsProps {
@@ -56,8 +56,8 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
         return null;
     }
 
-    const displayedPetitions = similarPetitions.slice(0, 5);
-    const hasMorePetitions = similarPetitions.length > 5;
+    const displayedPetitions = similarPetitions.slice(0, 3);
+    const hasMorePetitions = similarPetitions.length > 3;
 
     return (
         <Card className="mt-2 bg-background border-red-500">
@@ -75,15 +75,15 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
                     {displayedPetitions.map((petition) => (
                         <li key={petition.id} className="py-1">
                             <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center hover:bg-gray-50 rounded p-1 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                                <Image src="/images/icon.svg" alt="Petition icon" width={20} height={20} className="mr-1" />
-                                <span className="hover:underline">{petition.title || 'Untitled Petition'}</span>
+                                <Image src="/images/icon.svg" alt="Petition icon" width={20} height={20} className="mr-2" />
+                                <span>{petition.title || 'Untitled Petition'}</span>
                             </Link>
                         </li>
                     ))}
                 </ul>
                 {hasMorePetitions && (
                     <p className="mt-1 text-xs text-stone-500 italic">
-                        And {similarPetitions.length - 5} more similar petitions...
+                        And {similarPetitions.length - 3} more similar petitions...
                     </p>
                 )}
                 <Button
