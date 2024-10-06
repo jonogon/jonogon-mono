@@ -409,37 +409,57 @@ export const listSuggestedPetitions = protectedProcedure
             [...eng, ...ben]
         ).filter((word) => word.length > 2);
 
-        if (keywords.length < 1) {
+        if (keywords.length < 2) {
             return { data: [] };
         }
 
-        // TODO: Use pg_trgm for better search performance and accuracy
         const similarPetitions = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
-            .select(['id', 'title'])
-            .where((eb) => {
-                const conditions = keywords.map(keyword =>
-                    eb('title', 'ilike', `%${keyword}%`)
-                );
-                return eb.or(conditions);
-            })
-            .orderBy(eb => eb.fn('length', eb.ref('title')), 'asc')
-            .limit(20)
+            .select(['petitions.id', 'petitions.title'])
+            .where('petitions.deleted_at', 'is', null)
+            .where('petitions.approved_at', 'is not', null)
+            .where((eb) =>
+                eb.or(
+                    keywords.map(keyword =>
+                        eb('petitions.title', 'ilike', `%${keyword}%`)
+                    )
+                )
+            )
             .execute();
 
-        const petitionsWithMatchCount = similarPetitions.map(petition => ({
-            ...petition,
-            match_count: keywords.filter(keyword =>
-                petition.title.toLowerCase().includes(keyword.toLowerCase())
-            ).length
+        const petitionsWithVotes = await Promise.all(similarPetitions.map(async (petition) => {
+            const upvotes = await ctx.services.postgresQueryBuilder
+                .selectFrom('petition_votes')
+                .select((eb) => eb.fn.count('id').as('count'))
+                .where('petition_id', '=', petition.id)
+                .where('vote', '=', 1)
+                .executeTakeFirst();
+
+            const downvotes = await ctx.services.postgresQueryBuilder
+                .selectFrom('petition_votes')
+                .select((eb) => eb.fn.count('id').as('count'))
+                .where('petition_id', '=', petition.id)
+                .where('vote', '=', -1)
+                .executeTakeFirst();
+
+            return {
+                ...petition,
+                upvotes: Number(upvotes?.count || 0),
+                downvotes: Number(downvotes?.count || 0),
+                match_count: keywords.filter(keyword =>
+                    petition.title.toLowerCase().includes(keyword.toLowerCase())
+                ).length
+            };
         }));
 
-        const sortedPetitions = petitionsWithMatchCount
-            .filter(petition => petition.match_count >= 1)
-            .sort((a, b) => b.match_count - a.match_count)
+        const sortedPetitions = petitionsWithVotes
+            .filter(petition => petition.match_count > 0)
+            .sort((a, b) =>
+                b.match_count - a.match_count ||
+                b.upvotes - a.upvotes ||
+                a.downvotes - b.downvotes
+            )
             .slice(0, 5);
 
-        return {
-            data: sortedPetitions,
-        };
+        return { data: sortedPetitions };
     });

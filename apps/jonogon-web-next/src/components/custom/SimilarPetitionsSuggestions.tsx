@@ -3,7 +3,7 @@ import { trpc } from '@/trpc/client';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, ArrowRight } from 'lucide-react';
+import { AlertCircle, ArrowRight, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { debounce } from 'lodash';
 import { removeStopwords, eng, ben } from 'stopword';
 import Image from 'next/image';
@@ -12,6 +12,8 @@ interface SimilarPetition {
     id: string;
     title: string | null;
     match_count: number;
+    upvotes: number;
+    downvotes: number;
 }
 
 interface SimilarPetitionsSuggestionsProps {
@@ -74,9 +76,21 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
                 <ul className="space-y-1 divide-y divide-gray-200">
                     {displayedPetitions.map((petition) => (
                         <li key={petition.id} className="py-1">
-                            <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center hover:bg-gray-50 rounded p-1 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-                                <Image src="/images/icon.svg" alt="Petition icon" width={20} height={20} className="mr-2" />
-                                <span>{petition.title || 'Untitled Petition'}</span>
+                            <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center justify-between hover:bg-gray-50 rounded p-1 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+                                <div className="flex items-center">
+                                    <Image src="/images/icon.svg" alt="Petition icon" width={20} height={20} className="mr-2" />
+                                    <span>{petition.title || 'Untitled Petition'}</span>
+                                </div>
+                                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                    <span className="flex items-center">
+                                        <ThumbsUp className="w-4 h-4 text-green-500 mr-1" />
+                                        {petition.upvotes}
+                                    </span>
+                                    <span className="flex items-center">
+                                        <ThumbsDown className="w-4 h-4 text-red-500 mr-1" />
+                                        {petition.downvotes}
+                                    </span>
+                                </div>
                             </Link>
                         </li>
                     ))}
