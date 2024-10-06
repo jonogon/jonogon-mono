@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowRight } from 'lucide-react';
 import { debounce } from 'lodash';
 import { removeStopwords, eng, ben } from 'stopword';
+import Image from 'next/image';
 
 interface SimilarPetition {
     id: string;
-    title: string;
+    title: string | null;
+    match_count: string | number;
 }
 
 interface SimilarPetitionsSuggestionsProps {
@@ -27,12 +29,12 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
 
     const debouncedSuggest = useCallback(
         debounce((searchTerm: string) => {
-            const words = searchTerm.split(' ');
+            const words = searchTerm.split(' ').filter(word => word.trim() !== '');
             const cleanedWords = removeStopwords(words, [...eng, ...ben]);
             const cleanedTitle = cleanedWords.join(' ').trim();
 
-            if (cleanedTitle.length >= 5) {
-                refetch({ title: cleanedTitle });
+            if (cleanedWords.length >= 2 && cleanedTitle.length >= 5) {
+                refetch();
             } else {
                 setSimilarPetitions([]);
             }
@@ -72,9 +74,9 @@ export default function SimilarPetitionsSuggestions({ title, onClose }: SimilarP
                 <ul className="space-y-1 divide-y divide-gray-200">
                     {displayedPetitions.map((petition) => (
                         <li key={petition.id} className="py-1">
-                            <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center text-sm">
-                                <span className="mr-1">•</span>
-                                <span className="hover:underline">{petition.title}</span>
+                            <Link href={`/petitions/${petition.id}`} className="text-neutral-900 flex items-center hover:bg-gray-50 rounded p-1 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+                                <Image src="/images/icon.svg" alt="Petition icon" width={20} height={20} className="mr-1" />
+                                <span className="hover:underline">{petition.title || 'Untitled Petition'}</span>
                             </Link>
                         </li>
                     ))}
