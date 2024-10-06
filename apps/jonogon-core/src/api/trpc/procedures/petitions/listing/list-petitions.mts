@@ -397,17 +397,17 @@ export const listSuggestedPetitions = protectedProcedure
         }
     });
 
-    export const suggestSimilarPetitions = publicProcedure
+export const suggestSimilarPetitions = publicProcedure
     .input(
         z.object({
             title: z.string().min(5),
         })
     )
     .query(async ({input, ctx}) => {
-        const keywords = removeStopwords(
+        const keywords = [...new Set(removeStopwords(
             input.title.toLowerCase().split(' '),
             [...eng, ...ben]
-        ).filter((word) => word.length > 2);
+        ).filter((word) => word.length > 2))];
 
         if (keywords.length < 2) {
             return { data: [] };
@@ -446,9 +446,11 @@ export const listSuggestedPetitions = protectedProcedure
                 ...petition,
                 upvotes: Number(upvotes?.count || 0),
                 downvotes: Number(downvotes?.count || 0),
-                match_count: keywords.filter(keyword =>
-                    petition.title.toLowerCase().includes(keyword.toLowerCase())
-                ).length
+                match_count: petition.title
+                    ? keywords.filter(keyword =>
+                        petition.title!.toLowerCase().includes(keyword.toLowerCase())
+                    ).length
+                    : 0
             };
         }));
 
