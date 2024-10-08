@@ -448,7 +448,7 @@ export const suggestSimilarPetitions = publicProcedure
                 downvotes: Number(downvotes?.count || 0),
                 match_count: petition.title
                     ? keywords.filter(keyword =>
-                        petition.title!.toLowerCase().includes(keyword.toLowerCase())
+                        petition.title?.toLowerCase().includes(keyword.toLowerCase())
                     ).length
                     : 0
             };
