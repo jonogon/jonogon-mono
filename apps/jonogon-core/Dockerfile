@@ -3,7 +3,7 @@ WORKDIR /app
 
 FROM common AS build
 COPY . /app
-RUN npm install -g pnpm@9.7.0
+RUN npm install -g pnpm@9.12.0
 RUN pnpm install
 RUN pnpm build
 RUN pnpm --filter=@jonogon/core --prod deploy /jonogon-core

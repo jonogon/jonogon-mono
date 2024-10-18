@@ -29,6 +29,9 @@ export const env = createEnv({
 
         COMMON_HMAC_SECRET: z.string(),
         COMMON_ENCRYPTION_SECRET: z.string(),
+
+        BULL_BOARD_USERNAME: z.string().optional(),
+        BULL_BOARD_PASSWORD: z.string().optional(),
     },
     runtimeEnv: process.env,
 });

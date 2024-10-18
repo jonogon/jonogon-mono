@@ -393,6 +393,85 @@ export const createComment = protectedProcedure
             ])
             .executeTakeFirst();
 
+        if (created) {
+            // Create notification for petition owner.
+            const petition = await ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .select(['created_by'])
+                .where('id', '=', `${input.petition_id}`)
+                .executeTakeFirst();
+
+            if (petition) {
+                await ctx.services.postgresQueryBuilder
+                    .insertInto('notifications')
+                    .values(
+                        input.parent_id
+                            ? {
+                                  user_id: petition.created_by,
+                                  type: 'reply_to_someones_comment',
+                                  actor_user_id: ctx.auth.user_id,
+                                  petition_id: input.petition_id,
+                                  comment_id: input.parent_id,
+                                  reply_comment_id: created.id,
+                              }
+                            : {
+                                  user_id: petition.created_by,
+                                  type: 'comment',
+                                  actor_user_id: ctx.auth.user_id,
+                                  petition_id: input.petition_id,
+                                  comment_id: created.id,
+                              },
+                    )
+                    .executeTakeFirst();
+            }
+
+            // Create notification for comment owner if reply
+            if (input.parent_id) {
+                const parentComment = await ctx.services.postgresQueryBuilder
+                    .selectFrom('comments')
+                    .select(['created_by'])
+                    .where('id', '=', `${input.parent_id}`)
+                    .executeTakeFirst();
+
+                if (parentComment) {
+                    await ctx.services.postgresQueryBuilder
+                        .insertInto('notifications')
+                        .values({
+                            user_id: parentComment.created_by,
+                            type: 'reply',
+                            petition_id: input.petition_id,
+                            actor_user_id: ctx.auth.user_id,
+                            comment_id: input.parent_id,
+                            reply_comment_id: created.id,
+                        })
+                        .executeTakeFirst();
+                }
+
+                // notify all the other users who commented on the same comment
+                const otherCommenters = await ctx.services.postgresQueryBuilder
+                    .selectFrom('comments')
+                    .select('created_by')
+                    .distinct()
+                    .where('parent_id', '=', `${input.parent_id}`)
+                    .where('id', '<>', `${created.id}`)
+                    .execute();
+
+                for (const commenter of otherCommenters) {
+                    await ctx.services.postgresQueryBuilder
+                        .insertInto('notifications')
+                        .values({
+                            user_id: commenter.created_by,
+                            type: 'reply_to_same_thread',
+                            actor_user_id: ctx.auth.user_id,
+                            petition_id: input.petition_id,
+                            comment_id: input.parent_id,
+                            reply_comment_id: created.id,
+                        })
+                        .executeTakeFirst();
+                }
+            }
+        }
+
         return {
             data: {
                 ...created,
@@ -435,14 +514,27 @@ export const deleteComment = protectedProcedure
             });
         }
 
-        await ctx.services.postgresQueryBuilder
+        const result = await ctx.services.postgresQueryBuilder
             .updateTable('comments')
             .set({
                 deleted_by: ctx.auth.user_id,
                 deleted_at: new Date(),
             })
             .where('id', '=', `${input.id}`)
+            .returning(['id'])
             .executeTakeFirst();
+
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('notifications')
+                .where((q) =>
+                    q.or([
+                        q('comment_id', '=', `${input.id}`),
+                        q('reply_comment_id', '=', `${input.id}`),
+                    ]),
+                )
+                .execute();
+        }
 
         return {input, message: 'deleted'};
     });

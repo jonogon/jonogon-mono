@@ -8,6 +8,10 @@ import {registerWSHandlers} from './api/websocket/index.mjs';
 import {logger} from './logger.mjs';
 import {createServices} from './services.mjs';
 import cors from 'cors';
+import {initQueues} from './api/queues/index.mjs';
+import {processMilestoneDetectionQueue} from './services/queues/milestoneDetectionQueue.mjs';
+import {processNotificationsSchedulerQueue} from './services/queues/notificationsSchedulerQueue.mjs';
+import {processSmsNotificationDispatchQueue} from './services/queues/smsNotificationDispatchQueue.mjs';
 
 const services = await createServices();
 
@@ -41,5 +45,12 @@ server.listen(env.PORT, '0.0.0.0', () => {
         port: env.PORT,
     });
 });
+
+// QUEUES
+await initQueues();
+
+processMilestoneDetectionQueue(services);
+processNotificationsSchedulerQueue(services);
+processSmsNotificationDispatchQueue(services);
 
 export {TAppRouter} from './api/trpc/routers/index.mjs';

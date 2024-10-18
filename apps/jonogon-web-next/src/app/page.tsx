@@ -60,8 +60,11 @@ function Tab({
 
     const updateParams = () => {
         const nextSearchParams = new URLSearchParams(params);
+        const clickedSameType = nextSearchParams.get('type') === null || nextSearchParams.get('type') === type;
         nextSearchParams.set('type', type);
-
+        if (!clickedSameType) {
+            nextSearchParams.delete('page');
+        }
         router.replace('/?' + nextSearchParams.toString());
     };
 
@@ -112,10 +115,10 @@ export default function Home() {
     const typeSeq =
         userCount > 0
             ? [
-                  ...defaultTypeSeq,
-                  `${userCount + DISCORD_COMMUNITY_SIZE} নাগরিক এর সাথে\nগড়ে তুলুন নতুন দেশ`,
-                  2000,
-              ]
+                ...defaultTypeSeq,
+                `${userCount + DISCORD_COMMUNITY_SIZE} নাগরিক এর সাথে\nগড়ে তুলুন নতুন দেশ`,
+                2000,
+            ]
             : defaultTypeSeq;
 
     return (

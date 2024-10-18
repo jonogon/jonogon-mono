@@ -9,7 +9,7 @@ export const vote = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
-        await ctx.services.postgresQueryBuilder
+        const result = await ctx.services.postgresQueryBuilder
             .insertInto('petition_votes')
             .values({
                 petition_id: input.petition_id,
@@ -24,7 +24,42 @@ export const vote = protectedProcedure
                         updated_at: new Date(),
                     }),
             )
+            .returning(['id'])
             .executeTakeFirst();
+
+        if (result) {
+            const petition = await ctx.services.postgresQueryBuilder
+                .selectFrom('petitions')
+                .where('id', '=', input.petition_id)
+                .select(['created_by'])
+                .executeTakeFirst();
+
+            if (petition) {
+                await ctx.services.postgresQueryBuilder
+                    .transaction()
+                    .execute(async (t) => {
+                        await t
+                            .deleteFrom('notifications')
+                            .where('type', '=', 'vote')
+                            .where('vote_id', '=', result.id)
+                            .execute();
+
+                        await t
+                            .insertInto('notifications')
+                            .values({
+                                user_id: petition.created_by,
+                                type: 'vote',
+                                actor_user_id: ctx.auth.user_id,
+                                petition_id: result.id,
+                                vote_id: result.id,
+                                meta: {
+                                    vote: input.vote === 'up' ? 1 : -1,
+                                },
+                            })
+                            .executeTakeFirst();
+                    });
+            }
+        }
 
         return {
             input,
@@ -39,11 +74,20 @@ export const clearVote = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
-        await ctx.services.postgresQueryBuilder
+        const result = await ctx.services.postgresQueryBuilder
             .deleteFrom('petition_votes')
             .where('petition_id', '=', input.petition_id)
             .where('user_id', '=', `${ctx.auth.user_id}`)
+            .returning(['id'])
             .executeTakeFirst();
+
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('notifications')
+                .where('type', '=', 'vote')
+                .where('vote_id', '=', result.id)
+                .execute();
+        }
 
         return {
             input,

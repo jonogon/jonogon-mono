@@ -5,6 +5,13 @@ import {appRouter} from '../trpc/routers/index.mjs';
 import {env} from '../../env.mjs';
 import {createProfilePictureHandler} from './handlers/users/picture.mjs';
 import {createPetitionAttachmentHandler} from './handlers/petitions/attachment.mjs';
+import {ExpressAdapter} from '@bull-board/express';
+import {BullAdapter} from '@bull-board/api/bullAdapter.js';
+import {createBullBoard} from '@bull-board/api';
+import {milestoneDetectionQueue} from '../../services/queues/milestoneDetectionQueue.mjs';
+import {notificationsSchedulerQueue} from '../../services/queues/notificationsSchedulerQueue.mjs';
+import {smsNotificationDispatchQueue} from '../../services/queues/smsNotificationDispatchQueue.mjs';
+import basicAuth from 'express-basic-auth';
 
 export async function registerHTTPRoutes(
     expressApp: Express,
@@ -57,5 +64,34 @@ export async function registerHTTPRoutes(
                 router: appRouter,
             }),
         );
+    }
+
+    const bullBoardPath = '/queues';
+
+    const bullExpressAdapter = new ExpressAdapter();
+    bullExpressAdapter.setBasePath(bullBoardPath);
+
+    const {} = createBullBoard({
+        queues: [
+            new BullAdapter(milestoneDetectionQueue),
+            new BullAdapter(notificationsSchedulerQueue),
+            new BullAdapter(smsNotificationDispatchQueue),
+        ],
+        serverAdapter: bullExpressAdapter,
+    });
+
+    if (env.BULL_BOARD_USERNAME && env.BULL_BOARD_PASSWORD) {
+        app.use(
+            bullBoardPath,
+            basicAuth({
+                users: {
+                    [env.BULL_BOARD_USERNAME]: env.BULL_BOARD_PASSWORD,
+                },
+                challenge: true,
+            }),
+            bullExpressAdapter.getRouter(),
+        );
+    } else if (env.NODE_ENV === 'development') {
+        app.use(bullBoardPath, bullExpressAdapter.getRouter());
     }
 }

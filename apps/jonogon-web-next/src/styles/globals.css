@@ -73,7 +73,6 @@
     body {
         @apply bg-background text-foreground;
     }
-
 }
 
 .editor .ProseMirror {
@@ -90,5 +89,80 @@
 }
 
 *:focus {
-  outline: none;
+    outline: none;
+}
+
+.ab-container {
+    perspective: 1000;
+    backface-visibility: hidden;
+    position: relative;
+}
+
+.entypo-bell {
+    font-size: 50px;
+    color: #555;
+    position: relative;
+}
+
+.badge-num {
+    font-size: 10px;
+    height: 18px;
+    width: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    background: #dd2627;
+    cursor: default;
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+    animation: ab-pulse 1.5s infinite;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+}
+
+.badge-num:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    opacity: 0;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    animation: ab-sonar 1.5s infinite;
+}
+
+@keyframes ab-sonar {
+    0% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes ab-pulse {
+    0% {
+        transform: scale(1);
+    }
+    20% {
+        transform: scale(1.4);
+    }
+    50% {
+        transform: scale(0.9);
+    }
+    80% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
 }

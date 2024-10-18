@@ -6,6 +6,18 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
 
 export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
 
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [K in string]?: JsonValue;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Comments {
@@ -30,6 +42,20 @@ export interface CommentVotes {
   updated_at: Generated<Timestamp>;
   user_id: Int8;
   vote: number;
+}
+
+export interface Notifications {
+  actor_user_id: Int8 | null;
+  comment_id: Int8 | null;
+  comment_vote_id: Int8 | null;
+  created_at: Generated<Timestamp>;
+  id: Generated<Int8>;
+  meta: Json | null;
+  petition_id: Int8 | null;
+  reply_comment_id: Int8 | null;
+  type: string;
+  user_id: Int8;
+  vote_id: Int8 | null;
 }
 
 export interface PetitionAttachments {
@@ -99,6 +125,7 @@ export interface Users {
 export interface DB {
   comment_votes: CommentVotes;
   comments: Comments;
+  notifications: Notifications;
   petition_attachments: PetitionAttachments;
   petition_votes: PetitionVotes;
   petitions: Petitions;
