@@ -370,8 +370,8 @@ export default function Petition() {
                 </div>
                 <ImageCarousel />
                 {petition?.data.description && (
-                    <Markdown 
-                    remarkPlugins={[remarkGfm]} 
+                    <Markdown
+                    remarkPlugins={[remarkGfm]}
                     className="prose prose-a:text-blue-600 prose-a:underline hover:prose-a:no-underline"
                 >
                         {petition.data.description ?? 'No description yet.'}
@@ -421,7 +421,7 @@ export default function Petition() {
                             </>
                         ) : (
                             <>
-                                <ThumbsUp size={20} fill={userVote === 1 ? '#000' : userVote === -1 ? '#fff' : '#28c45c' } />{' '}
+                                <ThumbsUp size={20} fill={userVote === 1 ? '#000' : userVote === 0 ? '#fff' : '#28c45c' } />{' '}
                                 <p className="ml-2">{upvoteCount}</p>
                             </>
                         )}
@@ -436,7 +436,7 @@ export default function Petition() {
                         className="flex-1 w-full"
                         size={'lg'}
                         onClick={clickThumbsDown}>
-                        <ThumbsDown size={20} fill={ userVote === 0 ? '#e03c3c' : '#fff' />{' '}
+                            <ThumbsDown size={20} fill={userVote === -1 ? '#000' : userVote === 0 ? '#e03c3c' : '#fff'} />                            {' '}
                         <p className="ml-2">{downvoteCount}</p>
                     </Button>
                 </div>
