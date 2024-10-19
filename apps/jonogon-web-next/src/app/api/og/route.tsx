@@ -5,14 +5,14 @@ import { trpcVanilla } from '@/trpc/server';
 
 export const runtime = 'edge';
 
-const [interSemiBold, interMedium] = await Promise.all([
-  fetch(new URL('../../../../public/fonts/Inter-SemiBold.woff', import.meta.url))
-    .then((res) => res.arrayBuffer()),
-  fetch(new URL('../../../../public/fonts/Inter-Medium.woff', import.meta.url))
-    .then((res) => res.arrayBuffer())
-]);
 
 export async function GET(req: NextRequest) {
+  const [interSemiBold, interMedium] = await Promise.all([
+    fetch(new URL('../../../../public/fonts/Inter-SemiBold.woff', import.meta.url))
+      .then((res) => res.arrayBuffer()),
+    fetch(new URL('../../../../public/fonts/Inter-Medium.woff', import.meta.url))
+      .then((res) => res.arrayBuffer())
+  ]);
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
