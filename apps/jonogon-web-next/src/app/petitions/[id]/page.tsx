@@ -10,7 +10,6 @@ export async function generateMetadata({params}: {params: {id: string}}) {
         id,
         title,
         description,
-        attachments,
         petition_upvote_count,
         petition_downvote_count,
     } = response.data;
@@ -26,20 +25,11 @@ export async function generateMetadata({params}: {params: {id: string}}) {
 
     const metaTitle = title ?? '';
     const metaDescription = generateDescription(totalVoteCount);
-    const imageAttachments = attachments.filter(attachment => attachment.type === 'image');
-    const metaImage = imageAttachments.length
-        ? [
-            {
-                url: `${imageAttachments[0].thumbnail}`.replace(
-                    '$CORE_HOSTNAME',
-                    'localhost',
-                ),
-                width: 1200,
-                height: 630,
-                alt: originalTitle,
-            },
-        ]
-        : [];
+
+    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:12003' : 'https://jonogon.org';
+    const ogImageUrl = new URL(`${baseUrl}/api/og`);
+    ogImageUrl.searchParams.append('id', id);
+
     return {
         title: siteTitle,
         description: originalDescription,
@@ -49,13 +39,20 @@ export async function generateMetadata({params}: {params: {id: string}}) {
             url: `https://jonogon.org/petitions/${id}`,
             type: 'website',
             siteName: 'jonogon.org',
-            images: metaImage,
+            images: [
+                {
+                    url: ogImageUrl.toString(),
+                    width: 1200,
+                    height: 630,
+                    alt: originalTitle,
+                },
+            ],
         },
         twitter: {
             card: 'summary_large_image',
             title: metaTitle,
             description: metaDescription,
-            images: metaImage,
+            images: [ogImageUrl.toString()],
         },
     };
 }

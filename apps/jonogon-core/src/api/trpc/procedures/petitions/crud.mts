@@ -85,6 +85,13 @@ export const getPetition = publicProcedure
                 ...omit(result, ['user_vote']),
                 petition_upvote_count: upvotes,
                 petition_downvote_count: downvotes,
+                petition_comment_count: await ctx.services.postgresQueryBuilder
+                    .selectFrom('comments')
+                    .where('petition_id', '=', result.id)
+                    .where('deleted_at', 'is', null)
+                    .select(({fn}) => [fn.count('id').as('count')])
+                    .executeTakeFirstOrThrow()
+                    .then((res) => Number(res.count)),
                 status: deriveStatus(result),
                 attachments: await Promise.all(
                     attachments.map(async (attachment) => ({
