@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "ES2021",
         "module": "commonjs",
-        "rootDir": "./migrations",
+        "rootDir": "./src",
         "moduleResolution": "node",
         "outDir": "./dist",
         "sourceRoot": "./src",
