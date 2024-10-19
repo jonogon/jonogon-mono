@@ -45,9 +45,10 @@ export default function EditPetition() {
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
 
-    const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
-        enabled: !!isAuthenticated,
-    });
+    const {data: selfResponse, isLoading: isLoadingSelf} =
+        trpc.users.getSelf.useQuery(undefined, {
+            enabled: !!isAuthenticated,
+        });
 
     const freshValue = params.get('fresh');
 
@@ -171,7 +172,10 @@ export default function EditPetition() {
         },
     });
 
-    const handleAttachmentUpload = (attachment: { type: 'image' | 'file', file: File }) => {
+    const handleAttachmentUpload = (attachment: {
+        type: 'image' | 'file';
+        file: File;
+    }) => {
         uploadAttachment({
             type: attachment.type,
             file: attachment.file,
@@ -255,8 +259,8 @@ export default function EditPetition() {
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                     This action cannot be undone. This will
-                                    permanently delete your account and remove
-                                    your data from our servers.
+                                    delete your petition and no one, including
+                                    you, will be able to see it again.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -289,8 +293,8 @@ export default function EditPetition() {
                 </div>
                 {freshValue && showSimilarPetitions && (
                     <SimilarPetitionsSuggestions
-                    title={petitionData.title ?? ''}
-                    onClose={() => setShowSimilarPetitions(false)}
+                        title={petitionData.title ?? ''}
+                        onClose={() => setShowSimilarPetitions(false)}
                     />
                 )}
                 <div className="flex flex-col gap-2">
@@ -338,8 +342,12 @@ export default function EditPetition() {
                     banglaLabel="ছবি"
                     fileType="image"
                     files={petitionRemoteData?.data?.attachments || []}
-                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
-                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    onAttachmentsChange={(attachment) =>
+                        handleAttachmentUpload(attachment)
+                    }
+                    removeAttachment={(attachment) =>
+                        removeAttachment(attachment)
+                    }
                     petitionId={Number(petition_id)}
                 />
                 <PetitionFileUploader
@@ -347,8 +355,12 @@ export default function EditPetition() {
                     banglaLabel="ফাইল"
                     fileType="file"
                     files={petitionRemoteData?.data?.attachments || []}
-                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
-                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    onAttachmentsChange={(attachment) =>
+                        handleAttachmentUpload(attachment)
+                    }
+                    removeAttachment={(attachment) =>
+                        removeAttachment(attachment)
+                    }
                     petitionId={Number(petition_id)}
                 />
                 <div className="flex flex-col gap-2">
