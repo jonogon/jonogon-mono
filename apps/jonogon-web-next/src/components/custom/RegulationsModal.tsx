@@ -27,9 +27,9 @@ const RegulationsModal: React.FC<RegulationsModalProps> = ({
                 closeButton={false}
             >
                 <div className="self-stretch flex-col justify-start items-center gap-6 inline-flex">
-                    <div className="w-full justify-center items-center inline-flex">
-                        <h2 className="text-black text-xl sm:text-2xl font-[&apos;Inter&apos;] font-bold text-center leading-normal">Rules & regulations for filing দাবিs</h2>
-                    </div>
+                    <DialogHeader className="w-full justify-center items-center inline-flex">
+                        <DialogTitle className="text-black text-xl sm:text-2xl font-[&apos;Inter&apos;] font-bold text-center leading-normal">Rules & regulations for filing দাবিs</DialogTitle>
+                    </DialogHeader>
                     <div className="w-full flex-col justify-start items-start gap-6 self-stretch inline-flex">
                         <div className="flex flex-col justify-start items-start gap-6">
                             {[
@@ -45,18 +45,18 @@ const RegulationsModal: React.FC<RegulationsModalProps> = ({
                                     </div>
                                     <div className="flex flex-col items-start gap-1">
                                         <h3 className="text-black text-base sm:text-lg font-semibold font-[&apos;Inter&apos;]">{rule.title}</h3>
-                                        <p className="text-[#696969] text-xs sm:text-sm font-light font-[&apos;Inter&apos;]">{rule.description}</p>
+                                        <DialogDescription className="text-[#696969] text-xs sm:text-sm font-light font-[&apos;Inter&apos;]">{rule.description}</DialogDescription>
                                     </div>
                                 </div>
                             ))}
                         </div>
                         <div className="flex flex-col items-start gap-4 self-stretch">
-                            <button
+                            <Button
                                 onClick={onAccept}
                                 className="flex h-10 sm:h-12 p-2 justify-center items-center gap-2 self-stretch rounded-lg bg-[#EF4335] cursor-pointer hover:bg-[#D93A2D] transition-colors"
                             >
                             <span className="text-white text-lg sm:text-xl font-bold font-[&apos;Inter&apos;]">Accept</span>
-                            </button>
+                            </Button>
                             <p className="text-[#5B5B5B] font-[&apos;Inter&apos;] text-xs sm:text-sm font-normal leading-normal">
                                 By accepting our rules and regulations you&apos;re accepting our <a href="https://elvista.notion.site/Jonogon-962f56d9d6ea42d3839790c2146b7f6a" target="_blank" className="text-[#312C2C] font-[&apos;Inter&apos;] text-xs sm:text-sm font-normal leading-normal underline">Terms & Conditions</a> for behaving and acting accordingly in our platform.
                             </p>
