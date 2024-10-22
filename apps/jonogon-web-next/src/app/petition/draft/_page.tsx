@@ -14,6 +14,7 @@ import {petitionLocations, petitionTargets} from '@/lib/constants';
 import { useAuthState } from '@/auth/token-manager';
 
 import SimilarPetitionsSuggestions from '@/components/custom/SimilarPetitionsSuggestions';
+import RegulationsModal from '@/components/custom/RegulationsModal';
 
 function storeDraftPetition<T>(data: T) {
     localStorage.setItem('draft-petition', JSON.stringify(data));
@@ -24,6 +25,7 @@ export default function EditLoggedOutDraftPetition() {
     const [isLoading, setIsLoading] = useState(false);
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const router = useRouter();
 
@@ -56,15 +58,8 @@ export default function EditLoggedOutDraftPetition() {
         .safeParse(petitionData).success;
 
     const redirectToLogin = () => {
-        setIsLoading(true);
-
-        const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
-        if (hasPetitionDraftData) {
-            storeDraftPetition(petitionData);
-        }
-
-        router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
-    }
+        setIsModalOpen(true);
+    };
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -217,6 +212,19 @@ export default function EditLoggedOutDraftPetition() {
                     </Button>
                 </div>
             </div>
+            <RegulationsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onAccept={() => {
+                    setIsModalOpen(false);
+                    setIsLoading(true);
+                    const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
+                    if (hasPetitionDraftData) {
+                        storeDraftPetition(petitionData);
+                    }
+                    router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
+                }}
+            />
         </div>
     );
 }

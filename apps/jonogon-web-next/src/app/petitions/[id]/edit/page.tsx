@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PetitionFileUploader from '@/components/custom/PetitionFileUploader';
 import SimilarPetitionsSuggestions from '@/components/custom/SimilarPetitionsSuggestions';
+import RegulationsModal from '@/components/custom/RegulationsModal';
 // import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 // import {petitionLocations, petitionTargets} from '@/lib/constants';
 
@@ -44,6 +45,7 @@ export default function EditPetition() {
     const isAuthenticated = useAuthState();
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
@@ -108,11 +110,15 @@ export default function EditPetition() {
     };
 
     const handlePetitionSubmission = () => {
-        updatePetition({
-            id: Number(petition_id),
-            data: petitionData,
-            also_submit: true,
-        });
+        if (freshValue) {
+            setIsModalOpen(true);
+        } else {
+            updatePetition({
+                id: Number(petition_id),
+                data: petitionData,
+                also_submit: true,
+            });
+        }
     };
 
     const softDeleteMutation = trpc.petitions.softDeletePetition.useMutation({
@@ -384,6 +390,18 @@ export default function EditPetition() {
                     </Button>
                 </div>
             </div>
+            <RegulationsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onAccept={() => {
+                    setIsModalOpen(false);
+                    updatePetition({
+                        id: Number(petition_id),
+                        data: petitionData,
+                        also_submit: true,
+                    });
+                }}
+            />
         </div>
     );
 }
