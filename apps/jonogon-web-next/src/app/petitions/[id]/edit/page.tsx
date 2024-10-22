@@ -103,10 +103,14 @@ export default function EditPetition() {
     );
 
     const handleUpdatePetition = () => {
-        updatePetition({
-            id: Number(petition_id),
-            data: petitionData,
-        });
+        if (freshValue) {
+            setIsModalOpen(true);
+        } else {
+            updatePetition({
+                id: Number(petition_id),
+                data: petitionData,
+            });
+        }
     };
 
     const handlePetitionSubmission = () => {
