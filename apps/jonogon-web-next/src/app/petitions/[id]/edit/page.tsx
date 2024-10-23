@@ -45,7 +45,7 @@ export default function EditPetition() {
     const isAuthenticated = useAuthState();
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(!!params.get('fresh'));
 
     const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
@@ -103,26 +103,18 @@ export default function EditPetition() {
     );
 
     const handleUpdatePetition = () => {
-        if (freshValue) {
-            setIsModalOpen(true);
-        } else {
-            updatePetition({
-                id: Number(petition_id),
-                data: petitionData,
-            });
-        }
+        updatePetition({
+            id: Number(petition_id),
+            data: petitionData,
+        });
     };
 
     const handlePetitionSubmission = () => {
-        if (freshValue) {
-            setIsModalOpen(true);
-        } else {
-            updatePetition({
-                id: Number(petition_id),
-                data: petitionData,
-                also_submit: true,
-            });
-        }
+        updatePetition({
+            id: Number(petition_id),
+            data: petitionData,
+            also_submit: true,
+        });
     };
 
     const softDeleteMutation = trpc.petitions.softDeletePetition.useMutation({
@@ -396,14 +388,14 @@ export default function EditPetition() {
             </div>
             <RegulationsModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    if (freshValue) {
+                        router.push('/');
+                    }
+                }}
                 onAccept={() => {
                     setIsModalOpen(false);
-                    updatePetition({
-                        id: Number(petition_id),
-                        data: petitionData,
-                        also_submit: true,
-                    });
                 }}
             />
         </div>

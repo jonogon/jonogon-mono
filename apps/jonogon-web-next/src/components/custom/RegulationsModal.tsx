@@ -22,7 +22,7 @@ const RegulationsModal: React.FC<RegulationsModalProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent
-                className="flex flex-col justify-center items-center w-full max-w-[600px] px-2 sm:px-8 py-10 rounded-3xl border-4 border-[#EF4335] bg-[#F7F2ED] sm:max-h-[90vh] sm:overflow-y-auto"
+                className="flex flex-col justify-center items-center w-full max-w-[600px] px-2 sm:px-8 py-10 border-4 border-[#EF4335] bg-[#F7F2ED] !rounded-2xl sm:max-h-[90vh] sm:overflow-y-auto"
                 closeButton={false}
             >
                 <div className="self-stretch flex-col justify-start items-center gap-6 inline-flex">

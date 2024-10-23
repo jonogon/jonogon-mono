@@ -25,7 +25,7 @@ export default function EditLoggedOutDraftPetition() {
     const [isLoading, setIsLoading] = useState(false);
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(true);
 
     const router = useRouter();
 
@@ -58,7 +58,12 @@ export default function EditLoggedOutDraftPetition() {
         .safeParse(petitionData).success;
 
     const redirectToLogin = () => {
-        setIsModalOpen(true);
+        setIsLoading(true);
+        const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
+        if (hasPetitionDraftData) {
+            storeDraftPetition(petitionData);
+        }
+        router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
     };
 
     useEffect(() => {
@@ -214,15 +219,12 @@ export default function EditLoggedOutDraftPetition() {
             </div>
             <RegulationsModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    router.push('/');
+                }}
                 onAccept={() => {
                     setIsModalOpen(false);
-                    setIsLoading(true);
-                    const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
-                    if (hasPetitionDraftData) {
-                        storeDraftPetition(petitionData);
-                    }
-                    router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
                 }}
             />
         </div>
