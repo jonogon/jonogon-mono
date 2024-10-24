@@ -13,6 +13,7 @@ import {
     submitPetition,
     updatePetition,
     softDeletePetition,
+    getPetitionDetailsForOG,
 } from '../procedures/petitions/crud.mjs';
 import {
     listPetitions,
@@ -48,4 +49,7 @@ export const petitionRouter = router({
     approve: approve,
     reject: reject,
     formalize: formalize,
+
+    // OpenGraph
+    getPetitionDetailsForOG: getPetitionDetailsForOG,
 });

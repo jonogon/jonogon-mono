@@ -1,262 +1,555 @@
-import { ImageResponse } from '@vercel/og';
-import { NextRequest } from 'next/server';
-import { trpcVanilla } from '@/trpc/server';
-
+import {ImageResponse} from '@vercel/og';
+import {NextRequest} from 'next/server';
+import {trpcVanilla} from '@/trpc/server';
 
 export const runtime = 'edge';
 
-
 export async function GET(req: NextRequest) {
-  const [interSemiBold, interMedium] = await Promise.all([
-    fetch(new URL('../../../../public/fonts/Inter-SemiBold.woff', import.meta.url))
-      .then((res) => res.arrayBuffer()),
-    fetch(new URL('../../../../public/fonts/Inter-Medium.woff', import.meta.url))
-      .then((res) => res.arrayBuffer())
-  ]);
+    const [inter, interBold, interSemiBold, interMedium] = await Promise.all([
+        fetch(
+            new URL(
+                '../../../../public/fonts/Inter-Regular.woff',
+                import.meta.url,
+            ),
+        ).then((res) => res.arrayBuffer()),
+        fetch(
+            new URL(
+                '../../../../public/fonts/Inter-Bold.woff',
+                import.meta.url,
+            ),
+        ).then((res) => res.arrayBuffer()),
+        fetch(
+            new URL(
+                '../../../../public/fonts/Inter-SemiBold.woff',
+                import.meta.url,
+            ),
+        ).then((res) => res.arrayBuffer()),
+        fetch(
+            new URL(
+                '../../../../public/fonts/Inter-Medium.woff',
+                import.meta.url,
+            ),
+        ).then((res) => res.arrayBuffer()),
+    ]);
 
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
+    const {searchParams} = new URL(req.url);
+    const petition_id = searchParams.get('petition_id');
 
-  if (!id) {
-    return new Response('Missing petition ID', { status: 400 });
-  }
-
-  const petition = await trpcVanilla.petitions.get.query({ id });
-
-  if (!petition) {
-    return new Response('Petition not found', { status: 404 });
-  }
-
-  const { created_at, petition_upvote_count, petition_downvote_count, petition_comment_count } = petition.data;
-
-  const formattedDate = new Date(created_at).toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const attachment = petition.data.attachments.find((a: any) => a.type === 'image');
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '1200px',
-          height: '630px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          position: 'relative',
-          background: '#F7F2EE',
-        }}
-      >
-        {attachment && (
-          <img
-            src={attachment.attachment.replace('$CORE_HOSTNAME', req.headers.get('host')?.split(':')[0] || '')}
-            width={1241}
-            height={930}
-            style={{
-              width: '100%',
-              height: '487px',
-              objectFit: 'cover',
-            }}
-          />
-        )}
-        <div
-          style={{
-            display: 'flex',
-            position: 'absolute',
-            top: '515px',
-            left: '40px',
-            width: '1100.29px',
-            height: '64px',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '48px'
-          }}>
-            {/* Upvotes */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '16px',
-            }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <path d="M20 13.3333L18.6853 13.1147C18.6536 13.3056 18.6638 13.5011 18.7152 13.6877C18.7667 13.8743 18.8581 14.0475 18.9832 14.1951C19.1083 14.3428 19.2641 14.4615 19.4397 14.5429C19.6152 14.6244 19.8065 14.6666 20 14.6667V13.3333ZM5.33333 13.3333V12C4.97971 12 4.64057 12.1405 4.39052 12.3905C4.14048 12.6406 4 12.9797 4 13.3333H5.33333ZM8 28H23.1467V25.3333H8V28ZM24.7467 12H20V14.6667H24.7467V12ZM21.316 13.552L22.3893 7.10533L19.76 6.66667L18.6853 13.1147L21.316 13.552ZM19.76 4H19.4747V6.66667H19.76V4ZM15.036 6.37467L11.684 11.4067L13.9027 12.8867L17.2573 7.85467L15.036 6.37467ZM10.5733 12H5.33333V14.6667H10.5733V12ZM4 13.3333V24H6.66667V13.3333H4ZM27.0693 24.784L28.6693 16.784L26.056 16.2613L24.456 24.2613L27.0693 24.784ZM11.684 11.4067C11.5622 11.5892 11.3959 11.7389 11.2024 11.8424C11.0089 11.9459 10.7928 12 10.5733 12V14.6667C11.2318 14.6666 11.8801 14.504 12.4607 14.1933C13.0412 13.8825 13.5361 13.4332 13.9013 12.8853L11.684 11.4067ZM22.3893 7.10533C22.453 6.72338 22.4328 6.33214 22.33 5.95881C22.2272 5.58548 22.0443 5.23901 21.7941 4.94349C21.5439 4.64797 21.2323 4.41049 20.8811 4.24755C20.5298 4.08462 20.1472 4.00015 19.76 4V6.66667L22.3893 7.10533ZM24.7467 14.6667C24.944 14.6666 25.1388 14.7103 25.3172 14.7946C25.4956 14.879 25.653 15.0019 25.7781 15.1544C25.9032 15.307 25.9929 15.4854 26.0408 15.6768C26.0886 15.8682 26.0947 16.0679 26.056 16.2613L28.6693 16.784C28.7853 16.2038 28.7711 15.6051 28.6278 15.031C28.4845 14.457 28.2156 13.9219 27.8405 13.4643C27.4654 13.0067 26.9935 12.638 26.4587 12.3848C25.924 12.1316 25.3397 12.0002 24.748 12L24.7467 14.6667ZM23.1467 28C24.0715 28.0001 24.9678 27.6796 25.683 27.0933C26.3982 26.5069 26.8881 25.6909 27.0693 24.784L24.456 24.2613C24.3955 24.5639 24.232 24.8362 23.9932 25.0317C23.7544 25.2271 23.4552 25.3338 23.1467 25.3333V28ZM19.4747 4C18.5967 4.00002 17.7324 4.21677 16.9583 4.63102C16.1842 5.04526 15.523 5.6442 15.036 6.37467L17.2573 7.85467C17.5008 7.48931 17.8293 7.18971 18.2164 6.98247C18.6034 6.77522 19.0356 6.66675 19.4747 6.66667V4ZM8 25.3333C7.64638 25.3333 7.30724 25.1929 7.05719 24.9428C6.80714 24.6928 6.66667 24.3536 6.66667 24H4C4 25.0609 4.42143 26.0783 5.17157 26.8284C5.92172 27.5786 6.93913 28 8 28V25.3333Z" fill="#EF4335"/>
-                <path d="M10.6666 13.3334V26.6667" stroke="#EF4335" strokeWidth="2" />
-              </svg>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                width: '119px',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  color: '#4F4F4F',
-                  fontSize: '32px',
-                  fontFamily: '"InterSemiBold"',
-                  fontWeight: '600',
-                  wordWrap: 'break-word',
-                }}>
-                  {petition_upvote_count}
-                </div>
-                <div style={{
-                  display: 'flex',
-                  color: '#4e4e4e',
-                  fontSize: '16px',
-                  fontFamily: '"InterMedium"',
-                  fontWeight: '500',
-                  wordWrap: 'break-word',
-                }}>
-                  Upvotes
-                </div>
-              </div>
-            </div>
-            {/* Downvotes */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '16px',
-            }}>
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 18.6667L18.6853 18.8853C18.6536 18.6944 18.6638 18.4989 18.7152 18.3123C18.7667 18.1257 18.8581 17.9525 18.9832 17.8049C19.1083 17.6572 19.2641 17.5385 19.4397 17.4571C19.6152 17.3756 19.8065 17.3334 20 17.3333V18.6667ZM5.33333 18.6667V20C4.97971 20 4.64057 19.8595 4.39052 19.6095C4.14048 19.3594 4 19.0203 4 18.6667H5.33333ZM8 4H23.1467V6.66667H8V4ZM24.7467 20H20V17.3333H24.7467V20ZM21.316 18.448L22.3893 24.8947L19.76 25.3333L18.6853 18.8853L21.316 18.448ZM19.76 28H19.4747V25.3333H19.76V28ZM15.036 25.6253L11.6827 20.5933L13.9013 19.1133L17.256 24.1453L15.036 25.6253ZM10.5733 20H5.33333V17.3333H10.5733V20ZM4 18.6667V8H6.66667V18.6667H4ZM27.0693 7.216L28.6693 15.216L26.056 15.7387L24.456 7.73867L27.0693 7.216ZM11.6827 20.5933C11.5609 20.4108 11.3959 20.2611 11.2024 20.1576C11.0089 20.0541 10.7928 20 10.5733 20V17.3333C11.2318 17.3334 11.8801 17.496 12.4607 17.8067C13.0412 18.1175 13.5361 18.5668 13.9013 19.1147L11.6827 20.5933ZM22.3893 24.8947C22.453 25.2766 22.4328 25.6679 22.33 26.0412C22.2272 26.4145 22.0443 26.761 21.7941 27.0565C21.5439 27.352 21.2323 27.5895 20.8811 27.7524C20.5298 27.9154 20.1472 27.9999 19.76 28V25.3333L22.3893 24.8947ZM24.7467 17.3333C24.944 17.3334 25.1388 17.2897 25.3172 17.2054C25.4956 17.121 25.653 16.9981 25.7781 16.8456C25.9032 16.693 25.9929 16.5146 26.0408 16.3232C26.0886 16.1318 26.0947 15.9321 26.056 15.7387L28.6693 15.216C28.7853 15.7962 28.7711 16.3949 28.6278 16.969C28.4845 17.543 28.2156 18.0781 27.8405 18.5357C27.4654 18.9933 26.9935 19.362 26.4587 19.6152C25.924 19.8684 25.3397 19.9998 24.748 20L24.7467 17.3333ZM23.1467 4C24.0715 3.99994 24.9678 4.32035 25.683 4.9067C26.3982 5.49305 26.8881 6.30911 27.0693 7.216L24.456 7.73867C24.3955 7.43607 24.232 7.16382 23.9932 6.96834C23.7544 6.77285 23.4552 6.66624 23.1467 6.66667V4ZM19.4747 28C18.5967 28 17.7324 27.7832 16.9583 27.369C16.1842 26.9547 15.523 26.3558 15.036 25.6253L17.256 24.1453C17.4994 24.5107 17.8293 24.8103 18.2164 25.0175C18.6034 25.2248 19.0356 25.3333 19.4747 25.3333V28ZM8 6.66667C7.64638 6.66667 7.30724 6.80714 7.05719 7.05719C6.80714 7.30724 6.66667 7.64638 6.66667 8H4C4 6.93913 4.42143 5.92172 5.17157 5.17157C5.92172 4.42143 6.93913 4 8 4V6.66667Z" fill="#EF4335"/>
-                <path d="M10.6666 18.6667V5.33337" stroke="#EF4335" stroke-width="2"/>
-              </svg>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                width: '119px',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  color: '#4F4F4F',
-                  fontSize: '32px',
-                  fontFamily: '"InterSemiBold"',
-                  fontWeight: '600',
-                  wordWrap: 'break-word',
-                }}>
-                  {petition_downvote_count}
-                </div>
-                <div style={{
-                  display: 'flex',
-                  color: '#4e4e4e',
-                  fontSize: '16px',
-                  fontFamily: '"InterMedium"',
-                  fontWeight: '500',
-                  wordWrap: 'break-word',
-                }}>
-                  Downvotes
-                </div>
-              </div>
-            </div>
-            {/* Comments */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '16px',
-            }}>
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 30.6667C15.6464 30.6667 15.3073 30.5262 15.0572 30.2762C14.8072 30.0261 14.6667 29.687 14.6667 29.3334V25.3334H9.33337C8.62613 25.3334 7.94785 25.0524 7.44776 24.5523C6.94766 24.0522 6.66671 23.374 6.66671 22.6667V9.33337C6.66671 8.62613 6.94766 7.94785 7.44776 7.44776C7.94785 6.94766 8.62613 6.66671 9.33337 6.66671H28C28.7073 6.66671 29.3856 6.94766 29.8857 7.44776C30.3858 7.94785 30.6667 8.62613 30.6667 9.33337V22.6667C30.6667 23.374 30.3858 24.0522 29.8857 24.5523C29.3856 25.0524 28.7073 25.3334 28 25.3334H22.5334L17.6 30.28C17.3334 30.5334 17 30.6667 16.6667 30.6667H16ZM17.3334 22.6667V26.7734L21.44 22.6667H28V9.33337H9.33337V22.6667H17.3334ZM4.00004 20H1.33337V4.00004C1.33337 3.2928 1.61433 2.61452 2.11442 2.11442C2.61452 1.61433 3.2928 1.33337 4.00004 1.33337H25.3334V4.00004H4.00004V20Z" fill="#EF4335"/>
-              </svg>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                width: '119px',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  color: '#4F4F4F',
-                  fontSize: '32px',
-                  fontFamily: '"InterSemiBold"',
-                  fontWeight: '600',
-                  wordWrap: 'break-word',
-                }}>
-                  {petition_comment_count}
-                </div>
-                <div style={{
-                  display: 'flex',
-                  color: '#4e4e4e',
-                  fontSize: '16px',
-                  fontFamily: '"InterMedium"',
-                  fontWeight: '500',
-                  wordWrap: 'break-word',
-                }}>
-                  Comments
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            top: '18px',
-            right: '100px',
-            color: '#4F4F4F',
-            fontFamily: '"InterSemiBold"',
-            fontSize: '1.5rem',
-            fontStyle: 'normal',
-            fontWeight: '600',
-            lineHeight: '2rem',
-            textAlign: 'right',
-            whiteSpace: 'nowrap',
-          }}>
-            {formattedDate}
-          </div>
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            top: '0px',
-            left: '1023px',
-            width: '57.29px',
-            height: '64px',
-            flexShrink: 0,
-          }}>
-            <svg width="58" height="64" viewBox="0 0 58 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M34.1875 14.2477C36.3155 11.6358 38.7171 9.03536 41.377 6.56186C50.6432 15.182 57.2903 29.2631 57.2903 36.0902C57.2903 48.3564 50.0351 58.8753 39.7073 63.3362V57.4149L43.7993 51.7289L45.0411 46.1603L43.7332 47.8906L27.6159 35.9551L26.4657 36.0608L26.9945 36.2933L34.202 52.3796L32.2865 52.6411L25.5984 37.7087L20.9603 35.6518L20.4965 32.068L25.0661 34.3248L29.2822 33.9378L31.2533 29.8903L18.3944 23.6048L9.03936 36.679L20.7609 54.3993L19.2676 64C8.05285 59.9966 0 49.013 0 36.0902C0 26.9087 8.91832 11.6845 21.4839 0C26.3791 4.55357 30.7015 9.43523 34.1875 14.2477ZM45.6939 31.8914L38.4087 41.5028L43.3784 45.2911L50.6636 35.675L45.6939 31.8914ZM44.6643 30.1692L36.9175 40.3953L31.6998 36.4269L39.4464 26.2008L44.6643 30.1692ZM31.4933 33.631L33.7312 29.0328L28.9715 26.7063L33.1735 21.1621L38.1026 24.9156L31.4933 33.631ZM25.9184 16.4046L31.3264 20.5218L27.2716 25.8731L21.0485 22.832L25.9184 16.4046Z" fill="#EF4335"/>
-            </svg>
-          </div>
-        </div>
-        {/* Bottom Red Rectangle */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '1200px',
-            height: '24px',
-            flexShrink: 0,
-            background: '#EF4335',
-          }}
-        />
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        {
-          name: 'InterSemiBold',
-          data: interSemiBold,
-          style: 'normal',
-          weight: 600,
-        },
-        {
-          name: 'InterMedium',
-          data: interMedium,
-          style: 'normal',
-          weight: 500,
-        },
-      ],
+    if (!petition_id) {
+        return new Response('Missing petition ID', {status: 400});
     }
-  );
+
+    const petition = await trpcVanilla.petitions.getPetitionDetailsForOG.query({
+        id: petition_id,
+    });
+
+    if (!petition) {
+        return new Response('Petition not found', {status: 404});
+    }
+
+    const {
+        title,
+        location,
+        target,
+        created_at,
+        petition_upvote_count,
+        petition_downvote_count,
+        petition_comments_count,
+        main_image,
+        created_by_id,
+        created_by_name,
+        created_by_image,
+    } = petition.data;
+
+    const formattedDate = new Date(created_at).toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+
+    const baseUrl =
+        process.env.NODE_ENV === 'development'
+            ? 'http://localhost:12001/static/'
+            : 'https://static.jonogon.org/';
+    const imageLink = `${baseUrl}${main_image}`;
+    const profileImageLink = `${baseUrl}${created_by_image}`;
+
+    const createdByNickName = created_by_name
+        ? created_by_name.split(' ')[0].length < 4
+            ? created_by_name.split(' ').slice(0, 2).join(' ')
+            : created_by_name.split(' ')[0]
+        : 'Citizen';
+
+    return new ImageResponse(
+        (
+            <div
+                style={{
+                    width: '1200px',
+                    height: '630px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    position: 'relative',
+                    background: '#F7F2EE',
+                }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        width: '1241px',
+                        height: '487px',
+                        background: '#EF4335',
+                    }}>
+                    {main_image && (
+                        <img
+                            src={imageLink}
+                            width={1241}
+                            height={930}
+                            style={{
+                                width: '100%',
+                                height: '487px',
+                                objectFit: 'cover',
+                            }}
+                        />
+                    )}
+                </div>
+                <div
+                    style={{
+                        display: 'flex',
+                        position: 'absolute',
+                        top: '515px',
+                        left: '42px',
+                        width: '1100.29px',
+                        height: '64px',
+                        flexShrink: 0,
+                    }}>
+                    {/* profile image */}
+                    <div
+                        style={{
+                            display: 'flex',
+                        }}>
+                        <img
+                            src={profileImageLink}
+                            style={{
+                                width: '4.125rem',
+                                height: '4.125rem',
+                                borderRadius: '50%',
+                                border: '3px solid #EF4335',
+                                background: 'lightgray 50% / cover no-repeat',
+                            }}
+                            alt="profile image"
+                        />
+                    </div>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            paddingLeft: '1.56rem',
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
+                        }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                color: '#EF4335',
+                                fontSize: '1.5rem',
+                                fontFamily: '&apos;Inter&apos;',
+                                fontWeight: '400',
+                            }}>
+                            Citizen #{created_by_id}
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                color: '#EF4335',
+                                fontSize: '2.25rem',
+                                fontFamily: '&apos;InterBold&apos;',
+                                fontWeight: '700',
+                            }}>
+                            <span style={{paddingRight: '8px'}}>
+                                {createdByNickName}&apos;s
+                            </span>
+                            <svg
+                                width="69"
+                                height="35"
+                                viewBox="0 0 69 35"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M24.364 11.608V15.568H8.452V25.54L7.408 24.82C8.272 23.884 9.28 22.984 10.432 22.12C11.584 21.256 12.856 20.428 14.248 19.636C15.664 18.844 17.176 18.124 18.784 17.476L22.06 20.212C21.724 20.812 21.436 21.46 21.196 22.156C20.98 22.828 20.812 23.548 20.692 24.316C20.596 25.06 20.548 25.852 20.548 26.692C20.548 27.628 20.644 28.684 20.836 29.86C21.028 31.012 21.328 32.2 21.736 33.424L17.092 34.396C16.66 33.124 16.324 31.888 16.084 30.688C15.868 29.488 15.76 28.18 15.76 26.764C15.76 25.876 15.844 25.024 16.012 24.208C16.18 23.368 16.408 22.576 16.696 21.832C16.984 21.088 17.284 20.404 17.596 19.78L19.036 21.796C17.62 22.396 16.24 23.14 14.896 24.028C13.552 24.892 12.268 25.828 11.044 26.836C9.82 27.82 8.68 28.804 7.624 29.788L3.7 27.232V15.568H0.64V11.608H24.364ZM35.2962 11.608V15.568H31.8402V34H27.0882V18.016C26.8002 17.272 26.3922 16.684 25.8642 16.252C25.3362 15.796 24.6522 15.568 23.8122 15.568H23.6322V11.608H24.3522C24.9042 11.608 25.4202 11.752 25.9002 12.04C26.3802 12.328 26.8242 12.94 27.2322 13.876C27.2082 13.756 27.1722 13.48 27.1242 13.048C27.1002 12.616 27.0882 12.244 27.0882 11.932V9.232H30.9762L31.8042 11.608H35.2962ZM46.2298 11.608V15.568H42.7738V34H38.0218V15.568H34.5658V11.608H38.0578C37.6738 11.176 37.2538 10.684 36.7978 10.132C36.3658 9.58 35.9818 9.076 35.6458 8.62C36.8458 6.676 38.0218 5.152 39.1738 4.048C40.3498 2.944 41.5858 2.164 42.8818 1.708C44.1778 1.228 45.6058 0.987998 47.1658 0.987998C48.3178 0.987998 49.4098 1.084 50.4418 1.276C51.4978 1.468 52.5898 1.804 53.7178 2.284C54.8698 2.74 56.1418 3.364 57.5338 4.156C58.9258 4.924 60.5458 5.884 62.3938 7.036L59.9458 10.24C58.0018 8.992 56.3458 7.984 54.9778 7.216C53.6098 6.424 52.3618 5.848 51.2338 5.488C50.1058 5.128 48.9178 4.948 47.6698 4.948C46.5418 4.948 45.5578 5.164 44.7178 5.596C43.8778 6.028 43.1458 6.568 42.5218 7.216C41.9218 7.864 41.3938 8.536 40.9378 9.232C41.1538 9.616 41.4058 10.024 41.6938 10.456C41.9818 10.888 42.2818 11.272 42.5938 11.608H46.2298ZM68.8634 11.608V15.568H65.4074V34H60.6554C59.7674 32.704 58.6874 31.564 57.4154 30.58C56.1674 29.596 54.7754 28.78 53.2394 28.132C51.7034 27.46 50.0354 26.98 48.2354 26.692L46.4354 22.444C48.6434 21.22 51.0554 20.044 53.6714 18.916C56.3114 17.764 58.9034 16.852 61.4474 16.18L60.7994 17.368V15.568H45.4994V11.608H68.8634ZM60.6554 19.636L61.4114 20.428C59.8274 20.884 58.3274 21.412 56.9114 22.012C55.5194 22.588 54.0434 23.248 52.4834 23.992C53.4674 24.184 54.4874 24.52 55.5434 25C56.6234 25.456 57.6674 26.056 58.6754 26.8C59.7074 27.544 60.6314 28.408 61.4474 29.392L60.7634 29.788C60.7394 29.236 60.7154 28.684 60.6914 28.132C60.6674 27.58 60.6554 27.04 60.6554 26.512V19.636Z"
+                                    fill="#EF4335"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                {/* Counts */}
+                <div
+                    style={{
+                        display: 'flex',
+                        position: 'absolute',
+                        top: '515px',
+                        left: '560px',
+                        width: '1100.29px',
+                        height: '64px',
+                        flexShrink: 0,
+                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '48px',
+                        }}>
+                        {/* Upvotes */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '16px',
+                            }}>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="32"
+                                height="32"
+                                viewBox="0 0 32 32"
+                                fill="none">
+                                <path
+                                    d="M20 13.3333L18.6853 13.1147C18.6536 13.3056 18.6638 13.5011 18.7152 13.6877C18.7667 13.8743 18.8581 14.0475 18.9832 14.1951C19.1083 14.3428 19.2641 14.4615 19.4397 14.5429C19.6152 14.6244 19.8065 14.6666 20 14.6667V13.3333ZM5.33333 13.3333V12C4.97971 12 4.64057 12.1405 4.39052 12.3905C4.14048 12.6406 4 12.9797 4 13.3333H5.33333ZM8 28H23.1467V25.3333H8V28ZM24.7467 12H20V14.6667H24.7467V12ZM21.316 13.552L22.3893 7.10533L19.76 6.66667L18.6853 13.1147L21.316 13.552ZM19.76 4H19.4747V6.66667H19.76V4ZM15.036 6.37467L11.684 11.4067L13.9027 12.8867L17.2573 7.85467L15.036 6.37467ZM10.5733 12H5.33333V14.6667H10.5733V12ZM4 13.3333V24H6.66667V13.3333H4ZM27.0693 24.784L28.6693 16.784L26.056 16.2613L24.456 24.2613L27.0693 24.784ZM11.684 11.4067C11.5622 11.5892 11.3959 11.7389 11.2024 11.8424C11.0089 11.9459 10.7928 12 10.5733 12V14.6667C11.2318 14.6666 11.8801 14.504 12.4607 14.1933C13.0412 13.8825 13.5361 13.4332 13.9013 12.8853L11.684 11.4067ZM22.3893 7.10533C22.453 6.72338 22.4328 6.33214 22.33 5.95881C22.2272 5.58548 22.0443 5.23901 21.7941 4.94349C21.5439 4.64797 21.2323 4.41049 20.8811 4.24755C20.5298 4.08462 20.1472 4.00015 19.76 4V6.66667L22.3893 7.10533ZM24.7467 14.6667C24.944 14.6666 25.1388 14.7103 25.3172 14.7946C25.4956 14.879 25.653 15.0019 25.7781 15.1544C25.9032 15.307 25.9929 15.4854 26.0408 15.6768C26.0886 15.8682 26.0947 16.0679 26.056 16.2613L28.6693 16.784C28.7853 16.2038 28.7711 15.6051 28.6278 15.031C28.4845 14.457 28.2156 13.9219 27.8405 13.4643C27.4654 13.0067 26.9935 12.638 26.4587 12.3848C25.924 12.1316 25.3397 12.0002 24.748 12L24.7467 14.6667ZM23.1467 28C24.0715 28.0001 24.9678 27.6796 25.683 27.0933C26.3982 26.5069 26.8881 25.6909 27.0693 24.784L24.456 24.2613C24.3955 24.5639 24.232 24.8362 23.9932 25.0317C23.7544 25.2271 23.4552 25.3338 23.1467 25.3333V28ZM19.4747 4C18.5967 4.00002 17.7324 4.21677 16.9583 4.63102C16.1842 5.04526 15.523 5.6442 15.036 6.37467L17.2573 7.85467C17.5008 7.48931 17.8293 7.18971 18.2164 6.98247C18.6034 6.77522 19.0356 6.66675 19.4747 6.66667V4ZM8 25.3333C7.64638 25.3333 7.30724 25.1929 7.05719 24.9428C6.80714 24.6928 6.66667 24.3536 6.66667 24H4C4 25.0609 4.42143 26.0783 5.17157 26.8284C5.92172 27.5786 6.93913 28 8 28V25.3333Z"
+                                    fill="#EF4335"
+                                />
+                                <path
+                                    d="M10.6666 13.3334V26.6667"
+                                    stroke="#EF4335"
+                                    strokeWidth="2"
+                                />
+                            </svg>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    width: '119px',
+                                }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4F4F4F',
+                                        fontSize: '32px',
+                                        fontFamily: '&apos;InterSemiBold&apos;',
+                                        fontWeight: '600',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    {petition_upvote_count}
+                                </div>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4e4e4e',
+                                        fontSize: '16px',
+                                        fontFamily: '&apos;InterMedium&apos;',
+                                        fontWeight: '500',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    Upvotes
+                                </div>
+                            </div>
+                        </div>
+                        {/* Downvotes */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '16px',
+                            }}>
+                            <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 32 32"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M20 18.6667L18.6853 18.8853C18.6536 18.6944 18.6638 18.4989 18.7152 18.3123C18.7667 18.1257 18.8581 17.9525 18.9832 17.8049C19.1083 17.6572 19.2641 17.5385 19.4397 17.4571C19.6152 17.3756 19.8065 17.3334 20 17.3333V18.6667ZM5.33333 18.6667V20C4.97971 20 4.64057 19.8595 4.39052 19.6095C4.14048 19.3594 4 19.0203 4 18.6667H5.33333ZM8 4H23.1467V6.66667H8V4ZM24.7467 20H20V17.3333H24.7467V20ZM21.316 18.448L22.3893 24.8947L19.76 25.3333L18.6853 18.8853L21.316 18.448ZM19.76 28H19.4747V25.3333H19.76V28ZM15.036 25.6253L11.6827 20.5933L13.9013 19.1133L17.256 24.1453L15.036 25.6253ZM10.5733 20H5.33333V17.3333H10.5733V20ZM4 18.6667V8H6.66667V18.6667H4ZM27.0693 7.216L28.6693 15.216L26.056 15.7387L24.456 7.73867L27.0693 7.216ZM11.6827 20.5933C11.5609 20.4108 11.3959 20.2611 11.2024 20.1576C11.0089 20.0541 10.7928 20 10.5733 20V17.3333C11.2318 17.3334 11.8801 17.496 12.4607 17.8067C13.0412 18.1175 13.5361 18.5668 13.9013 19.1147L11.6827 20.5933ZM22.3893 24.8947C22.453 25.2766 22.4328 25.6679 22.33 26.0412C22.2272 26.4145 22.0443 26.761 21.7941 27.0565C21.5439 27.352 21.2323 27.5895 20.8811 27.7524C20.5298 27.9154 20.1472 27.9999 19.76 28V25.3333L22.3893 24.8947ZM24.7467 17.3333C24.944 17.3334 25.1388 17.2897 25.3172 17.2054C25.4956 17.121 25.653 16.9981 25.7781 16.8456C25.9032 16.693 25.9929 16.5146 26.0408 16.3232C26.0886 16.1318 26.0947 15.9321 26.056 15.7387L28.6693 15.216C28.7853 15.7962 28.7711 16.3949 28.6278 16.969C28.4845 17.543 28.2156 18.0781 27.8405 18.5357C27.4654 18.9933 26.9935 19.362 26.4587 19.6152C25.924 19.8684 25.3397 19.9998 24.748 20L24.7467 17.3333ZM23.1467 4C24.0715 3.99994 24.9678 4.32035 25.683 4.9067C26.3982 5.49305 26.8881 6.30911 27.0693 7.216L24.456 7.73867C24.3955 7.43607 24.232 7.16382 23.9932 6.96834C23.7544 6.77285 23.4552 6.66624 23.1467 6.66667V4ZM19.4747 28C18.5967 28 17.7324 27.7832 16.9583 27.369C16.1842 26.9547 15.523 26.3558 15.036 25.6253L17.256 24.1453C17.4994 24.5107 17.8293 24.8103 18.2164 25.0175C18.6034 25.2248 19.0356 25.3333 19.4747 25.3333V28ZM8 6.66667C7.64638 6.66667 7.30724 6.80714 7.05719 7.05719C6.80714 7.30724 6.66667 7.64638 6.66667 8H4C4 6.93913 4.42143 5.92172 5.17157 5.17157C5.92172 4.42143 6.93913 4 8 4V6.66667Z"
+                                    fill="#EF4335"
+                                />
+                                <path
+                                    d="M10.6666 18.6667V5.33337"
+                                    stroke="#EF4335"
+                                    stroke-width="2"
+                                />
+                            </svg>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    width: '119px',
+                                }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4F4F4F',
+                                        fontSize: '32px',
+                                        fontFamily: '&apos;InterSemiBold&apos;',
+                                        fontWeight: '600',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    {petition_downvote_count}
+                                </div>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4e4e4e',
+                                        fontSize: '16px',
+                                        fontFamily: '&apos;InterMedium&apos;',
+                                        fontWeight: '500',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    Downvotes
+                                </div>
+                            </div>
+                        </div>
+                        {/* Comments */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '16px',
+                            }}>
+                            <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 32 32"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M16 30.6667C15.6464 30.6667 15.3073 30.5262 15.0572 30.2762C14.8072 30.0261 14.6667 29.687 14.6667 29.3334V25.3334H9.33337C8.62613 25.3334 7.94785 25.0524 7.44776 24.5523C6.94766 24.0522 6.66671 23.374 6.66671 22.6667V9.33337C6.66671 8.62613 6.94766 7.94785 7.44776 7.44776C7.94785 6.94766 8.62613 6.66671 9.33337 6.66671H28C28.7073 6.66671 29.3856 6.94766 29.8857 7.44776C30.3858 7.94785 30.6667 8.62613 30.6667 9.33337V22.6667C30.6667 23.374 30.3858 24.0522 29.8857 24.5523C29.3856 25.0524 28.7073 25.3334 28 25.3334H22.5334L17.6 30.28C17.3334 30.5334 17 30.6667 16.6667 30.6667H16ZM17.3334 22.6667V26.7734L21.44 22.6667H28V9.33337H9.33337V22.6667H17.3334ZM4.00004 20H1.33337V4.00004C1.33337 3.2928 1.61433 2.61452 2.11442 2.11442C2.61452 1.61433 3.2928 1.33337 4.00004 1.33337H25.3334V4.00004H4.00004V20Z"
+                                    fill="#EF4335"
+                                />
+                            </svg>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'flex-start',
+                                    width: '119px',
+                                }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4F4F4F',
+                                        fontSize: '32px',
+                                        fontFamily: '&apos;InterSemiBold&apos;',
+                                        fontWeight: '600',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    {petition_comments_count}
+                                </div>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        color: '#4e4e4e',
+                                        fontSize: '16px',
+                                        fontFamily: '&apos;InterMedium&apos;',
+                                        fontWeight: '500',
+                                        wordWrap: 'break-word',
+                                    }}>
+                                    Comments
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* Bottom Red Rectangle */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '1200px',
+                        height: '24px',
+                        flexShrink: 0,
+                        background: '#EF4335',
+                    }}
+                />
+                {/* Date */}
+                {main_image ? (
+                    <div
+                        style={{
+                            display: 'flex',
+                            position: 'absolute',
+                            top: '52px',
+                            left: '60px',
+                            color: '#F7F2EE',
+                            fontFamily: '&apos;InterSemiBold&apos;',
+                            fontSize: '2rem',
+                            fontStyle: 'normal',
+                            fontWeight: '600',
+                            lineHeight: '2rem',
+                            textAlign: 'right',
+                            whiteSpace: 'nowrap',
+                        }}>
+                        {formattedDate}
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            display: 'flex',
+                            position: 'absolute',
+                            top: '52px',
+                            left: '60px',
+                            color: '#F7F2EE',
+                            fontFamily: '&apos;InterBold&apos;',
+                            fontSize: '1.5rem',
+                            fontStyle: 'normal',
+                            fontWeight: '700',
+                            lineHeight: '2rem',
+                            textAlign: 'right',
+                            whiteSpace: 'nowrap',
+                        }}>
+                        {formattedDate}
+                    </div>
+                )}
+
+                {/* Jonogon Logo */}
+                {main_image ? (
+                    <div
+                        style={{
+                            display: 'flex',
+                            position: 'absolute',
+                            top: '35px',
+                            left: '883px',
+                            width: '57.29px',
+                            height: '64px',
+                            flexShrink: 0,
+                        }}>
+                        <svg
+                            width="58"
+                            height="64"
+                            viewBox="0 0 58 64"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                fill-rule="evenodd"
+                                clip-rule="evenodd"
+                                d="M34.1875 14.2477C36.3155 11.6358 38.7171 9.03536 41.377 6.56186C50.6432 15.182 57.2903 29.2631 57.2903 36.0902C57.2903 48.3564 50.0351 58.8753 39.7073 63.3362V57.4149L43.7993 51.7289L45.0411 46.1603L43.7332 47.8906L27.6159 35.9551L26.4657 36.0608L26.9945 36.2933L34.202 52.3796L32.2865 52.6411L25.5984 37.7087L20.9603 35.6518L20.4965 32.068L25.0661 34.3248L29.2822 33.9378L31.2533 29.8903L18.3944 23.6048L9.03936 36.679L20.7609 54.3993L19.2676 64C8.05285 59.9966 0 49.013 0 36.0902C0 26.9087 8.91832 11.6845 21.4839 0C26.3791 4.55357 30.7015 9.43523 34.1875 14.2477ZM45.6939 31.8914L38.4087 41.5028L43.3784 45.2911L50.6636 35.675L45.6939 31.8914ZM44.6643 30.1692L36.9175 40.3953L31.6998 36.4269L39.4464 26.2008L44.6643 30.1692ZM31.4933 33.631L33.7312 29.0328L28.9715 26.7063L33.1735 21.1621L38.1026 24.9156L31.4933 33.631ZM25.9184 16.4046L31.3264 20.5218L27.2716 25.8731L21.0485 22.832L25.9184 16.4046Z"
+                                fill="#EF4335"
+                            />
+                        </svg>
+                        <div
+                            style={{
+                                display: 'flex',
+                                position: 'absolute',
+                                top: '13px',
+                                left: '72px',
+                            }}>
+                            <svg
+                                width="192"
+                                height="46"
+                                viewBox="0 0 192 46"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M29.16 43.08C26.088 43.08 23.208 42.6747 20.52 41.864C17.832 41.0107 15.336 39.624 13.032 37.704C10.7707 35.784 8.70133 33.1813 6.824 29.896C4.98933 26.6107 3.38933 22.5147 2.024 17.608L10.024 15.368C11.5173 20.5307 13.1387 24.6053 14.888 27.592C16.68 30.536 18.7067 32.6267 20.968 33.864C23.2293 35.1013 25.8107 35.72 28.712 35.72C31.7413 35.72 33.896 35.1867 35.176 34.12C36.4987 33.0107 37.16 31.6027 37.16 29.896C37.16 28.4453 36.9893 27.2507 36.648 26.312C36.3493 25.3733 36.0293 24.584 35.688 23.944L41.576 24.264C40.2533 25.4587 38.9307 26.5253 37.608 27.464C36.2853 28.36 34.8347 29.0853 33.256 29.64C31.72 30.152 29.8853 30.408 27.752 30.408C25.9173 30.408 24.2747 30.1093 22.824 29.512C21.3733 28.9147 20.2213 27.9973 19.368 26.76C18.5573 25.48 18.152 23.8587 18.152 21.896C18.152 20.1893 18.6213 18.5253 19.56 16.904C20.4987 15.24 22.248 13.6613 24.808 12.168C23.9973 12.2107 23.2507 12.232 22.568 12.232C21.928 12.232 21.1813 12.232 20.328 12.232H0.36V5.192H65.448V12.232H46.504C45.352 12.232 44.008 12.2107 42.472 12.168C40.9787 12.0827 39.6773 12.0187 38.568 11.976C36.0507 12.8293 33.896 13.768 32.104 14.792C30.312 15.7733 28.9467 16.7973 28.008 17.864C27.0693 18.888 26.6 19.8907 26.6 20.872C26.6 21.7253 26.8347 22.3653 27.304 22.792C27.7733 23.176 28.328 23.368 28.968 23.368C30.12 23.368 31.144 23.1333 32.04 22.664C32.936 22.1947 33.96 21.5333 35.112 20.68L44.456 23.432C44.7547 24.2853 44.9893 25.2667 45.16 26.376C45.3733 27.4853 45.48 28.6587 45.48 29.896C45.48 32.0293 44.9467 34.12 43.88 36.168C42.8133 38.1733 41.0853 39.8373 38.696 41.16C36.3067 42.44 33.128 43.08 29.16 43.08ZM58.536 32.392C58.536 34.0987 58.7067 35.9333 59.048 37.896C59.432 39.8587 59.9653 41.8853 60.648 43.976L52.392 45.704C51.5813 43.4 50.984 41.1813 50.6 39.048C50.216 36.9147 50.024 34.5467 50.024 31.944C50.024 30.3653 50.1307 28.8293 50.344 27.336C50.6 25.8 50.9627 24.3707 51.432 23.048C48.232 22.5787 45.48 21.8533 43.176 20.872C40.872 19.8907 38.9307 18.696 37.352 17.288C35.816 15.8373 34.536 14.216 33.512 12.424L42.344 11.592C42.856 12.36 43.5813 13.1067 44.52 13.832C45.5013 14.5147 46.76 15.0907 48.296 15.56C49.8747 15.9867 51.816 16.2 54.12 16.2C54.5893 16.2 55.0373 16.1787 55.464 16.136C55.9333 16.0933 56.5093 16.0507 57.192 16.008L61.096 22.344C60.2853 23.7947 59.6453 25.3307 59.176 26.952C58.7493 28.5733 58.536 30.3867 58.536 32.392ZM106.029 5.192V12.232H99.8845V45H91.4365V31.56L92.7165 34.888C91.3938 33.1813 89.9645 31.624 88.4285 30.216C86.8925 28.808 85.3352 27.6773 83.7565 26.824C82.2205 25.9707 80.7058 25.544 79.2125 25.544C78.1458 25.544 77.2285 25.8 76.4605 26.312C75.7352 26.7813 75.3725 27.5493 75.3725 28.616C75.3725 29.5547 75.7138 30.344 76.3965 30.984C77.0792 31.624 78.1672 32.2427 79.6605 32.84L75.8845 39.88C73.0258 38.7707 70.7645 37.192 69.1005 35.144C67.4792 33.0533 66.6685 30.7707 66.6685 28.296C66.6685 25.992 67.2018 24.1147 68.2685 22.664C69.3352 21.1707 70.7005 20.0827 72.3645 19.4C74.0712 18.6747 75.8205 18.312 77.6125 18.312C79.5752 18.312 81.4312 18.6107 83.1805 19.208C84.9298 19.8053 86.5938 20.6587 88.1725 21.768C89.7938 22.8347 91.3725 24.1573 92.9085 25.736L91.6285 26.376C91.5432 25.352 91.4792 24.3067 91.4365 23.24C91.4365 22.1307 91.4365 21.1067 91.4365 20.168V12.232H64.1725V5.192H106.029ZM136.223 45V19.208L137.823 21.96C136.884 20.7227 135.86 19.5067 134.751 18.312C133.684 17.1173 132.532 16.0293 131.295 15.048C130.1 14.0667 128.799 13.2773 127.391 12.68C126.026 12.0827 124.554 11.784 122.975 11.784C120.97 11.784 119.37 12.232 118.175 13.128C116.98 14.024 115.828 15.048 114.719 16.2L113.951 16.072C114.804 15.5173 115.764 15.0693 116.831 14.728C117.898 14.344 119.22 14.152 120.799 14.152C122.719 14.152 124.319 14.5147 125.599 15.24C126.922 15.9653 127.924 16.9467 128.607 18.184C129.29 19.3787 129.631 20.7227 129.631 22.216C129.631 24.776 128.692 27.1227 126.815 29.256C124.98 31.3893 122.164 33.5227 118.367 35.656L113.503 28.808C115.978 27.6987 117.94 26.6107 119.391 25.544C120.884 24.4773 121.631 23.3467 121.631 22.152C121.631 21.4267 121.396 20.872 120.927 20.488C120.5 20.0613 119.754 19.848 118.687 19.848C117.834 19.848 116.959 19.976 116.063 20.232C115.167 20.488 114.164 20.9147 113.055 21.512L106.335 16.136C107.828 13.96 109.386 12.0187 111.007 10.312C112.671 8.60533 114.463 7.26133 116.383 6.28C118.303 5.256 120.394 4.744 122.655 4.744C124.703 4.744 126.602 5.10667 128.351 5.832C130.143 6.55733 131.914 7.624 133.663 9.032C135.412 10.3973 137.29 12.0827 139.295 14.088L136.479 13.32C136.479 12.808 136.436 12.0827 136.351 11.144C136.266 10.1627 136.223 8.968 136.223 7.56V0.967999H143.199L144.607 5.192H150.815V12.232H144.671V45H136.223ZM191.98 5.192V12.232H185.836V45H177.388V17.992L178.86 21.704C177.494 19.9547 176.065 18.3547 174.572 16.904C173.078 15.4107 171.542 14.216 169.964 13.32C168.385 12.424 166.785 11.976 165.164 11.976C164.31 11.976 163.564 12.1467 162.924 12.488C162.284 12.7867 161.772 13.256 161.388 13.896C161.046 14.4933 160.876 15.24 160.876 16.136C160.876 17.032 161.089 17.864 161.516 18.632C161.985 19.3573 162.796 19.9547 163.948 20.424C165.1 20.8507 166.764 21.1067 168.94 21.192L167.98 29.512C164.31 29.0853 161.302 28.2747 158.956 27.08C156.609 25.8427 154.881 24.2853 153.772 22.408C152.705 20.5307 152.172 18.376 152.172 15.944C152.172 13.6827 152.684 11.72 153.708 10.056C154.732 8.34933 156.118 7.048 157.868 6.152C159.66 5.21333 161.644 4.744 163.82 4.744C166.081 4.744 168.086 5.128 169.836 5.896C171.628 6.664 173.249 7.66666 174.7 8.904C176.193 10.1413 177.622 11.4427 178.988 12.808L177.58 12.872C177.537 11.848 177.494 10.7813 177.452 9.672C177.409 8.56267 177.388 7.53867 177.388 6.6V0.967999H184.3L185.772 5.192H191.98Z"
+                                    fill="#EF4335"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            display: 'flex',
+                            position: 'absolute',
+                            top: '137px',
+                            left: '909px',
+                        }}>
+                        <svg
+                            width="347"
+                            height="435"
+                            viewBox="0 0 347 435"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_3024_35)">
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M266.142 423.179V433.382H129.895L129.148 427.609L266.142 423.179Z"
+                                    fill="#F7F2EE"
+                                />
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M129.147 427.609C174.345 438.797 221.762 437.264 266.141 423.179L358.244 236.853L266.691 127.938L175.493 93.0259L78.0053 147.487L36.7773 266.173L129.147 427.609Z"
+                                    fill="#F7F2EE"
+                                />
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M229.144 95.1936C244.01 76.992 260.112 59.8344 277.337 43.8424C339.446 101.438 384 195.516 384 241.133C384 323.093 335.366 393.372 266.142 423.179V383.617L293.572 345.626L301.898 308.421L293.132 319.982L185.101 240.23L177.389 240.937L180.934 242.508L229.246 349.986L216.407 351.737L171.594 251.988L140.508 238.243L137.364 214.303L168.025 229.376L196.281 226.792L209.497 199.749L123.291 157.713L60.5919 245.053L139.156 363.463L129.148 427.609C53.9721 400.865 0 327.475 0 241.126C0 179.792 59.7506 78.0713 143.999 0C176.815 30.4274 205.778 63.0382 229.144 95.1936ZM306.269 213.078L257.439 277.302L290.75 302.609L339.58 238.361L306.269 213.078ZM299.374 201.572L247.446 269.904L212.476 243.388L264.365 175.056L299.374 201.572ZM211.093 224.702L226.093 194L194.19 178.433L222.351 141.377L255.371 166.455L211.093 224.702ZM173.749 109.606L209.992 137.096L182.79 172.872L141.082 152.553L173.749 109.606Z"
+                                    fill="#EF4335"
+                                />
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_3024_35">
+                                    <rect
+                                        width="384"
+                                        height="435"
+                                        fill="white"
+                                    />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                )}
+
+                <div
+                    style={{
+                        display: 'flex',
+                        position: 'absolute',
+                        top: '426px',
+                        left: '62px',
+                        color: '#F7F2EE',
+                        fontSize: '1.5rem',
+                        fontWeight: '700',
+                        fontFamily: 'Inter',
+                        lineHeight: '2rem',
+                    }}>
+                    Vote Now!
+                </div>
+            </div>
+        ),
+        {
+            width: 1200,
+            height: 630,
+            fonts: [
+                {
+                    name: 'Inter',
+                    data: inter,
+                    style: 'normal',
+                    weight: 400,
+                },
+                {
+                    name: 'InterMedium',
+                    data: interMedium,
+                    style: 'normal',
+                    weight: 500,
+                },
+                {
+                    name: 'InterSemiBold',
+                    data: interSemiBold,
+                    style: 'normal',
+                    weight: 600,
+                },
+                {
+                    name: 'InterBold',
+                    data: interBold,
+                    style: 'normal',
+                    weight: 700,
+                },
+            ],
+        },
+    );
 }

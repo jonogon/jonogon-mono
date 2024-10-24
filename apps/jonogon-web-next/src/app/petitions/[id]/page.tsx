@@ -28,7 +28,7 @@ export async function generateMetadata({params}: {params: {id: string}}) {
 
     const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:12003' : 'https://jonogon.org';
     const ogImageUrl = new URL(`${baseUrl}/api/og`);
-    ogImageUrl.searchParams.append('id', id);
+    ogImageUrl.searchParams.append('petition_id', id);
 
     return {
         title: siteTitle,

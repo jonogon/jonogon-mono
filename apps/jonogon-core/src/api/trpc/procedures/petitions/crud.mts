@@ -454,3 +454,83 @@ export const remove = protectedProcedure
 
         return {input, data: deleted, message: 'deleted'};
     });
+    export const getPetitionDetailsForOG = publicProcedure
+    .input(
+        z.object({
+            id: z.string(),
+        }),
+    )
+    .query(async ({input, ctx}) => {
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select([
+                'petitions.title',
+                'petitions.location',
+                'petitions.target',
+                'petitions.created_at',
+                'petitions.created_by',
+            ])
+            .where('petitions.id', '=', input.id)
+            .where('petitions.deleted_at', 'is', null)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        const upvoteCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('petition_votes')
+            .select(({fn}) => [fn.count('id').as('count')])
+            .where('petition_id', '=', input.id)
+            .where('vote', '=', 1)
+            .executeTakeFirst();
+
+        const downvoteCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('petition_votes')
+            .select(({fn}) => [fn.count('id').as('count')])
+            .where('petition_id', '=', input.id)
+            .where('vote', '=', -1)
+            .executeTakeFirst();
+
+        const commentCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('comments')
+            .select(({fn}) => [fn.count('id').as('count')])
+            .where('petition_id', '=', input.id)
+            .where('deleted_at', 'is', null)
+            .executeTakeFirst();
+
+        const mainImage = await ctx.services.postgresQueryBuilder
+            .selectFrom('petition_attachments')
+            .select('attachment')
+            .where('petition_id', '=', input.id)
+            .where('is_image', '=', true)
+            .where('deleted_at', 'is', null)
+            .orderBy('created_at', 'asc')
+            .limit(1)
+            .executeTakeFirst();
+
+        const user = await ctx.services.postgresQueryBuilder
+            .selectFrom('users')
+            .select(['id', 'name', 'picture'])
+            .where('id', '=', `${petition.created_by}`)
+            .executeTakeFirst();
+
+        return {
+            data: {
+                title: petition.title,
+                location: petition.location,
+                target: petition.target,
+                created_at: petition.created_at,
+                petition_upvote_count: Number(upvoteCount?.count ?? 0),
+                petition_downvote_count: Number(downvoteCount?.count ?? 0),
+                petition_comments_count: Number(commentCount?.count ?? 0),
+                main_image: mainImage?.attachment ?? null,
+                created_by_id: user?.id ?? null,
+                created_by_name: user?.name ?? null,
+                created_by_image: user?.picture ?? null,
+            },
+        };
+    });
