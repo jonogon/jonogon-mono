@@ -1,8 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 import {ImageResponse} from '@vercel/og';
 import {NextRequest} from 'next/server';
 import {trpcVanilla} from '@/trpc/server';
 
 export const runtime = 'edge';
+
+// TODO: Add support for Bengali Lanuage in case of Bengali Title, Name
 
 export async function GET(req: NextRequest) {
     const [inter, interBold, interSemiBold, interMedium] = await Promise.all([
@@ -100,9 +103,10 @@ export async function GET(req: NextRequest) {
                         height: '487px',
                         background: '#EF4335',
                     }}>
-                    {main_image && (
+                    {main_image ? (
                         <img
                             src={imageLink}
+                            alt="petition image"
                             width={1241}
                             height={930}
                             style={{
@@ -111,6 +115,50 @@ export async function GET(req: NextRequest) {
                                 objectFit: 'cover',
                             }}
                         />
+                    ) : (
+                        <>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    position: 'absolute',
+                                    top: '203.5px',
+                                    left: '880px',
+                                }}>
+                                <svg
+                                    width="253"
+                                    height="283"
+                                    viewBox="0 0 253 283"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_3030_35)">
+                                        <rect
+                                            width="253"
+                                            height="283"
+                                            fill="#F7F2EE"
+                                        />
+                                        <path
+                                            d="M295.595 -137.945H0.19783C-38.4031 -137.945 -69.6953 -106.706 -69.6953 -68.1695V214.883C-69.6953 253.419 -38.4031 284.659 0.19783 284.659H295.595C334.196 284.659 365.488 253.419 365.488 214.883V-68.1695C365.488 -106.706 334.196 -137.945 295.595 -137.945Z"
+                                            fill="#F7F2EE"
+                                        />
+                                        <path
+                                            fill-rule="evenodd"
+                                            clip-rule="evenodd"
+                                            d="M207.899 -197.189C373.243 -197.189 385.639 -209.696 385.639 -76.5296C385.639 6.01644 385.177 198.861 385.177 235.947C385.177 248.415 385.177 260.303 381.973 269.519C380.272 272.626 379.019 273.982 374.72 276.101C370.988 277.944 367.77 279.379 364.829 280.499C351.642 285.528 343.835 284.132 318.673 284.659C287.92 285.304 211.209 284.659 185.164 284.659V228.851L209.205 197.952L216.511 167.672L208.823 177.072L114.098 112.247L107.332 112.813L110.445 114.129L152.803 201.428L141.541 202.85L102.242 121.778L74.9706 110.588L72.254 91.1297L99.1035 103.387L123.883 101.28L135.474 79.2942L59.8974 45.1435L4.906 116.236L73.8497 212.461L65.6998 284.659C62.2184 284.659 58.5655 284.659 54.9653 284.659C49.6904 284.659 44.4154 284.593 39.1405 284.659C27.5356 284.804 15.957 284.58 4.85325 284.659C-2.90093 284.659 -10.4177 284.659 -17.5653 284.251C-20.0313 284.119 -22.4578 283.948 -24.8184 283.724C-55.479 280.907 -77.5679 270.453 -77.5679 235.5C-77.5679 185.617 -98.0084 -218.912 -38.6651 -193.002C-70.3544 -201.797 168.337 -197.189 207.899 -197.189ZM220.348 90.1687L177.529 142.382L206.739 162.972L249.558 110.72L220.348 90.1687ZM214.295 80.8082L168.799 136.365L138.099 114.814L183.621 59.2435L214.295 80.8082ZM136.885 99.6213L150.073 74.6073L122.102 61.9687L146.763 31.8598L175.775 52.2659L136.885 99.6213ZM104.181 6.01644L135.962 28.3974L112.093 57.4662L75.4981 40.9438L104.181 6.01644Z"
+                                            fill="#EF4335"
+                                        />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_3030_35">
+                                            <rect
+                                                width="253"
+                                                height="283"
+                                                fill="#F7F2EE"
+                                            />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </>
                     )}
                 </div>
                 <div
@@ -153,7 +201,7 @@ export async function GET(req: NextRequest) {
                                 display: 'flex',
                                 color: '#EF4335',
                                 fontSize: '1.5rem',
-                                fontFamily: '&apos;Inter&apos;',
+                                fontFamily: 'Inter',
                                 fontWeight: '400',
                             }}>
                             Citizen #{created_by_id}
@@ -165,6 +213,7 @@ export async function GET(req: NextRequest) {
                                 fontSize: '2.25rem',
                                 fontFamily: '&apos;InterBold&apos;',
                                 fontWeight: '700',
+                                letterSpacing: '0.02em',
                             }}>
                             <span style={{paddingRight: '8px'}}>
                                 {createdByNickName}&apos;s
@@ -401,9 +450,8 @@ export async function GET(req: NextRequest) {
                             top: '52px',
                             left: '60px',
                             color: '#F7F2EE',
-                            fontFamily: '&apos;InterBold&apos;',
-                            fontSize: '1.5rem',
-                            fontStyle: 'normal',
+                            fontFamily: 'InterBold',
+                            fontSize: '1.3rem',
                             fontWeight: '700',
                             lineHeight: '2rem',
                             textAlign: 'right',
@@ -412,9 +460,8 @@ export async function GET(req: NextRequest) {
                         {formattedDate}
                     </div>
                 )}
-
                 {/* Jonogon Logo */}
-                {main_image ? (
+                {main_image && (
                     <div
                         style={{
                             display: 'flex',
@@ -458,50 +505,40 @@ export async function GET(req: NextRequest) {
                             </svg>
                         </div>
                     </div>
-                ) : (
+                )}
+
+                {/* Title */}
+                {!main_image && (
                     <div
                         style={{
                             display: 'flex',
+                            flexDirection: 'column',
                             position: 'absolute',
-                            top: '137px',
-                            left: '909px',
+                            top: '86px',
+                            left: '60px',
                         }}>
-                        <svg
-                            width="347"
-                            height="435"
-                            viewBox="0 0 347 435"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <g clip-path="url(#clip0_3024_35)">
-                                <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M266.142 423.179V433.382H129.895L129.148 427.609L266.142 423.179Z"
-                                    fill="#F7F2EE"
-                                />
-                                <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M129.147 427.609C174.345 438.797 221.762 437.264 266.141 423.179L358.244 236.853L266.691 127.938L175.493 93.0259L78.0053 147.487L36.7773 266.173L129.147 427.609Z"
-                                    fill="#F7F2EE"
-                                />
-                                <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M229.144 95.1936C244.01 76.992 260.112 59.8344 277.337 43.8424C339.446 101.438 384 195.516 384 241.133C384 323.093 335.366 393.372 266.142 423.179V383.617L293.572 345.626L301.898 308.421L293.132 319.982L185.101 240.23L177.389 240.937L180.934 242.508L229.246 349.986L216.407 351.737L171.594 251.988L140.508 238.243L137.364 214.303L168.025 229.376L196.281 226.792L209.497 199.749L123.291 157.713L60.5919 245.053L139.156 363.463L129.148 427.609C53.9721 400.865 0 327.475 0 241.126C0 179.792 59.7506 78.0713 143.999 0C176.815 30.4274 205.778 63.0382 229.144 95.1936ZM306.269 213.078L257.439 277.302L290.75 302.609L339.58 238.361L306.269 213.078ZM299.374 201.572L247.446 269.904L212.476 243.388L264.365 175.056L299.374 201.572ZM211.093 224.702L226.093 194L194.19 178.433L222.351 141.377L255.371 166.455L211.093 224.702ZM173.749 109.606L209.992 137.096L182.79 172.872L141.082 152.553L173.749 109.606Z"
-                                    fill="#EF4335"
-                                />
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_3024_35">
-                                    <rect
-                                        width="384"
-                                        height="435"
-                                        fill="white"
-                                    />
-                                </clipPath>
-                            </defs>
-                        </svg>
+                        <div
+                            style={{
+                                display: 'flex',
+                                width: '1028px',
+                                color: '#F7F2EE',
+                                fontFamily: 'InterBold',
+                                fontSize: '3rem',
+                                fontWeight: '700',
+                                lineHeight: '3rem',
+                            }}>
+                            {title}
+                        </div>
+                        <div
+                            style={{
+                                display: 'flex',
+                                color: '#F7F2EE',
+                                opacity: '0.6',
+                                fontSize: '2.25rem',
+                                marginTop: '2.5rem',
+                            }}>
+                            To {target}
+                        </div>
                     </div>
                 )}
 
@@ -514,7 +551,7 @@ export async function GET(req: NextRequest) {
                         color: '#F7F2EE',
                         fontSize: '1.5rem',
                         fontWeight: '700',
-                        fontFamily: 'Inter',
+                        fontFamily: 'InterBold',
                         lineHeight: '2rem',
                     }}>
                     Vote Now!
