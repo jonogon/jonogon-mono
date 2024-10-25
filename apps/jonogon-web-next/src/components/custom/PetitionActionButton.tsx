@@ -1,4 +1,3 @@
-import {useState} from 'react';
 import {trpc} from '@/trpc/client';
 import {Button} from '../ui/button';
 import {useAuthState} from '@/auth/token-manager';
@@ -23,14 +22,12 @@ const PetitionActionButton = () => {
     };
 
     return (
-        <>
-            <Button
-                size={'lg'}
-                className={'bg-red-500 font-bold shadow-2xl drop-shadow-xl'}
-                onClick={handlePetitionCreate}>
-                Submit a দাবি
-            </Button>
-        </>
+        <Button
+            size={'lg'}
+            className={'bg-red-500 font-bold shadow-2xl drop-shadow-xl'}
+            onClick={handlePetitionCreate}>
+            Submit a দাবি
+        </Button>
     );
 };
 
