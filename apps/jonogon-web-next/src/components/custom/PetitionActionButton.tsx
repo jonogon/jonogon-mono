@@ -1,28 +1,26 @@
-import { useState } from 'react';
-import { trpc } from '@/trpc/client';
-import { Button } from '../ui/button';
-import { useAuthState } from '@/auth/token-manager';
-import { useRouter } from 'next/navigation';
+import {useState} from 'react';
+import {trpc} from '@/trpc/client';
+import {Button} from '../ui/button';
+import {useAuthState} from '@/auth/token-manager';
+import {useRouter} from 'next/navigation';
 
 const PetitionActionButton = () => {
     const router = useRouter();
     const authState = useAuthState();
 
-    const { mutate: createPetition } = trpc.petitions.create.useMutation({
+    const {mutate: createPetition} = trpc.petitions.create.useMutation({
         onSuccess(response) {
             router.push(`/petitions/${response.data.id}/edit?fresh=true`);
         },
     });
 
-
-                    const handlePetitionCreate = async () => {
+    const handlePetitionCreate = async () => {
         if (!authState) {
             router.push('/petition/draft');
         } else {
             createPetition();
         }
     };
-
 
     return (
         <>

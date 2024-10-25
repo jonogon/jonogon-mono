@@ -218,7 +218,7 @@ export default function EditLoggedOutDraftPetition() {
                 </div>
             </div>
             <RegulationsModal
-                isOpen={isModalOpen}
+                shouldShow={true}
                 onClose={() => {
                     setIsModalOpen(false);
                     router.push('/');
