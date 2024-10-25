@@ -11,7 +11,7 @@ import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 import {petitionLocations, petitionTargets} from '@/lib/constants';
-import { useAuthState } from '@/auth/token-manager';
+import {useAuthState} from '@/auth/token-manager';
 
 import SimilarPetitionsSuggestions from '@/components/custom/SimilarPetitionsSuggestions';
 import RegulationsModal from '@/components/custom/RegulationsModal';
@@ -21,11 +21,10 @@ function storeDraftPetition<T>(data: T) {
 }
 
 export default function EditLoggedOutDraftPetition() {
-    const isAuthenticated = useAuthState()
+    const isAuthenticated = useAuthState();
     const [isLoading, setIsLoading] = useState(false);
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(true);
 
     const router = useRouter();
 
@@ -59,7 +58,9 @@ export default function EditLoggedOutDraftPetition() {
 
     const redirectToLogin = () => {
         setIsLoading(true);
-        const hasPetitionDraftData = Object.values(petitionData).some((v) => v && v.length > 0);
+        const hasPetitionDraftData = Object.values(petitionData).some(
+            (v) => v && v.length > 0,
+        );
         if (hasPetitionDraftData) {
             storeDraftPetition(petitionData);
         }
@@ -102,8 +103,8 @@ export default function EditLoggedOutDraftPetition() {
                 </div>
                 {showSimilarPetitions && (
                     <SimilarPetitionsSuggestions
-                    title={petitionData.title ?? ''}
-                    onClose={() => setShowSimilarPetitions(false)}
+                        title={petitionData.title ?? ''}
+                        onClose={() => setShowSimilarPetitions(false)}
                     />
                 )}
                 <div className="flex flex-col gap-2">
@@ -217,16 +218,7 @@ export default function EditLoggedOutDraftPetition() {
                     </Button>
                 </div>
             </div>
-            <RegulationsModal
-                shouldShow={true}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    router.push('/');
-                }}
-                onAccept={() => {
-                    setIsModalOpen(false);
-                }}
-            />
+            <RegulationsModal onClose={() => router.push('/')} />
         </div>
     );
 }

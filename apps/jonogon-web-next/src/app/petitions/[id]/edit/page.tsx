@@ -45,7 +45,6 @@ export default function EditPetition() {
     const isAuthenticated = useAuthState();
 
     const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(!!params.get('fresh'));
 
     const {data: selfResponse, isLoading: isLoadingSelf} =
         trpc.users.getSelf.useQuery(undefined, {
@@ -401,13 +400,9 @@ export default function EditPetition() {
             <RegulationsModal
                 shouldShow={!!freshValue}
                 onClose={() => {
-                    setIsModalOpen(false);
                     if (freshValue) {
                         router.push('/');
                     }
-                }}
-                onAccept={() => {
-                    setIsModalOpen(false);
                 }}
             />
         </div>

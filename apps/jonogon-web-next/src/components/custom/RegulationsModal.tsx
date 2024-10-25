@@ -9,15 +9,15 @@ import {
 import {Button} from '@/components/ui/button';
 
 interface RegulationsModalProps {
-    onClose: () => void;
-    onAccept: () => void;
+    onClose?: () => void;
+    onAccept?: () => void;
     shouldShow?: boolean;
 }
 
 const RegulationsModal: React.FC<RegulationsModalProps> = ({
     onClose,
     onAccept,
-    shouldShow = false,
+    shouldShow = true,
 }: RegulationsModalProps) => {
     const [isOpen, setIsOpen] = useState(shouldShow);
 
@@ -27,16 +27,16 @@ const RegulationsModal: React.FC<RegulationsModalProps> = ({
 
     const handleClose = () => {
         setIsOpen(false);
-        onClose();
+        onClose?.();
     };
 
     const handleAccept = () => {
         setIsOpen(false);
-        onAccept();
+        onAccept?.();
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent
                 className="w-full max-w-[600px] max-h-full px-2 py-10 border-4 border-[#EF4335] bg-[#F7F2ED] !rounded-2xl overflow-y-auto"
                 closeButton={false}>
@@ -93,7 +93,7 @@ const RegulationsModal: React.FC<RegulationsModalProps> = ({
                     </div>
                     <div className="sticky bottom-0 bg-[#F7F2ED] pt-2">
                         <Button
-                            onClick={onAccept}
+                            onClick={handleAccept}
                             className="w-full p-6 mb-4 rounded-lg bg-[#EF4335] hover:bg-[#D93A2D] transition-colors">
                             <span className="text-white text-lg sm:text-xl font-bold font-['Inter']">
                                 Accept
