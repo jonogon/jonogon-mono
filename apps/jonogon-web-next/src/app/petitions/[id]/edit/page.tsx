@@ -258,9 +258,9 @@ export default function EditPetition() {
                                     Are you absolutely sure?
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will
-                                    delete your petition and no one, including
-                                    you, will be able to see it again.
+                                    This action cannot be undone. Your petition
+                                    will be deleted and will no longer be
+                                    accessible to anyone, including you.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
