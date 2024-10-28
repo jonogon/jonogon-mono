@@ -120,3 +120,42 @@ export const formalize = protectedProcedure
             message: 'formalized',
         };
     });
+
+export const flag = protectedProcedure
+    .input(
+        z.object({
+            petition_id: z.number(),
+            reason: z.string(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        // Update the petition to set flagged_at and flagged_reason
+        const result = await ctx.services.postgresQueryBuilder
+            .updateTable('petitions')
+            .set({
+                flagged_at: new Date(), // Set the current timestamp
+                flagged_reason: input.reason, // Set the reason for flagging
+                moderated_by: ctx.auth.user_id, // Set the user who flagged
+            })
+            .where('id', '=', `${input.petition_id}`)
+            .returning(['id', 'created_by'])
+            .executeTakeFirst();
+
+        // If the petition was successfully updated, create a notification
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .insertInto('notifications')
+                .values({
+                    user_id: result.created_by, // Notify the creator of the petition
+                    type: 'petition_flagged', // Type of notification
+                    actor_user_id: ctx.auth.user_id, // The user who flagged the petition
+                    petition_id: input.petition_id,
+                })
+                .executeTakeFirst();
+        }
+
+        return {
+            input,
+            message: 'flagged',
+        };
+    });
