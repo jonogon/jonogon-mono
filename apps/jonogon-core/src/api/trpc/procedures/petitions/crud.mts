@@ -37,6 +37,8 @@ export const getPetition = publicProcedure
                 'petitions.submitted_at',
                 'petitions.rejected_at',
                 'petitions.rejection_reason',
+                `petitions.flagged_at`,
+                `petitions.flagged_reason`,
                 'petitions.approved_at',
                 'petitions.formalized_at',
                 'petition_votes.vote as user_vote',
