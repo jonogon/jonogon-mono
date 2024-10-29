@@ -44,6 +44,7 @@ export default function Petition() {
     } = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
+    const isFlagged = petition?.data.flagged_at !== null;
 
     const {openShareModal} = useSocialShareStore();
 
@@ -472,6 +473,7 @@ export default function Petition() {
                         intent={'success'}
                         size={'lg'}
                         className="flex-1 w-full"
+                        disabled={isFlagged} // Disable if flagged
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
@@ -502,6 +504,7 @@ export default function Petition() {
                         intent={'default'}
                         className="flex-1 w-full"
                         size={'lg'}
+                        disabled={isFlagged} // Disable if flagged
                         onClick={clickThumbsDown}>
                         <ThumbsDown
                             size={20}
