@@ -97,6 +97,28 @@ export const clearVote = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        // Check if the petition is flagged
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .where('id', '=', input.petition_id)
+            .select(['flagged_at']) // Select flagged_at to check if the petition is flagged
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'petition-not-found',
+            });
+        }
+
+        // If the petition is flagged, prevent clearing the vote
+        if (petition.flagged_at) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'clearing vote is not allowed on flagged petitions',
+            });
+        }
+
         const result = await ctx.services.postgresQueryBuilder
             .deleteFrom('petition_votes')
             .where('petition_id', '=', input.petition_id)
