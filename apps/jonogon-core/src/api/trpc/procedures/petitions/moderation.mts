@@ -96,7 +96,6 @@ export const flag = protectedProcedure
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
-                approved_at: null, // Reset the approved_at timestamp
                 rejected_at: null, // Reset the rejected_at timestamp
                 rejection_reason: null, // Reset the rejection_reason
                 formalized_at: null, // Reset the formalized_at timestamp

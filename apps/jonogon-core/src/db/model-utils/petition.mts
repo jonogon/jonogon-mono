@@ -12,16 +12,16 @@ export function deriveStatus(petition: {
         return 'formalized' as const;
     }
 
+    if (petition.flagged_at) {
+        return 'flagged' as const;
+    }
+
     if (petition.approved_at) {
         return 'approved' as const;
     }
 
     if (petition.rejected_at) {
         return 'rejected' as const;
-    }
-
-    if (petition.flagged_at) {
-        return 'flagged' as const;
     }
 
     if (petition.submitted_at) {
