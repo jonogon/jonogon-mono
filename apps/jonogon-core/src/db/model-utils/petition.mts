@@ -5,6 +5,7 @@ export function deriveStatus(petition: {
     approved_at: SelectType<Petitions['approved_at']>;
     formalized_at: SelectType<Petitions['formalized_at']>;
     rejected_at: SelectType<Petitions['rejected_at']>;
+    flagged_at: SelectType<Petitions['flagged_at']>;
     submitted_at: SelectType<Petitions['submitted_at']>;
 }) {
     if (petition.formalized_at) {
@@ -17,6 +18,10 @@ export function deriveStatus(petition: {
 
     if (petition.rejected_at) {
         return 'rejected' as const;
+    }
+
+    if (petition.flagged_at) {
+        return 'flagged' as const;
     }
 
     if (petition.submitted_at) {
