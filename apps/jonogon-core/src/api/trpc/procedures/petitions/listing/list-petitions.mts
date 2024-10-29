@@ -45,11 +45,22 @@ export const listPetitions = publicProcedure
                         ).let((query) => {
                             if (input.filter === 'request') {
                                 if (input.sort === 'flag') {
-                                    return query.where(
-                                        'petitions.formalized_at',
-                                        'is not',
-                                        null,
-                                    );
+                                    return query
+                                        .where(
+                                            'petitions.approved_at',
+                                            'is not',
+                                            null,
+                                        )
+                                        .where(
+                                            'petitions.formalized_at',
+                                            'is',
+                                            null,
+                                        )
+                                        .where(
+                                            'petitions.flagged_at',
+                                            'is not',
+                                            null,
+                                        );
                                 } else {
                                     return query
                                         .where(
@@ -69,11 +80,31 @@ export const listPetitions = publicProcedure
                                         );
                                 }
                             } else if (input.filter === 'formalized') {
-                                return query.where(
-                                    'petitions.formalized_at',
-                                    'is not',
-                                    null,
-                                );
+                                if (input.sort === 'flag') {
+                                    return query
+                                        .where(
+                                            'petitions.formalized_at',
+                                            'is not',
+                                            null,
+                                        )
+                                        .where(
+                                            'petitions.flagged_at',
+                                            'is not',
+                                            null,
+                                        );
+                                } else {
+                                    return query
+                                        .where(
+                                            'petitions.formalized_at',
+                                            'is not',
+                                            null,
+                                        )
+                                        .where(
+                                            'petitions.flagged_at',
+                                            'is',
+                                            null,
+                                        );
+                                }
                             } else {
                                 return query;
                             }
