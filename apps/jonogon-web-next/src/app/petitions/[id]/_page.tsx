@@ -195,6 +195,17 @@ export default function Petition() {
                                 </div>
                             </div>
                         ) : null}
+                        {status === 'flagged' ? (
+                            <div className={'flex-1'}>
+                                <div
+                                    className={
+                                        'font-bold text-red-500 text-sm'
+                                    }>
+                                    Your petition was flagged.
+                                </div>
+                                <div>{petition?.data.flagged_reason ?? ''}</div>
+                            </div>
+                        ) : null}
                         {isMod || isAdmin ? (
                             <div className={'flex flex-row gap-2 items-center'}>
                                 {status === 'submitted' ? (
@@ -248,7 +259,8 @@ export default function Petition() {
                                     </Button>
                                 ) : null}
                                 {status === 'submitted' ||
-                                status === 'rejected' ? (
+                                status === 'rejected' ||
+                                status === 'flagged' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'success'}
@@ -284,7 +296,9 @@ export default function Petition() {
                                         Reject
                                     </Button>
                                 ) : null}
-                                {status !== 'rejected' && status !== 'draft' ? (
+                                {status !== 'rejected' &&
+                                status !== 'draft' &&
+                                status != 'flagged' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'default'}
