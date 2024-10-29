@@ -13,7 +13,6 @@ export default function AuthWrapper(props: PropsWithChildren) {
         });
     }, [setAuthState]);
 
-    console.log({authState});
 
     return (
         <AuthStateProvider authState={authState}>
