@@ -260,7 +260,8 @@ export const listPetitions = publicProcedure
                 )
                 .where('petitions.formalized_at', 'is not', null)
                 .where('petitions.deleted_at', 'is', null)
-                .where('petition_votes.vote', 'is', null)
+                .where('petitions.flagged_at', 'is', null) // Ensure the petition is not flagged
+                .where('petition_votes.vote', 'is', null) // Ensure the user has not voted
                 .select(({fn}) => fn.count('petitions.id').as('count'))
                 .execute();
 
