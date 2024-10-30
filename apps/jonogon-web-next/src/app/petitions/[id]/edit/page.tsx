@@ -259,9 +259,9 @@ export default function EditPetition() {
                                     Are you absolutely sure?
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will
-                                    permanently delete your account and remove
-                                    your data from our servers.
+                                    This action cannot be undone. Your petition
+                                    will be deleted and will no longer be
+                                    accessible to anyone, including you.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

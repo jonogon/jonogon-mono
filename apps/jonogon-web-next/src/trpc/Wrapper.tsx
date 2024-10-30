@@ -45,7 +45,6 @@ export function TRPCWrapper(props: PropsWithChildren<{hostname: string}>) {
                                     ? `http://${props.hostname}:12001/trpc`
                                     : 'https://core.jonogon.org/trpc',
                             headers: async () => {
-                                console.log('tomato');
                                 return {};
                             },
                         }),

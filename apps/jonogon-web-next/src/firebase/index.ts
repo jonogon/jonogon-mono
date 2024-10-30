@@ -24,9 +24,6 @@ const firebaseConfig = returnOf(() => {
     const parsed = JSON.parse(
         decode(process.env.NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL),
     );
-
-    console.log(parsed);
-
     return parsed;
 });
 
