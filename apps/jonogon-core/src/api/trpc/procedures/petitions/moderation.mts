@@ -98,6 +98,7 @@ export const flag = protectedProcedure
             .set({
                 rejected_at: null, // Reset the rejected_at timestamp
                 rejection_reason: null, // Reset the rejection_reason
+                formalized_at: null, // Reset the formalized_at timestamp
 
                 flagged_at: new Date(), // Set the current timestamp
                 flagged_reason: input.reason, // Set the reason for flagging
