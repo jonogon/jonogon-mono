@@ -1,7 +1,6 @@
 export function getSortType(sortStr: string | null) {
     switch (sortStr) {
         case 'time':
-        case 'flag':
         case 'votes':
             return sortStr;
         default:
@@ -28,7 +27,6 @@ export function getDefaultSortForDabiType(
     if (type === 'own') {
         switch (sort) {
             case 'votes':
-            case 'flag':
             case 'time':
                 return sort;
             default:
@@ -38,7 +36,6 @@ export function getDefaultSortForDabiType(
 
     switch (sort) {
         case 'votes':
-        case 'flag':
         case 'time':
             return sort;
         default:
@@ -54,8 +51,6 @@ export function getDefaultSortLabelForDabiType(
         switch (sort) {
             case 'votes':
                 return 'বেশি Votes';
-            case 'flag':
-                return 'Flagged দাবিs';
             case 'time':
             default:
                 return 'Latest';
@@ -65,8 +60,6 @@ export function getDefaultSortLabelForDabiType(
     switch (sort) {
         case 'time':
             return 'Latest';
-        case 'flag':
-            return 'Flagged দাবিs';
         case 'votes':
         default:
             return 'বেশি Votes';

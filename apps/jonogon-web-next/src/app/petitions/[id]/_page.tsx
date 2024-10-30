@@ -44,7 +44,6 @@ export default function Petition() {
     } = trpc.petitions.get.useQuery({
         id: petition_id!!,
     });
-    const isFlagged = petition?.data.flagged_at !== null;
 
     const {openShareModal} = useSocialShareStore();
 
@@ -161,12 +160,6 @@ export default function Petition() {
         },
     });
 
-    const {mutate: flag} = trpc.petitions.flag.useMutation({
-        onSuccess: async () => {
-            await utils.petitions.get.invalidate({id: petition_id});
-        },
-    });
-
     const {mutate: formalize} = trpc.petitions.formalize.useMutation({
         onSuccess: async () => {
             await utils.petitions.get.invalidate({id: petition_id});
@@ -194,17 +187,6 @@ export default function Petition() {
                                 <div>
                                     {petition?.data.rejection_reason ?? ''}
                                 </div>
-                            </div>
-                        ) : null}
-                        {status === 'flagged' ? (
-                            <div className={'flex-1'}>
-                                <div
-                                    className={
-                                        'font-bold text-red-500 text-sm'
-                                    }>
-                                    Your petition was flagged.
-                                </div>
-                                <div>{petition?.data.flagged_reason ?? ''}</div>
                             </div>
                         ) : null}
                         {isMod || isAdmin ? (
@@ -260,8 +242,7 @@ export default function Petition() {
                                     </Button>
                                 ) : null}
                                 {status === 'submitted' ||
-                                status === 'rejected' ||
-                                status === 'flagged' ? (
+                                status === 'rejected' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'success'}
@@ -295,28 +276,6 @@ export default function Petition() {
                                                 });
                                         }}>
                                         Reject
-                                    </Button>
-                                ) : null}
-                                {status !== 'rejected' &&
-                                status !== 'draft' &&
-                                status != 'flagged' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'default'}
-                                        onClick={() => {
-                                            const flaggedResponse =
-                                                window.prompt(
-                                                    'Why are you flagging? (leave empty to cancel)',
-                                                );
-
-                                            flaggedResponse &&
-                                                flag({
-                                                    petition_id:
-                                                        Number(petition_id),
-                                                    reason: flaggedResponse,
-                                                });
-                                        }}>
-                                        Flag
                                     </Button>
                                 ) : null}
                             </div>
@@ -473,7 +432,6 @@ export default function Petition() {
                         intent={'success'}
                         size={'lg'}
                         className="flex-1 w-full"
-                        disabled={isFlagged} // Disable if flagged
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
@@ -504,7 +462,6 @@ export default function Petition() {
                         intent={'default'}
                         className="flex-1 w-full"
                         size={'lg'}
-                        disabled={isFlagged} // Disable if flagged
                         onClick={clickThumbsDown}>
                         <ThumbsDown
                             size={20}
