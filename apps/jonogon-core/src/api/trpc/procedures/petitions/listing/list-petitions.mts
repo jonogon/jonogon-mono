@@ -7,13 +7,14 @@ import {deriveStatus} from '../../../../../db/model-utils/petition.mjs';
 import {sql} from 'kysely';
 import {jsonArrayFrom} from 'kysely/helpers/postgres';
 import {protectedProcedure} from '../../../middleware/protected.mjs';
-import { removeStopwords, eng, ben } from 'stopword';
-
+import {removeStopwords, eng, ben} from 'stopword';
 
 export const listPetitions = publicProcedure
     .input(
         z.object({
-            filter: z.enum(['request', 'formalized', 'own']).default('request'),
+            filter: z
+                .enum(['request', 'formalized', 'own', 'flagged'])
+                .default('request'),
             sort: z.enum(['time', 'votes']).default('votes'),
             order: z.enum(['asc', 'desc']).default('desc'),
             page: z.number().default(0),
@@ -55,13 +56,28 @@ export const listPetitions = publicProcedure
                                         'petitions.formalized_at',
                                         'is',
                                         null,
-                                    );
+                                    )
+                                    .where('petitions.flagged_at', 'is', null);
                             } else if (input.filter === 'formalized') {
-                                return query.where(
-                                    'petitions.formalized_at',
-                                    'is not',
-                                    null,
-                                );
+                                return query
+                                    .where(
+                                        'petitions.formalized_at',
+                                        'is not',
+                                        null,
+                                    )
+                                    .where('petitions.flagged_at', 'is', null);
+                            } else if (input.filter == 'flagged') {
+                                return query
+                                    .where(
+                                        'petitions.approved_at',
+                                        'is not',
+                                        null,
+                                    )
+                                    .where(
+                                        'petitions.flagged_at',
+                                        'is not',
+                                        null,
+                                    );
                             } else {
                                 return query;
                             }
@@ -217,7 +233,8 @@ export const listPetitions = publicProcedure
                 )
                 .where('petitions.formalized_at', 'is not', null)
                 .where('petitions.deleted_at', 'is', null)
-                .where('petition_votes.vote', 'is', null)
+                .where('petitions.flagged_at', 'is', null) // Ensure the petition is not flagged
+                .where('petition_votes.vote', 'is', null) // Ensure the user has not voted
                 .select(({fn}) => fn.count('petitions.id').as('count'))
                 .execute();
 
@@ -238,6 +255,8 @@ export const listPetitions = publicProcedure
                             'submitted_at',
                             'rejected_at',
                             'rejection_reason',
+                            'flagged_at',
+                            'flagged_reason',
                             'approved_at',
                             'formalized_at',
                             'petition_upvote_count',
@@ -401,16 +420,20 @@ export const suggestSimilarPetitions = publicProcedure
     .input(
         z.object({
             title: z.string().min(5),
-        })
+        }),
     )
     .query(async ({input, ctx}) => {
-        const keywords = [...new Set(removeStopwords(
-            input.title.toLowerCase().split(' '),
-            [...eng, ...ben]
-        ).filter((word) => word.length > 2))];
+        const keywords = [
+            ...new Set(
+                removeStopwords(input.title.toLowerCase().split(' '), [
+                    ...eng,
+                    ...ben,
+                ]).filter((word) => word.length > 2),
+            ),
+        ];
 
         if (keywords.length < 2) {
-            return { data: [] };
+            return {data: []};
         }
 
         const similarPetitions = await ctx.services.postgresQueryBuilder
@@ -420,48 +443,53 @@ export const suggestSimilarPetitions = publicProcedure
             .where('petitions.approved_at', 'is not', null)
             .where((eb) =>
                 eb.or(
-                    keywords.map(keyword =>
-                        eb('petitions.title', 'ilike', `%${keyword}%`)
-                    )
-                )
+                    keywords.map((keyword) =>
+                        eb('petitions.title', 'ilike', `%${keyword}%`),
+                    ),
+                ),
             )
             .execute();
 
-        const petitionsWithVotes = await Promise.all(similarPetitions.map(async (petition) => {
-            const upvotes = await ctx.services.postgresQueryBuilder
-                .selectFrom('petition_votes')
-                .select((eb) => eb.fn.count('id').as('count'))
-                .where('petition_id', '=', petition.id)
-                .where('vote', '=', 1)
-                .executeTakeFirst();
+        const petitionsWithVotes = await Promise.all(
+            similarPetitions.map(async (petition) => {
+                const upvotes = await ctx.services.postgresQueryBuilder
+                    .selectFrom('petition_votes')
+                    .select((eb) => eb.fn.count('id').as('count'))
+                    .where('petition_id', '=', petition.id)
+                    .where('vote', '=', 1)
+                    .executeTakeFirst();
 
-            const downvotes = await ctx.services.postgresQueryBuilder
-                .selectFrom('petition_votes')
-                .select((eb) => eb.fn.count('id').as('count'))
-                .where('petition_id', '=', petition.id)
-                .where('vote', '=', -1)
-                .executeTakeFirst();
+                const downvotes = await ctx.services.postgresQueryBuilder
+                    .selectFrom('petition_votes')
+                    .select((eb) => eb.fn.count('id').as('count'))
+                    .where('petition_id', '=', petition.id)
+                    .where('vote', '=', -1)
+                    .executeTakeFirst();
 
-            return {
-                ...petition,
-                upvotes: Number(upvotes?.count || 0),
-                downvotes: Number(downvotes?.count || 0),
-                match_count: petition.title
-                    ? keywords.filter(keyword =>
-                        petition.title?.toLowerCase().includes(keyword.toLowerCase())
-                    ).length
-                    : 0
-            };
-        }));
+                return {
+                    ...petition,
+                    upvotes: Number(upvotes?.count || 0),
+                    downvotes: Number(downvotes?.count || 0),
+                    match_count: petition.title
+                        ? keywords.filter((keyword) =>
+                              petition.title
+                                  ?.toLowerCase()
+                                  .includes(keyword.toLowerCase()),
+                          ).length
+                        : 0,
+                };
+            }),
+        );
 
         const sortedPetitions = petitionsWithVotes
-            .filter(petition => petition.match_count > 0)
-            .sort((a, b) =>
-                b.match_count - a.match_count ||
-                b.upvotes - a.upvotes ||
-                a.downvotes - b.downvotes
+            .filter((petition) => petition.match_count > 0)
+            .sort(
+                (a, b) =>
+                    b.match_count - a.match_count ||
+                    b.upvotes - a.upvotes ||
+                    a.downvotes - b.downvotes,
             )
             .slice(0, 5);
 
-        return { data: sortedPetitions };
+        return {data: sortedPetitions};
     });

@@ -100,7 +100,11 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
 
         // PETITION MODERATION
         const petitionStatus: {
-            [petition_id: string]: 'approved' | 'rejected' | 'formalized';
+            [petition_id: string]:
+                | 'approved'
+                | 'rejected'
+                | 'flagged'
+                | 'formalized';
         } = {};
 
         for (const notification of grouped.petition_approved ?? []) {
@@ -112,6 +116,12 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
         for (const notification of grouped.petition_rejected ?? []) {
             if (notification.petition_id) {
                 petitionStatus[notification.petition_id] = 'rejected';
+            }
+        }
+
+        for (const notification of grouped.petition_flagged ?? []) {
+            if (notification.petition_id) {
+                petitionStatus[notification.petition_id] = 'flagged';
             }
         }
 
@@ -128,6 +138,7 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
 
         const approvedPetitionCount = petitionStatusCounts.approved ?? 0;
         const rejectedPetitionCount = petitionStatusCounts.rejected ?? 0;
+        const flaggedPetitionCount = petitionStatusCounts.flagged ?? 0;
         const formalizedPetitionCount = petitionStatusCounts.formalized ?? 0;
 
         // PETITION MILESTONES
@@ -211,6 +222,16 @@ export function processSmsNotificationDispatchQueue(services: TServices) {
             } else {
                 messageParts.push(
                     `- ${rejectedPetitionCount} petitions were rejected\n`,
+                );
+            }
+        }
+
+        if (flaggedPetitionCount > 0) {
+            if (flaggedPetitionCount === 1) {
+                messageParts.push('- 1 petition was flagged\n');
+            } else {
+                messageParts.push(
+                    `- ${flaggedPetitionCount} petitions were flagged\n`,
                 );
             }
         }

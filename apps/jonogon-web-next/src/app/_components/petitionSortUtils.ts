@@ -22,7 +22,7 @@ export function getDabiType(typeStr: string | null) {
 // maybe move somewhere else and rename??
 export function getDefaultSortForDabiType(
     sort: ReturnType<typeof getSortType>,
-    type: ReturnType<typeof getDabiType>
+    type: ReturnType<typeof getDabiType>,
 ) {
     if (type === 'own') {
         switch (sort) {
@@ -45,7 +45,7 @@ export function getDefaultSortForDabiType(
 
 export function getDefaultSortLabelForDabiType(
     sort: ReturnType<typeof getSortType>,
-    type: ReturnType<typeof getDabiType>
+    type: ReturnType<typeof getDabiType>,
 ) {
     if (type === 'own') {
         switch (sort) {

@@ -1,6 +1,7 @@
 import {router} from '../index.mjs';
 import {
     approve,
+    flag,
     formalize,
     reject,
 } from '../procedures/petitions/moderation.mjs';
@@ -48,4 +49,5 @@ export const petitionRouter = router({
     approve: approve,
     reject: reject,
     formalize: formalize,
+    flag: flag,
 });

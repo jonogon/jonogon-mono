@@ -84,6 +84,8 @@ export interface Petitions {
   moderated_by: Int8 | null;
   rejected_at: Timestamp | null;
   rejection_reason: string | null;
+  flagged_at: Timestamp | null;
+  flagged_reason: string | null;
   submitted_at: Timestamp | null;
   target: string | null;
   title: string | null;
