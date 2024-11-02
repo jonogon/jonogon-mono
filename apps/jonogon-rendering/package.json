@@ -1,0 +1,23 @@
+{
+	"name": "jonogon-rendering",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev --remote --port=12006 --ip=0.0.0.0",
+		"start": "wrangler dev --remote",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20241022.0",
+		"prettier": "3.3.3",
+		"typescript": "^5.5.2",
+		"wrangler": "^3.60.3",
+		"@types/node": "22.8.6"
+	},
+	"dependencies": {
+		"@cloudflare/puppeteer": "^0.0.14",
+		"synchronization-atom": "^2.0.2",
+		"zod": "3.23.8"
+	}
+}

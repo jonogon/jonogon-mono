@@ -20,6 +20,8 @@ services:
       CLOUDFLARE_ACCESS_KEY_ID: "${CLOUDFLARE_ACCESS_KEY_ID:-}"
       CLOUDFLARE_SECRET_ACCESS_KEY: "${CLOUDFLARE_SECRET_ACCESS_KEY:-}"
 
+      CLOUDFLARE_API_TOKEN: "${CLOUDFLARE_API_TOKEN:-}"
+
       FIREBASE_AUTH_EMULATOR_HOST: "localhost:12005"
       NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL: "${NEXT_PUBLIC_FIREBASE_WEB_CONFIG_JSON_BASE64URL:-}"
       FIREBASE_ADMIN_PRIVATE_KEY_JSON_BASE64URL: "${FIREBASE_ADMIN_PRIVATE_KEY_JSON_BASE64URL:-}"
@@ -47,6 +49,10 @@ services:
 
       - target: 12005 # firebase auth emulator HTTP port
         published: 12005
+        protocol: tcp
+
+      - target: 12006 # wrangler dev: jonogon-rendering HTTP port
+        published: 12006
         protocol: tcp
 
     volumes:
