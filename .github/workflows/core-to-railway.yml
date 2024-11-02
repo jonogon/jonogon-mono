@@ -31,6 +31,12 @@ jobs:
       - name: Install Railway
         run: npm install -g @railway/cli
 
+      - name: Run Database Migrations
+        working-directory: ./misc/migrator
+        run: pnpm run migration up
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_PUBLIC_URL }}
+
       - name: Deploy
         working-directory: ./apps/jonogon-core/
         run: railway up --service jonogon-core
