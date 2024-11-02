@@ -1,5 +1,5 @@
 {
-	"name": "jonogon-rendering",
+	"name": "@jonogon/rendering-worker",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {

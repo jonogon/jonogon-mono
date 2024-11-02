@@ -10,7 +10,7 @@
     "bangladesh"
   ],
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=!@jonogon/rendering-worker",
     "build": "turbo run build",
     "shell:mono": "docker compose exec mono bash"
   },
