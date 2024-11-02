@@ -29,6 +29,8 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import PetitionFileUploader from '@/components/custom/PetitionFileUploader';
+import SimilarPetitionsSuggestions from '@/components/custom/SimilarPetitionsSuggestions';
+import RegulationsModal from '@/components/custom/RegulationsModal';
 // import {AutoCompleteInput} from '@/components/ui/input-autocomplete';
 // import {petitionLocations, petitionTargets} from '@/lib/constants';
 
@@ -42,9 +44,12 @@ export default function EditPetition() {
 
     const isAuthenticated = useAuthState();
 
-    const {data: selfResponse, isLoading: isLoadingSelf} = trpc.users.getSelf.useQuery(undefined, {
-        enabled: !!isAuthenticated,
-    });
+    const [showSimilarPetitions, setShowSimilarPetitions] = useState(true);
+
+    const {data: selfResponse, isLoading: isLoadingSelf} =
+        trpc.users.getSelf.useQuery(undefined, {
+            enabled: !!isAuthenticated,
+        });
 
     const freshValue = params.get('fresh');
 
@@ -168,7 +173,10 @@ export default function EditPetition() {
         },
     });
 
-    const handleAttachmentUpload = (attachment: { type: 'image' | 'file', file: File }) => {
+    const handleAttachmentUpload = (attachment: {
+        type: 'image' | 'file';
+        file: File;
+    }) => {
         uploadAttachment({
             type: attachment.type,
             file: attachment.file,
@@ -251,9 +259,9 @@ export default function EditPetition() {
                                     Are you absolutely sure?
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. This will
-                                    permanently delete your account and remove
-                                    your data from our servers.
+                                    This action cannot be undone. Your petition
+                                    will be deleted and will no longer be
+                                    accessible to anyone, including you.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -284,6 +292,12 @@ export default function EditPetition() {
                         placeholder="Ex: Make Primary Education Better"
                     />
                 </div>
+                {freshValue && showSimilarPetitions && (
+                    <SimilarPetitionsSuggestions
+                        title={petitionData.title ?? ''}
+                        onClose={() => setShowSimilarPetitions(false)}
+                    />
+                )}
                 <div className="flex flex-col gap-2">
                     <Label htmlFor="target">
                         <div className={'font-bold text-lg'}>
@@ -329,8 +343,12 @@ export default function EditPetition() {
                     banglaLabel="ছবি"
                     fileType="image"
                     files={petitionRemoteData?.data?.attachments || []}
-                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
-                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    onAttachmentsChange={(attachment) =>
+                        handleAttachmentUpload(attachment)
+                    }
+                    removeAttachment={(attachment) =>
+                        removeAttachment(attachment)
+                    }
                     petitionId={Number(petition_id)}
                 />
                 <PetitionFileUploader
@@ -338,8 +356,12 @@ export default function EditPetition() {
                     banglaLabel="ফাইল"
                     fileType="file"
                     files={petitionRemoteData?.data?.attachments || []}
-                    onAttachmentsChange={(attachment) => handleAttachmentUpload(attachment)}
-                    removeAttachment={(attachment) => removeAttachment(attachment)}
+                    onAttachmentsChange={(attachment) =>
+                        handleAttachmentUpload(attachment)
+                    }
+                    removeAttachment={(attachment) =>
+                        removeAttachment(attachment)
+                    }
                     petitionId={Number(petition_id)}
                 />
                 <div className="flex flex-col gap-2">
@@ -375,6 +397,14 @@ export default function EditPetition() {
                     </Button>
                 </div>
             </div>
+            <RegulationsModal
+                shouldShow={!!freshValue}
+                onClose={() => {
+                    if (freshValue) {
+                        router.push('/');
+                    }
+                }}
+            />
         </div>
     );
 }

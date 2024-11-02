@@ -181,29 +181,29 @@ const PetitionList = () => {
                     ))
                 )}
             </div>
-            {!isLoading && petitions.length >= 32 && (
+            {!isLoading && petitions.length > 0 && (
                 <div className={'py-4'}>
                     <Pagination>
                         <PaginationContent>
-                            {page !== 0 ? (
+                            {page > 0 && (
                                 <PaginationItem>
                                     <PaginationPrevious
                                         onClick={() => setPage(page - 1)}
                                     />
                                 </PaginationItem>
-                            ) : null}
+                            )}
 
                             <PaginationItem>
-                                <PaginationLink>Page {page + 1}</PaginationLink>
+                                <PaginationLink>{page + 1}</PaginationLink>
                             </PaginationItem>
 
-                            {petitions.length === 33 ? (
+                            {petitions.length === 33 && (
                                 <PaginationItem>
                                     <PaginationNext
                                         onClick={() => setPage(page + 1)}
                                     />
                                 </PaginationItem>
-                            ) : null}
+                            )}
                         </PaginationContent>
                     </Pagination>
                 </div>
