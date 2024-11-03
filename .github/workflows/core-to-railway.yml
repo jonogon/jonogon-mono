@@ -39,6 +39,7 @@ jobs:
 
       - name: Deploy
         working-directory: ./apps/jonogon-core/
-        run: railway up --service jonogon-core
+        run: |
+          railway up --service jonogon-core > deploy.log 2>&1 || (echo "Deployment failed. Check the logs for details:" && cat deploy.log)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_DEPLOY_TOKEN }}
