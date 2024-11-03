@@ -1,6 +1,5 @@
 import {trpcVanilla} from '@/trpc/server';
 import {Inter} from 'next/font/google';
-import PreviewImageLayout from '../layout';
 const inter = Inter({subsets: ['latin']});
 
 const getBaseUrl = () =>

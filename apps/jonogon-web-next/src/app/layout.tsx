@@ -35,10 +35,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-    isCustomLayout = false
 }: Readonly<{
     children: React.ReactNode;
-    isCustomLayout?: boolean;
 }>) {
     const headersList = headers();
     const host = headersList.get('host');
@@ -53,17 +51,11 @@ export default function RootLayout({
                 <AuthWrapper>
                     <TRPCWrapper hostname={'localhost'}>
                         <Suspense fallback={<>LOADING ...</>}>
-                            {isCustomLayout ? (
-                                <>{children}</> // Use custom layout
-                            ) : (
-                                <>
-                                    <Navigation />
-                                    <div className={'mt-16'}>
-                                        <Toaster />
-                                        {children}
-                                    </div>
-                                </>
-                            )}
+                            <Navigation />
+                            <div className={'mt-16'}>
+                                <Toaster />
+                                {children}
+                            </div>
                         </Suspense>
                     </TRPCWrapper>
                 </AuthWrapper>
