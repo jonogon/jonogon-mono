@@ -9,7 +9,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       default: 0,
       notNull: true,
     },
-  });
+  }, { ifNotExists: true });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
