@@ -14,7 +14,7 @@ export const listPetitions = publicProcedure
     .input(
         z.object({
             filter: z.enum(['request', 'formalized', 'own']).default('request'),
-            sort: z.enum(['time', 'votes']).default('votes'),
+            sort: z.enum(['time', 'votes', 'score']).default('score'),
             order: z.enum(['asc', 'desc']).default('desc'),
             page: z.number().default(0),
         }),
@@ -192,9 +192,13 @@ export const listPetitions = publicProcedure
                           input.order,
                       )
                       .execute()
-                : await query
-                      .orderBy('petition_upvote_count', input.order)
-                      .execute();
+                : input.sort === 'score'
+                    ? await query
+                          .orderBy('score', input.order)
+                          .execute()
+                    : await query
+                          .orderBy('petition_upvote_count', input.order)
+                          .execute();
 
         // Fetch unvoted formalized petitions count
         let unvotedFormalizedPetitionsCount = 0;
