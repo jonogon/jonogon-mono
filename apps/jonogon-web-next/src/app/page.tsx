@@ -156,7 +156,7 @@ export default function Home() {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            {/* <SortOption sort={'score'}>Popular</SortOption> */}
+                            <SortOption sort={'score'}>Popular</SortOption>
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
                         </DropdownMenuContent>

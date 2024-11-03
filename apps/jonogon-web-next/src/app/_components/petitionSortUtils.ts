@@ -42,7 +42,7 @@ export function getDefaultSortForDabiType(
         case 'time':
             return sort;
         default:
-            return 'votes';
+            return 'score';
     }
 }
 
