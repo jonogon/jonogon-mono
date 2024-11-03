@@ -55,7 +55,23 @@ export default async function PetitionPreviewImage({
         : 'Citizen';
 
     return (
-        <PreviewImageLayout>
+        <>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        width: 1200px;
+                        height: 630px;
+                        overflow: hidden;
+                    }
+                    .nav-header {
+                        display: none !important;
+                    }
+                `,
+                }}
+            />
             <div
                 style={{
                     width: '1200px',
@@ -63,6 +79,7 @@ export default async function PetitionPreviewImage({
                     position: 'relative',
                     background: '#F7F2EE',
                     overflow: 'hidden',
+                    top: '-65px',
                 }}>
                 <div
                     style={{
@@ -473,6 +490,6 @@ export default async function PetitionPreviewImage({
                     }}
                 />
             </div>
-        </PreviewImageLayout>
+        </>
     );
 }
