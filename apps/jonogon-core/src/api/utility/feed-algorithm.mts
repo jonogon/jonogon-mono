@@ -15,7 +15,7 @@ const VOTE_WEIGHT = 50
 const COMMENT_WEIGHT = 40
 
 function dateDiffInDays(date1: number, date2: number): number {
-  return (date2 - date1) / (1000 * SECONDS_IN_DAY) // in days
+  return Math.floor((date2 - date1) / (1000 * SECONDS_IN_DAY)) // in days
 }
 /**
  * Calculates the time weight based on the age of an activity.
