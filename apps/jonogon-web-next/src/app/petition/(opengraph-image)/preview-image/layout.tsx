@@ -1,3 +1,4 @@
+import RootLayout from '@/app/layout'; // Import the RootLayout
 export const metadata = {
     title: 'Petition Preview',
     robots: {
@@ -18,7 +19,7 @@ export default function PreviewImageLayout({
     children: React.ReactNode;
 }) {
     return (
-        <>
+        <RootLayout isCustomLayout={true}>
             <style
                 dangerouslySetInnerHTML={{
                     __html: `
@@ -33,6 +34,6 @@ export default function PreviewImageLayout({
                 }}
             />
             {children}
-        </>
+        </RootLayout>
     );
 }
