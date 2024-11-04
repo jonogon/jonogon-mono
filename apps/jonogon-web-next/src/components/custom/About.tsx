@@ -6,7 +6,7 @@ import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from '@/app/components/ui/collapsible';
+} from '@/app/(interactive)/components/ui/collapsible';
 import {useState, useEffect} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -95,8 +95,7 @@ export default function About({setOpen}: {setOpen: (open: boolean) => void}) {
                         <Collapsible
                             open={isOpen}
                             onOpenChange={toggleCollapsible}
-                            className="flex flex-col gap-4"
-                        >
+                            className="flex flex-col gap-4">
                             <CollapsibleTrigger className="flex justify-between items-center">
                                 <p className="font-medium text-left">
                                     Jonogon is built for the people, by the
@@ -155,8 +154,7 @@ export default function About({setOpen}: {setOpen: (open: boolean) => void}) {
                             combinedContributors.map((contributor, index) => (
                                 <li
                                     key={index}
-                                    className="flex items-center gap-2"
-                                >
+                                    className="flex items-center gap-2">
                                     {contributor}
                                     {isFixedContributor(contributor) && (
                                         <span>☆</span>
@@ -172,8 +170,7 @@ export default function About({setOpen}: {setOpen: (open: boolean) => void}) {
                         <Button
                             variant="ghost"
                             className="text-white hover:bg-red-500"
-                            onClick={() => handleModalClose()}
-                        >
+                            onClick={() => handleModalClose()}>
                             See All
                         </Button>
                     )}
