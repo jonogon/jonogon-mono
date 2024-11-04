@@ -46,7 +46,9 @@ export default async function PetitionPreviewImage({
 
     const baseUrl = getBaseUrl();
     const imageLink = `${baseUrl}${main_image}`;
-    const profileImageLink = `${baseUrl}${created_by_image}`;
+    const profileImageLink = created_by_image
+        ? `${baseUrl}${created_by_image}`
+        : `https://static.jonogon.org/placeholder-images/${((Number(created_by_id) + 1) % 11) + 1}.jpg`;
 
     const createdByNickName = created_by_name
         ? created_by_name.split(' ')[0].length < 4
