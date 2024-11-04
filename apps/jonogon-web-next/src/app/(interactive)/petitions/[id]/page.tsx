@@ -1,5 +1,5 @@
 import {trpcVanilla} from '@/trpc/server';
-import Petition from '@/app/petitions/[id]/_page';
+import Petition from '@/app/(interactive)/petitions/[id]/_page';
 import {generateDescription} from './_helpers';
 
 export const runtime = 'edge';
@@ -26,19 +26,21 @@ export async function generateMetadata({params}: {params: {id: string}}) {
 
     const metaTitle = title ?? '';
     const metaDescription = generateDescription(totalVoteCount);
-    const imageAttachments = attachments.filter(attachment => attachment.type === 'image');
+    const imageAttachments = attachments.filter(
+        (attachment) => attachment.type === 'image',
+    );
     const metaImage = imageAttachments.length
         ? [
-            {
-                url: `${imageAttachments[0].thumbnail}`.replace(
-                    '$CORE_HOSTNAME',
-                    'localhost',
-                ),
-                width: 1200,
-                height: 630,
-                alt: originalTitle,
-            },
-        ]
+              {
+                  url: `${imageAttachments[0].thumbnail}`.replace(
+                      '$CORE_HOSTNAME',
+                      'localhost',
+                  ),
+                  width: 1200,
+                  height: 630,
+                  alt: originalTitle,
+              },
+          ]
         : [];
     return {
         title: siteTitle,

@@ -29,6 +29,7 @@ export default async function PetitionPreviewImage({
     const ogData = await trpcVanilla.petitions.getOgImageDetails.query({
         id: params.id,
     });
+
     const {
         title,
         location,
@@ -55,22 +56,6 @@ export default async function PetitionPreviewImage({
 
     return (
         <>
-            <style
-                dangerouslySetInnerHTML={{
-                    __html: `
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        width: 1200px;
-                        height: 630px;
-                        overflow: hidden;
-                    }
-                    .nav-header {
-                        display: none !important;
-                    }
-                `,
-                }}
-            />
             <div
                 style={{
                     width: '1200px',
@@ -78,7 +63,6 @@ export default async function PetitionPreviewImage({
                     position: 'relative',
                     background: '#F7F2EE',
                     overflow: 'hidden',
-                    top: '-65px',
                 }}>
                 <div
                     style={{
