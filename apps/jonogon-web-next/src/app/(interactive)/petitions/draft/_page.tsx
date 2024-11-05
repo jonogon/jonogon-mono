@@ -64,7 +64,7 @@ export default function EditLoggedOutDraftPetition() {
         if (hasPetitionDraftData) {
             storeDraftPetition(petitionData);
         }
-        router.push(`/login?next=${encodeURIComponent('/petition/draft')}`);
+        router.push(`/login?next=${encodeURIComponent('/petitions/draft')}`);
     };
 
     useEffect(() => {

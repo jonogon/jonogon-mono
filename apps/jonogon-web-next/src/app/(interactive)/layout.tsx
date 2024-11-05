@@ -5,7 +5,7 @@ import {GoogleAnalytics} from '@next/third-parties/google';
 
 export const runtime = 'edge';
 
-import '../styles/globals.css';
+import '../../styles/interactive.css';
 
 import React, {Suspense} from 'react';
 import AuthWrapper from '@/auth/Wrapper';

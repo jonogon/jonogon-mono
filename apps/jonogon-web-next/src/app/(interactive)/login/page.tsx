@@ -9,7 +9,7 @@ import NumberStage from '@/components/custom/NumberStage';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {firebaseAuth} from '@/firebase';
 import {signInWithCustomToken} from 'firebase/auth';
-import { z } from 'zod';
+import {z} from 'zod';
 
 function getLocalDraft() {
     const draft = localStorage.getItem('draft-petition');
@@ -28,8 +28,7 @@ function getLocalDraft() {
             .safeParse(JSON.parse(draft));
 
         return parsed.success ? parsed.data : null;
-    }
-    catch (e) {
+    } catch (e) {
         return null;
     }
 }
@@ -44,7 +43,10 @@ export default function Login() {
     );
 
     const [stage, setStage] = useState<'number' | 'otp'>('number');
-    const [isLoginAndSideEffectsIncomplete, setIsLoginAndSideEffectsIncomplete] = useState(false);
+    const [
+        isLoginAndSideEffectsIncomplete,
+        setIsLoginAndSideEffectsIncomplete,
+    ] = useState(false);
 
     const {
         mutate: requestOTP,
@@ -89,11 +91,12 @@ export default function Login() {
 
     const redirectUrl: string = params.get('next') ?? '/';
 
-    const {mutate: createPetition, isLoading: isPetitionCreateOngoing} = trpc.petitions.create.useMutation({
-        onSuccess(response) {
-            router.push(`/petitions/${response.data.id}?status=submitted`);
-        },
-    });
+    const {mutate: createPetition, isLoading: isPetitionCreateOngoing} =
+        trpc.petitions.create.useMutation({
+            onSuccess(response) {
+                router.push(`/petitions/${response.data.id}?status=submitted`);
+            },
+        });
 
     const login = () => {
         setIsLoginAndSideEffectsIncomplete(true);
@@ -111,12 +114,12 @@ export default function Login() {
 
                     if (credentials.user) {
                         // TODO: fix properly with logged out draft petition
-                        if (redirectUrl === '/petition/draft') {
+                        if (redirectUrl === '/petitions/draft') {
                             const localDraft = getLocalDraft();
                             createPetition(
-                                localDraft 
-                                    ? { loggedOutDraft: localDraft } 
-                                    : undefined
+                                localDraft
+                                    ? {loggedOutDraft: localDraft}
+                                    : undefined,
                             );
                             window.localStorage.removeItem('draft-petition');
 
@@ -146,7 +149,8 @@ export default function Login() {
     }, [otpRequestError]);
 
     useEffect(() => {
-        if (isAuthenticated && !isLoginAndSideEffectsIncomplete) router.replace("/");
+        if (isAuthenticated && !isLoginAndSideEffectsIncomplete)
+            router.replace('/');
     }, [isAuthenticated, isLoginAndSideEffectsIncomplete]);
 
     return (
@@ -173,7 +177,11 @@ export default function Login() {
                     onVerify={login}
                     onChangeNumPress={onChangeNumPress}
                     onOtpResendPress={sendOTPRequest}
-                    isLoading={isTokenLoading || isPetitionCreateOngoing || isLoginAndSideEffectsIncomplete}
+                    isLoading={
+                        isTokenLoading ||
+                        isPetitionCreateOngoing ||
+                        isLoginAndSideEffectsIncomplete
+                    }
                 />
             )}
         </div>
