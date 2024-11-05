@@ -1,6 +1,7 @@
 import {trpcVanilla} from '@/trpc/server';
 import Petition from '@/app/(interactive)/petitions/[id]/_page';
 import {generateDescription} from './_helpers';
+import type {Metadata} from 'next';
 
 export const runtime = 'edge';
 

@@ -77,7 +77,7 @@ const Navigation = () => {
                     </div>
                 </Link>
                 <div className="flex gap-4 items-center">
-                    <Link href="/contributors">
+                    <Link href="/about">
                         <QuestionMarkCircleIcon
                             className={`w-8 h-8 text-red-500`}
                         />
@@ -122,7 +122,7 @@ const Navigation = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onSelect={() => {
-                                        router.push('/activity-log');
+                                        router.push('/profile/activity-log');
                                     }}>
                                     My Activity
                                 </DropdownMenuItem>
@@ -139,7 +139,7 @@ const Navigation = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : isAuthenticated === false &&
-                      pathName !== '/petition/draft' ? (
+                      pathName !== '/petitions/draft' ? (
                         <>
                             <Link
                                 className={buttonVariants({
