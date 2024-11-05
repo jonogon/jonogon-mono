@@ -25,7 +25,8 @@ import {trpc} from '@/trpc/client';
 function SortOption({
     sort,
     children,
-}: PropsWithChildren<{sort: 'time' | 'votes'}>) {
+}: PropsWithChildren<{sort: 'time' | 'votes' | 'score'}>) {
+}: PropsWithChildren<{sort: 'time' | 'votes' | 'score'}>) {
     const router = useRouter();
     const params = useSearchParams();
 
@@ -158,6 +159,7 @@ export default function Home() {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            {/* <SortOption sort={'score'}>Popular</SortOption> */}
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
                         </DropdownMenuContent>
