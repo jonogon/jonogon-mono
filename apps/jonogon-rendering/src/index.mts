@@ -226,7 +226,9 @@ export default {
 			const encodedSymmetricKeyString = encoder.encode(env.SYMMETRIC_KEY);
 
 			const signatureData = Buffer.from(captureConfig.data.sign, 'base64');
-			const signingKey = await crypto.subtle.importKey('raw', encodedSymmetricKeyString, { name: 'HMAC', hash: 'MD5' }, false, ['verify']);
+			const signingKey = await crypto.subtle.importKey('raw', encodedSymmetricKeyString, { name: 'HMAC', hash: 'SHA-256' }, false, [
+				'verify',
+			]);
 
 			const verified = await crypto.subtle.verify('HMAC', signingKey, signatureData, encoder.encode(durableObjectKeyString));
 
