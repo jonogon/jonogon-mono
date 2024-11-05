@@ -16,7 +16,7 @@ import {
     getDefaultSortForDabiType,
     getSortType,
 } from './petitionSortUtils';
-import {MondayCountdown} from '@/app/_components/MondayCountdown';
+import {MondayCountdown} from '@/app/(interactive)/_components/MondayCountdown';
 import AnimatedBadge from './AnimatedBadge';
 import {useAuthState} from '@/auth/token-manager';
 import PetitionCardSkeleton from './PetitionCardSkeleton';
