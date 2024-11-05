@@ -26,7 +26,6 @@ function SortOption({
     sort,
     children,
 }: PropsWithChildren<{sort: 'time' | 'votes' | 'score'}>) {
-}: PropsWithChildren<{sort: 'time' | 'votes' | 'score'}>) {
     const router = useRouter();
     const params = useSearchParams();
 

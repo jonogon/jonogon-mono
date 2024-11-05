@@ -1,6 +1,6 @@
 export const runtime = 'edge';
 
-import '../../../../../styles/non-interactive.css';
+import '../../styles/non-interactive.css';
 import React from 'react';
 
 export default function RootLayout({
