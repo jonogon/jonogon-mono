@@ -348,6 +348,9 @@ export default async function PetitionPreviewImage({
                             lineHeight: '2rem',
                             textAlign: 'right',
                             whiteSpace: 'nowrap',
+                            backgroundColor: '#EF4335',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
                         }}>
                         {created_at}
                     </div>
@@ -452,13 +455,16 @@ export default async function PetitionPreviewImage({
                 <div
                     style={{
                         position: 'absolute',
-                        top: '426px',
-                        left: '62px',
+                        top: '416px',
+                        left: '60px',
                         color: '#F7F2EE',
                         fontSize: '1.5rem',
                         fontWeight: '700',
                         fontFamily: inter.style.fontFamily,
                         lineHeight: '2rem',
+                        background: '#EF4335',
+                        padding: '4px 8px',
+                        borderRadius: '10px',
                     }}>
                     Vote Now!
                 </div>
