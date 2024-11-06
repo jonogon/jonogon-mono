@@ -398,12 +398,12 @@ export const createComment = protectedProcedure
             // Create notification for petition owner.
             const petition = await ctx.services.postgresQueryBuilder
                 .selectFrom('petitions')
-                .select(['created_by', 'score'])
+                .select(['created_by', 'score', 'approved_at'])
                 .where('id', '=', `${input.petition_id}`)
                 .executeTakeFirst();
 
             if (petition) {
-                const newScore = calculateCommentVelocity(new Date(), petition.score);
+                const newScore = calculateCommentVelocity(new Date(), petition?.approved_at, petition.score);
                 await ctx.services.postgresQueryBuilder
                     .updateTable('petitions')
                     .set({ score: newScore })
