@@ -3,6 +3,7 @@ name = "jonogon-rendering"
 main = "src/index.mts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+send_metrics = true
 
 # Workers Logs
 # Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/

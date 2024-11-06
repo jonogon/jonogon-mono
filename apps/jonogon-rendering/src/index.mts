@@ -22,6 +22,12 @@ export class JonogonRenderingDurableObject extends DurableObject {
 			(seats) => seats - 1,
 		);
 
+		const t1 = Date.now();
+
+		let connectTime = 0;
+		let loadTime = 0;
+		let captureTime = 0;
+
 		try {
 			if (!this.browsers[seatNumber] || !this.browsers[seatNumber].isConnected()) {
 				const activeSessions = await puppeteer.sessions(this.env.BROWSER);
@@ -48,6 +54,8 @@ export class JonogonRenderingDurableObject extends DurableObject {
 				}
 			}
 
+			connectTime = Date.now() - t1;
+
 			const browser = this.browsers[seatNumber]!;
 
 			const page = await browser.newPage();
@@ -61,11 +69,20 @@ export class JonogonRenderingDurableObject extends DurableObject {
 				waitUntil: 'networkidle0',
 			});
 
+			loadTime = Date.now() - t1 - connectTime;
+
 			const screenshot = await page.screenshot({ type: 'png', encoding: 'binary' });
+
+			captureTime = Date.now() - t1 - connectTime - loadTime;
+
+			browser.disconnect();
 
 			return new Response(screenshot, {
 				headers: {
 					'Content-Type': 'image/png',
+					'X-Jonogon-Connect-Time': connectTime.toString(),
+					'X-Jonogon-Load-Time': loadTime.toString(),
+					'X-Jonogon-Capture-Time': captureTime.toString(),
 				},
 			});
 		} catch (error) {
@@ -121,6 +138,7 @@ export class JonogonRenderingImageAccessor extends DurableObject {
 				return new Response(storedImage.body, {
 					headers: {
 						'Content-Type': 'image/png',
+						'X-Jonogon-From': 'storage',
 					},
 				});
 			}
@@ -134,13 +152,32 @@ export class JonogonRenderingImageAccessor extends DurableObject {
 				return captureResponse;
 			}
 
+			const t1 = Date.now();
+
 			await this.env.STATIC_R2.put(imagePath, captureResponse.body);
+
+			const putTime = Date.now() - t1;
+
 			const createdImage = await this.env.STATIC_R2.get(imagePath);
+
+			const retreivalTime = Date.now() - t1 - putTime;
+
+			const headers: {
+				[key: string]: string;
+			} = {};
+
+			captureResponse.headers.forEach((value, key) => {
+				headers[key] = value;
+			});
 
 			if (createdImage) {
 				return new Response(createdImage.body, {
 					headers: {
 						'Content-Type': 'image/png',
+						...headers,
+						'X-Jonogon-From': 'created',
+						'X-Jonogon-Put-Time': putTime.toString(),
+						'X-Jonogon-Retreival-Time': retreivalTime.toString(),
 					},
 				});
 			}
