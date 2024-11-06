@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "turbo run dev --filter=!@jonogon/rendering-worker",
     "build": "turbo run build",
-    "shell:mono": "docker compose exec mono bash"
+    "shell:mono": "docker compose exec mono bash -l"
   },
   "dependencies": {
     "turbo": "2.0.12"
