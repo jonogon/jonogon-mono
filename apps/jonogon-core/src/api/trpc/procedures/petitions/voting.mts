@@ -32,18 +32,16 @@ export const vote = protectedProcedure
             const petition = await ctx.services.postgresQueryBuilder
                 .selectFrom('petitions')
                 .where('id', '=', input.petition_id)
-                .select(['created_by', 'score'])
+                .select(['created_by', 'score', 'approved_at'])
                 .executeTakeFirst();
 
             if (petition) {
-                if (input.vote === 'up') {
-                    const newScore = calculateVoteVelocity(new Date(), petition.score);
-                    await ctx.services.postgresQueryBuilder
-                        .updateTable('petitions')
-                        .set({ score: newScore })
-                        .where('id', '=', input.petition_id)
-                        .execute();
-                }
+                const newScore = calculateVoteVelocity(new Date(), petition?.approved_at, petition.score, input.vote);
+                await ctx.services.postgresQueryBuilder
+                    .updateTable('petitions')
+                    .set({ score: newScore })
+                    .where('id', '=', input.petition_id)
+                    .execute();
                 await ctx.services.postgresQueryBuilder
                     .transaction()
                     .execute(async (t) => {
