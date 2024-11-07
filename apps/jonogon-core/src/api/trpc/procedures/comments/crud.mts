@@ -4,6 +4,7 @@ import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {sql} from 'kysely';
+import { calculateCommentVelocity } from '../../../utility/feed-algorithm.mjs';
 
 export const countAllComments = publicProcedure
     .input(
@@ -397,11 +398,17 @@ export const createComment = protectedProcedure
             // Create notification for petition owner.
             const petition = await ctx.services.postgresQueryBuilder
                 .selectFrom('petitions')
-                .select(['created_by'])
+                .select(['created_by', 'score', 'approved_at'])
                 .where('id', '=', `${input.petition_id}`)
                 .executeTakeFirst();
 
             if (petition) {
+                const newScore = calculateCommentVelocity(new Date(), petition?.approved_at, petition.score);
+                await ctx.services.postgresQueryBuilder
+                    .updateTable('petitions')
+                    .set({ score: newScore })
+                    .where('id', '=', input.petition_id)
+                    .execute();
                 await ctx.services.postgresQueryBuilder
                     .insertInto('notifications')
                     .values(

@@ -1,10 +1,10 @@
 'use client';
 
-import Loading from '@/app/petitions/[id]/loading';
+import Loading from '@/app/(interactive)/petitions/[id]/loading';
 
 export const runtime = 'edge';
 
-import {ImageCarousel} from '@/app/petitions/[id]/_components/ImageCarousel';
+import {ImageCarousel} from '@/app/(interactive)/petitions/[id]/_components/ImageCarousel';
 import {useAuthState} from '@/auth/token-manager';
 import {Button} from '@/components/ui/button';
 import {trpc} from '@/trpc/client';

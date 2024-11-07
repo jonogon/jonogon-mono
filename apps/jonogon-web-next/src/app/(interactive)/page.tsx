@@ -11,7 +11,7 @@ import {RxCaretSort, RxCheck} from 'react-icons/rx';
 import {PropsWithChildren} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {cn} from '@/lib/utils';
-import PetitionList from '@/app/_components/PetitionList';
+import PetitionList from '@/app/(interactive)/_components/PetitionList';
 import PetitionActionButton from '@/components/custom/PetitionActionButton';
 import {
     getDabiType,
@@ -25,7 +25,7 @@ import {trpc} from '@/trpc/client';
 function SortOption({
     sort,
     children,
-}: PropsWithChildren<{sort: 'time' | 'votes'}>) {
+}: PropsWithChildren<{sort: 'time' | 'votes' | 'score'}>) {
     const router = useRouter();
     const params = useSearchParams();
 
@@ -158,6 +158,7 @@ export default function Home() {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            {/* <SortOption sort={'score'}>Popular</SortOption> */}
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
                         </DropdownMenuContent>

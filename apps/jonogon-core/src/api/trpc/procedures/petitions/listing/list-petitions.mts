@@ -208,9 +208,13 @@ export const listPetitions = publicProcedure
                           input.order,
                       )
                       .execute()
-                : await query
-                      .orderBy('petition_upvote_count', input.order)
-                      .execute();
+                : input.sort === 'score'
+                    ? await query
+                          .orderBy('score', input.order)
+                          .execute()
+                    : await query
+                          .orderBy('petition_upvote_count', input.order)
+                          .execute();
 
         // Fetch unvoted formalized petitions count
         let unvotedFormalizedPetitionsCount = 0;

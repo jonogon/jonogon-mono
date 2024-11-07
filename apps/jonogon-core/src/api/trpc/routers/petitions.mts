@@ -14,6 +14,7 @@ import {
     submitPetition,
     updatePetition,
     softDeletePetition,
+    getOgImageDetails,
 } from '../procedures/petitions/crud.mjs';
 import {
     listPetitions,
@@ -30,6 +31,8 @@ export const petitionRouter = router({
 
     get: getPetition,
     create: createPetition,
+
+    getOgImageDetails: getOgImageDetails,
 
     update: updatePetition,
     submit: submitPetition,

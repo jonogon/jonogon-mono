@@ -63,7 +63,7 @@ const Navigation = () => {
     }, [selfDataResponse?.data.name]);
 
     return (
-        <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[50] bg-background">
+        <div className="border-b border-neutral-300 fixed w-full top-0 left-0 z-[50] bg-background nav-header">
             <nav className="max-w-screen-sm mx-auto h-20 flex items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/images/icon.svg" alt="logo" className="w-12" />
@@ -77,7 +77,7 @@ const Navigation = () => {
                     </div>
                 </Link>
                 <div className="flex gap-4 items-center">
-                    <Link href="/contributors">
+                    <Link href="/about">
                         <QuestionMarkCircleIcon
                             className={`w-8 h-8 text-red-500`}
                         />
@@ -122,7 +122,7 @@ const Navigation = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onSelect={() => {
-                                        router.push('/activity-log');
+                                        router.push('/profile/activity-log');
                                     }}>
                                     My Activity
                                 </DropdownMenuItem>
@@ -139,7 +139,7 @@ const Navigation = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : isAuthenticated === false &&
-                      pathName !== '/petition/draft' ? (
+                      pathName !== '/petitions/draft' ? (
                         <>
                             <Link
                                 className={buttonVariants({

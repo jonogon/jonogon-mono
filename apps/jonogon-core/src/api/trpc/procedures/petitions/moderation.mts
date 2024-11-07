@@ -1,5 +1,6 @@
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {z} from 'zod';
+import { calculateNoveltyBoost } from '../../../utility/feed-algorithm.mjs';
 
 export const approve = protectedProcedure
     .input(
@@ -8,6 +9,8 @@ export const approve = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        // set initial score when the petition appears on feed
+        const boostingScore = calculateNoveltyBoost(new Date())
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -19,6 +22,7 @@ export const approve = protectedProcedure
 
                 approved_at: new Date(),
                 moderated_by: ctx.auth.user_id,
+                score: boostingScore,
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
