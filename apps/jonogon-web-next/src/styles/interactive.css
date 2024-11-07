@@ -92,19 +92,7 @@
     outline: none;
 }
 
-.ab-container {
-    perspective: 1000;
-    backface-visibility: hidden;
-    position: relative;
-}
-
-.entypo-bell {
-    font-size: 50px;
-    color: #555;
-    position: relative;
-}
-
-.badge-num {
+.badge {
     font-size: 10px;
     height: 18px;
     width: 18px;
@@ -113,19 +101,26 @@
     align-items: center;
     text-align: center;
     box-sizing: border-box;
-    background: #dd2627;
     cursor: default;
     border-radius: 50%;
     color: #fff;
     box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
-    animation: ab-pulse 1.5s infinite;
     position: absolute;
     top: 0;
     right: 0;
     transform: translate(50%, -50%);
 }
 
-.badge-num:after {
+.badge-active {
+    background: #dd2627;
+    animation: ab-pulse 1.5s infinite;
+}
+
+.badge-inactive {
+    background: #949494;
+}
+
+.badge-active:after {
     content: '';
     position: absolute;
     top: 0;

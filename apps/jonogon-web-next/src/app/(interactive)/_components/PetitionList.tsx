@@ -116,6 +116,7 @@ const PetitionList = () => {
                         count:
                             petitionRequestListResponse?.unvoted_formalized_petitions_count ??
                             0,
+                        isActive: true,
                     }}
                 />
             </div>
