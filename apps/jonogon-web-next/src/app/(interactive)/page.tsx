@@ -106,6 +106,11 @@ function Tab({
                     'border-red-500 text-red-500':
                         getDabiType(params.get('type')) === type,
                 },
+                {
+                    'text-gray-400':
+                        getDabiType(params.get('type')) !== 'request' &&
+                        getDabiType(params.get('type')) !== 'formalized',
+                },
             )}
             onClick={updateParams}>
             {children}
