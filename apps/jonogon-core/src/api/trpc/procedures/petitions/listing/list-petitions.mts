@@ -15,7 +15,7 @@ export const listPetitions = publicProcedure
             filter: z
                 .enum(['request', 'formalized', 'own', 'flagged'])
                 .default('request'),
-            sort: z.enum(['time', 'votes']).default('votes'),
+            sort: z.enum(['time', 'votes', 'score']).default('votes'),
             order: z.enum(['asc', 'desc']).default('desc'),
             page: z.number().default(0),
         }),
