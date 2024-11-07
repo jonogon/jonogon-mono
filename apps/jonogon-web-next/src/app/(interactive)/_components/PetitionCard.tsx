@@ -37,7 +37,7 @@ export default function PetitionCard(props: {
     downvotes: number;
     comments: number;
 
-    mode: 'request' | 'formalized' | 'own';
+    mode: 'request' | 'formalized' | 'own' | 'flagged';
 }) {
     const isAuthenticated = useAuthState();
 
