@@ -111,6 +111,12 @@ function Tab({
                         getDabiType(params.get('type')) !== 'request' &&
                         getDabiType(params.get('type')) !== 'formalized',
                 },
+                {
+                    'border-gray-400':
+                        getDabiType(params.get('type')) !== 'request' &&
+                        getDabiType(params.get('type')) !== 'formalized' &&
+                        children === 'সব দাবি',
+                },
             )}
             onClick={updateParams}>
             {children}
@@ -174,7 +180,7 @@ export default function Home() {
                         />
                     )}
                 </h1>
-                <div className="flex items-center justify-between my-2">
+                <div className="flex items-center justify-between mt-2">
                     {type === 'own' ? null : (
                         <div>
                             <Tab type={'request'}>সব দাবি</Tab>
@@ -210,6 +216,13 @@ export default function Home() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+
+                {getDabiType(params.get('type')) === 'flagged' && (
+                    <h2 className="text-3xl font-semibold text-red-500">
+                        Flagged দাবিs
+                    </h2>
+                )}
+
                 <PetitionList />
             </div>
             <div className="fixed bottom-0 left-0 w-full bg-background/50">

@@ -20,6 +20,7 @@ import {MondayCountdown} from '@/app/(interactive)/_components/MondayCountdown';
 import AnimatedBadge from './AnimatedBadge';
 import {useAuthState} from '@/auth/token-manager';
 import PetitionCardSkeleton from './PetitionCardSkeleton';
+import {cn} from '@/lib/utils';
 
 const NoPetitionsView = () => (
     <div>
@@ -110,13 +111,26 @@ const PetitionList = () => {
 
     return (
         <div className="relative">
-            <div className="absolute -top-[50px] left-[244px]">
+            <div
+                className={cn(
+                    `absolute left-[244px]`,
+                    {
+                        '-top-[43px]':
+                            type === 'request' || type === 'formalized',
+                    },
+                    {
+                        '-top-[95px]':
+                            type !== 'request' && type !== 'formalized',
+                    },
+                )}>
                 <AnimatedBadge
                     {...{
                         count:
                             petitionRequestListResponse?.unvoted_formalized_petitions_count ??
                             0,
-                        isActive: getDabiType(params.get('type')) === 'formalized',
+                        isActive:
+                            getDabiType(params.get('type')) === 'request' ||
+                            getDabiType(params.get('type')) === 'formalized',
                     }}
                 />
             </div>
