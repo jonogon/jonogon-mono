@@ -14,7 +14,7 @@ export const listPetitions = publicProcedure
     .input(
         z.object({
             filter: z.enum(['request', 'formalized', 'own']).default('request'),
-            sort: z.enum(['time', 'votes', 'score']).default('score'),
+            sort: z.enum(['time', 'votes', 'score']).default('votes'),
             order: z.enum(['asc', 'desc']).default('desc'),
             page: z.number().default(0),
         }),
@@ -194,7 +194,7 @@ export const listPetitions = publicProcedure
                       .execute()
                 : input.sort === 'score'
                     ? await query
-                          .orderBy('score', input.order)
+                          .orderBy('log_score', input.order)
                           .execute()
                     : await query
                           .orderBy('petition_upvote_count', input.order)
