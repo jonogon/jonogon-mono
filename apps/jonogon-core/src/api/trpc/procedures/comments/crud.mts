@@ -403,10 +403,10 @@ export const createComment = protectedProcedure
                 .executeTakeFirst();
 
             if (petition) {
-                const newScore = calculateCommentVelocity(new Date(), petition?.approved_at, petition.score);
+                const { logScore, newScore } = calculateCommentVelocity(petition?.approved_at, petition.score);
                 await ctx.services.postgresQueryBuilder
                     .updateTable('petitions')
-                    .set({ score: newScore })
+                    .set({ score: newScore, log_score: logScore })
                     .where('id', '=', input.petition_id)
                     .execute();
                 await ctx.services.postgresQueryBuilder
