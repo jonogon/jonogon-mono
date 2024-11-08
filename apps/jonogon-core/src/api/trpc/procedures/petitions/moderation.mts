@@ -10,7 +10,7 @@ export const approve = protectedProcedure
     )
     .mutation(async ({input, ctx}) => {
         // set initial score when the petition appears on feed
-        const boostingScore = calculateNoveltyBoost(new Date())
+        const { logScore, newScore } = calculateNoveltyBoost()
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -22,7 +22,8 @@ export const approve = protectedProcedure
 
                 approved_at: new Date(),
                 moderated_by: ctx.auth.user_id,
-                score: boostingScore,
+                score: newScore,
+                log_score: logScore
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])

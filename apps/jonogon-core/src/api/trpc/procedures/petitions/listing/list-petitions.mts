@@ -108,8 +108,8 @@ export const listPetitions = publicProcedure
                                   input.filter === 'own'
                                       ? 'petitions.created_at'
                                       : input.filter === 'request'
-                                        ? 'petitions.submitted_at'
-                                        : 'petitions.formalized_at',
+                                      ? 'petitions.submitted_at'
+                                      : 'petitions.formalized_at',
                                   input.order,
                               )
                             : query.orderBy(
@@ -203,18 +203,16 @@ export const listPetitions = publicProcedure
                           input.filter === 'own'
                               ? 'petitions.created_at'
                               : input.filter === 'request'
-                                ? 'petitions.submitted_at'
-                                : 'petitions.formalized_at',
+                              ? 'petitions.submitted_at'
+                              : 'petitions.formalized_at',
                           input.order,
                       )
                       .execute()
                 : input.sort === 'score'
-                    ? await query
-                          .orderBy('score', input.order)
-                          .execute()
-                    : await query
-                          .orderBy('petition_upvote_count', input.order)
-                          .execute();
+                ? await query.orderBy('log_score', input.order).execute()
+                : await query
+                      .orderBy('petition_upvote_count', input.order)
+                      .execute();
 
         // Fetch unvoted formalized petitions count
         let unvotedFormalizedPetitionsCount = 0;
@@ -363,9 +361,13 @@ export const listSuggestedPetitions = protectedProcedure
                         (
                             CASE
                                 WHEN petitions.formalized_at IS NOT NULL THEN ${FORMALIZED_PETITION_WEIGHT}
-                                WHEN petitions.location = ${input.location} AND petitions.target = ${input.target}
+                                WHEN petitions.location = ${
+                                    input.location
+                                } AND petitions.target = ${input.target}
                                 THEN ${LOCATION_TARGET_WEIGHT * 2}
-                                WHEN petitions.location = ${input.location} OR petitions.target = ${input.target}
+                                WHEN petitions.location = ${
+                                    input.location
+                                } OR petitions.target = ${input.target}
                                 THEN ${LOCATION_TARGET_WEIGHT}
                                 ELSE 0
                             END
