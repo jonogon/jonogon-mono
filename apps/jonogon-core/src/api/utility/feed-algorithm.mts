@@ -16,12 +16,6 @@ const VOTE_THRESHOLD = 30 // minimum votes needed to be considered in the top of
 function dateDiff(date1: number, date2: number): number {
   return ((date2 - date1) / 1000) / (VOTE_DECAY_CONSTANT * SECONDS_IN_DAY)
 }
-/**
- * Calculates the time weight based on the age of an activity.
- * The new activity gets higher weight.
- * @param dateTime - The date of the activity.
- * @returns The calculated time weight.
- */
 function calculateNoveltyBoost() {
   const newScore = BOOST_WEIGHT 
   const logScore = Math.log(newScore);
