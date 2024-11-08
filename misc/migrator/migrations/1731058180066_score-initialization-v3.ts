@@ -54,5 +54,5 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.sql('UPDATE petitions SET score = 0;');
+  pgm.sql('UPDATE petitions SET log_score = 0;');
 }
