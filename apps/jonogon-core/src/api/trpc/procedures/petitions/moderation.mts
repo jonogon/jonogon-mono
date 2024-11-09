@@ -1,6 +1,7 @@
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {z} from 'zod';
-import { calculateNoveltyBoost } from '../../../utility/feed-algorithm.mjs';
+import {calculateNoveltyBoost} from '../../../utility/feed-algorithm.mjs';
+import { TRPCError } from '@trpc/server';
 
 export const approve = protectedProcedure
     .input(
@@ -10,7 +11,7 @@ export const approve = protectedProcedure
     )
     .mutation(async ({input, ctx}) => {
         // set initial score when the petition appears on feed
-        const boostingScore = calculateNoveltyBoost(new Date())
+        const boostingScore = calculateNoveltyBoost(new Date());
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -54,6 +55,20 @@ export const reject = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        // Check if the petition is already approved
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select(['approved_at'])
+            .where('id', '=', `${input.petition_id}`)
+            .executeTakeFirst();
+
+        if (petition?.approved_at) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Voting is not allowed on flagged petitions.',
+            });
+        }
+
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
