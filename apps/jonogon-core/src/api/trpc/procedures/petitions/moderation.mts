@@ -1,7 +1,7 @@
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {z} from 'zod';
 import {calculateNoveltyBoost} from '../../../utility/feed-algorithm.mjs';
-import { TRPCError } from '@trpc/server';
+import {TRPCError} from '@trpc/server';
 
 export const approve = protectedProcedure
     .input(
@@ -11,7 +11,7 @@ export const approve = protectedProcedure
     )
     .mutation(async ({input, ctx}) => {
         // set initial score when the petition appears on feed
-        const { logScore, newScore } = calculateNoveltyBoost()
+        const {logScore, newScore} = calculateNoveltyBoost();
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -24,7 +24,7 @@ export const approve = protectedProcedure
                 approved_at: new Date(),
                 moderated_by: ctx.auth.user_id,
                 score: newScore,
-                log_score: logScore
+                log_score: logScore,
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
@@ -108,7 +108,8 @@ export const flag = protectedProcedure
     .input(
         z.object({
             petition_id: z.number(),
-            reason: z.string(),
+            reason: z.string().optional(),
+            flagged: z.boolean(), // Flag or unflag, if flagged === true, then unflag the petition and vice versa
         }),
     )
     .mutation(async ({input, ctx}) => {
@@ -120,9 +121,9 @@ export const flag = protectedProcedure
                 rejection_reason: null, // Reset the rejection_reason
                 formalized_at: null, // Reset the formalized_at timestamp
 
-                flagged_at: new Date(), // Set the current timestamp
-                flagged_reason: input.reason, // Set the reason for flagging
-                moderated_by: ctx.auth.user_id, // Set the user who flagged
+                flagged_at: input.flagged ? null : new Date(), // Set the current timestamp
+                flagged_reason: input.flagged ? null : input.reason, // Set the reason for flagging
+                moderated_by: ctx.auth.user_id, // Set the user who flagged or unflagged
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
@@ -144,44 +145,6 @@ export const flag = protectedProcedure
         return {
             input,
             message: 'flagged',
-        };
-    });
-
-export const unflag = protectedProcedure
-    .input(
-        z.object({
-            petition_id: z.number(),
-        }),
-    )
-    .mutation(async ({input, ctx}) => {
-        // Update the petition to remove the flag
-        const result = await ctx.services.postgresQueryBuilder
-            .updateTable('petitions')
-            .set({
-                flagged_at: null, // Remove the flagged timestamp
-                flagged_reason: null, // Remove the flagged reason
-                moderated_by: ctx.auth.user_id, // Set the user who unflagged
-            })
-            .where('id', '=', `${input.petition_id}`)
-            .returning(['id', 'created_by'])
-            .executeTakeFirst();
-
-        // If the petition was successfully updated, create a notification
-        if (result) {
-            await ctx.services.postgresQueryBuilder
-                .insertInto('notifications')
-                .values({
-                    user_id: result.created_by, // Notify the creator of the petition
-                    type: 'petition_unflagged', // Type of notification
-                    actor_user_id: ctx.auth.user_id, // The user who unflagged the petition
-                    petition_id: input.petition_id,
-                })
-                .executeTakeFirst();
-        }
-
-        return {
-            input,
-            message: 'unflagged',
         };
     });
 

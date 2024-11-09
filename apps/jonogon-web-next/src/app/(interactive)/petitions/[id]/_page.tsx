@@ -174,12 +174,6 @@ export default function Petition() {
         },
     });
 
-    const {mutate: unflag} = trpc.petitions.unflag.useMutation({
-        onSuccess: async () => {
-            await utils.petitions.get.invalidate({id: petition_id});
-        },
-    });
-
     return isLoading ? (
         <Loading />
     ) : (
@@ -303,9 +297,10 @@ export default function Petition() {
                                             window.confirm(
                                                 'You sure you wanna unflag?',
                                             ) &&
-                                            unflag({
+                                            flag({
                                                 petition_id:
                                                     Number(petition_id),
+                                                flagged: true,
                                             })
                                         }>
                                         Unflag
@@ -328,6 +323,7 @@ export default function Petition() {
                                                     petition_id:
                                                         Number(petition_id),
                                                     reason: flagReason,
+                                                    flagged: false,
                                                 });
                                         }}>
                                         Flag

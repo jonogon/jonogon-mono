@@ -4,7 +4,6 @@ import {
     flag,
     formalize,
     reject,
-    unflag,
 } from '../procedures/petitions/moderation.mjs';
 import {clearVote, vote} from '../procedures/petitions/voting.mjs';
 import {
@@ -54,5 +53,4 @@ export const petitionRouter = router({
     reject: reject,
     formalize: formalize,
     flag: flag,
-    unflag: unflag,
 });
