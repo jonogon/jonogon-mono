@@ -334,7 +334,7 @@ export default function Petition() {
                                     </Button>
                                 ) : null}
 
-                                {status !== 'rejected' && status !== 'draft' ? (
+                                {status === 'submitted' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'default'}
