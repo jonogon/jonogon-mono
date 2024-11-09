@@ -69,7 +69,8 @@ export function getDefaultSortLabelForDabiType(
         case 'time':
             return 'Latest';
         case 'score':
+            return 'Popular'
         default:
-            return 'Popular';
+            return 'বেশি Votes';
     }
 }

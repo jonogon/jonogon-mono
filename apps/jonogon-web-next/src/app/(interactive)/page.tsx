@@ -203,6 +203,7 @@ export default function Home() {
                                 Sort By
                             </DropdownMenuItem>
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
+                            <SortOption sort={'score'}>Popular</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
                             <DropdownMenuSeparator className="mb-3" />
                             <DropdownMenuItem
