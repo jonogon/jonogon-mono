@@ -3,7 +3,7 @@ import {Card, CardFooter, CardHeader, CardTitle} from '@/components/ui/card';
 export default function PetitionCardSkeleton({
     mode,
 }: {
-    mode: 'formalized' | 'request' | 'own';
+    mode: 'formalized' | 'request' | 'own' | 'flagged';
 }) {
     return (
         <Card>

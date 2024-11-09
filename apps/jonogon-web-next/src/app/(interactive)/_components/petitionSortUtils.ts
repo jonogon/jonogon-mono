@@ -12,6 +12,7 @@ export function getSortType(sortStr: string | null) {
 export function getDabiType(typeStr: string | null) {
     switch (typeStr) {
         case 'own':
+        case 'flagged':
         case 'formalized':
         case 'request':
             return typeStr;

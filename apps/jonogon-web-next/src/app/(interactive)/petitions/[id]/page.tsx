@@ -11,7 +11,9 @@ export async function generateMetadata({params}: {params: {id: string}}) {
     const ctx = getRequestContext();
 
     const encodedSymmetricKeyString = encoder.encode(
-        ctx.env.RENDERING_SYMMETRIC_KEY,
+        process.env.NODE_ENV === 'development'
+            ? 'development-symmetric-key-1234567890'
+            : ctx.env.RENDERING_SYMMETRIC_KEY,
     );
 
     const signingKey = await crypto.subtle.importKey(

@@ -4,6 +4,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -51,6 +52,33 @@ function SortOption({
     );
 }
 
+function FilterOption({
+    filter,
+    children,
+}: PropsWithChildren<{filter: ReturnType<typeof getDabiType>}>) {
+    const router = useRouter();
+    const params = useSearchParams();
+
+    // current selected type
+    const selectedType = getDabiType(params.get('type'));
+
+    // updating the params
+    const updateParams = () => {
+        const nextSearchParams = new URLSearchParams(params);
+        nextSearchParams.set('type', filter);
+        router.replace('/?' + nextSearchParams.toString());
+    };
+
+    return (
+        <DropdownMenuItem
+            className="capitalize flex items-center justify-between"
+            onSelect={updateParams}>
+            <span>{children}</span>
+            {selectedType === filter ? <RxCheck /> : null}
+        </DropdownMenuItem>
+    );
+}
+
 function Tab({
     type,
     children,
@@ -77,6 +105,17 @@ function Tab({
                 {
                     'border-red-500 text-red-500':
                         getDabiType(params.get('type')) === type,
+                },
+                {
+                    'text-gray-400':
+                        getDabiType(params.get('type')) !== 'request' &&
+                        getDabiType(params.get('type')) !== 'formalized',
+                },
+                {
+                    'border-gray-400':
+                        getDabiType(params.get('type')) !== 'request' &&
+                        getDabiType(params.get('type')) !== 'formalized' &&
+                        children === 'সব দাবি',
                 },
             )}
             onClick={updateParams}>
@@ -141,7 +180,7 @@ export default function Home() {
                         />
                     )}
                 </h1>
-                <div className="flex items-center justify-between my-2">
+                <div className="flex items-center justify-between mt-2">
                     {type === 'own' ? null : (
                         <div>
                             <Tab type={'request'}>সব দাবি</Tab>
@@ -158,12 +197,37 @@ export default function Home() {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                disabled
+                                className="text-sm font-semibold">
+                                Sort By
+                            </DropdownMenuItem>
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
                             <SortOption sort={'score'}>Popular</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
+                            {type !== 'own' && (
+                                <>
+                                    <DropdownMenuSeparator className="mb-3" />
+                                    <DropdownMenuItem
+                                        disabled
+                                        className="text-sm font-semibold">
+                                        Filter By
+                                    </DropdownMenuItem>
+                                    <FilterOption filter={'flagged'}>
+                                        Flagged দাবিs
+                                    </FilterOption>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+
+                {getDabiType(params.get('type')) === 'flagged' && (
+                    <h2 className="text-3xl font-semibold text-red-500">
+                        Flagged দাবিs
+                    </h2>
+                )}
+
                 <PetitionList />
             </div>
             <div className="fixed bottom-0 left-0 w-full bg-background/50">

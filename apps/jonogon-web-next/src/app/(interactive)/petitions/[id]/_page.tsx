@@ -148,6 +148,8 @@ export default function Petition() {
     const isMod = !!selfResponse?.meta.token.is_user_moderator;
     const status = petition?.data.status ?? 'draft';
 
+    const isFlagged = petition?.data.flagged_at !== null;
+
     const {mutate: approve} = trpc.petitions.approve.useMutation({
         onSuccess: async () => {
             await utils.petitions.get.invalidate({id: petition_id});
@@ -166,11 +168,29 @@ export default function Petition() {
         },
     });
 
+    const {mutate: flag} = trpc.petitions.flag.useMutation({
+        onSuccess: async () => {
+            await utils.petitions.get.invalidate({id: petition_id});
+        },
+    });
+
     return isLoading ? (
         <Loading />
     ) : (
         <>
             <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
+                {status === 'flagged' &&
+                !isOwnPetition &&
+                !isMod &&
+                !isAdmin ? (
+                    <div className={'bg-border px-3 py-2 rounded-lg'}>
+                        <div className={'font-bold text-red-500 text-sm'}>
+                            This petition was flagged.
+                        </div>
+                        <div>{petition?.data.flagged_reason ?? ''}</div>
+                    </div>
+                ) : null}
+
                 {isOwnPetition || isMod || isAdmin ? (
                     <div
                         className={
@@ -187,6 +207,17 @@ export default function Petition() {
                                 <div>
                                     {petition?.data.rejection_reason ?? ''}
                                 </div>
+                            </div>
+                        ) : null}
+                        {status === 'flagged' ? (
+                            <div className={'flex-1'}>
+                                <div
+                                    className={
+                                        'font-bold text-red-500 text-sm'
+                                    }>
+                                    Your petition was flagged.
+                                </div>
+                                <div>{petition?.data.flagged_reason ?? ''}</div>
                             </div>
                         ) : null}
                         {isMod || isAdmin ? (
@@ -258,7 +289,48 @@ export default function Petition() {
                                         Approve
                                     </Button>
                                 ) : null}
-                                {status !== 'rejected' && status !== 'draft' ? (
+                                {status === 'flagged' && (
+                                    <Button
+                                        size={'sm'}
+                                        intent={'success'}
+                                        onClick={() =>
+                                            window.confirm(
+                                                'You sure you wanna unflag?',
+                                            ) &&
+                                            flag({
+                                                petition_id:
+                                                    Number(petition_id),
+                                                flagged: true,
+                                            })
+                                        }>
+                                        Unflag
+                                    </Button>
+                                )}
+                                {status !== 'rejected' &&
+                                status !== 'draft' &&
+                                status !== 'flagged' &&
+                                status !== 'submitted' ? (
+                                    <Button
+                                        size={'sm'}
+                                        intent={'default'}
+                                        onClick={() => {
+                                            const flagReason = window.prompt(
+                                                'Why you flagging this petition? (leave empty to cancel)',
+                                            );
+
+                                            flagReason &&
+                                                flag({
+                                                    petition_id:
+                                                        Number(petition_id),
+                                                    reason: flagReason,
+                                                    flagged: false,
+                                                });
+                                        }}>
+                                        Flag
+                                    </Button>
+                                ) : null}
+
+                                {status === 'submitted' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'default'}
@@ -432,6 +504,7 @@ export default function Petition() {
                         intent={'success'}
                         size={'lg'}
                         className="flex-1 w-full"
+                        disabled={isFlagged}
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
@@ -461,6 +534,7 @@ export default function Petition() {
                         }
                         intent={'default'}
                         className="flex-1 w-full"
+                        disabled={isFlagged}
                         size={'lg'}
                         onClick={clickThumbsDown}>
                         <ThumbsDown
