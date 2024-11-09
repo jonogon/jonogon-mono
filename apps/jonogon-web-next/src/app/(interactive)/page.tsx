@@ -205,15 +205,19 @@ export default function Home() {
                             <SortOption sort={'votes'}>বেশি Votes</SortOption>
                             <SortOption sort={'score'}>Popular</SortOption>
                             <SortOption sort={'time'}>Latest</SortOption>
-                            <DropdownMenuSeparator className="mb-3" />
-                            <DropdownMenuItem
-                                disabled
-                                className="text-sm font-semibold">
-                                Filter By
-                            </DropdownMenuItem>
-                            <FilterOption filter={'flagged'}>
-                                Flagged দাবিs
-                            </FilterOption>
+                            {type !== 'own' && (
+                                <>
+                                    <DropdownMenuSeparator className="mb-3" />
+                                    <DropdownMenuItem
+                                        disabled
+                                        className="text-sm font-semibold">
+                                        Filter By
+                                    </DropdownMenuItem>
+                                    <FilterOption filter={'flagged'}>
+                                        Flagged দাবিs
+                                    </FilterOption>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
