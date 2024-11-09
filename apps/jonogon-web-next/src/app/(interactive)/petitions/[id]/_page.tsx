@@ -174,6 +174,12 @@ export default function Petition() {
         },
     });
 
+    const {mutate: unflag} = trpc.petitions.unflag.useMutation({
+        onSuccess: async () => {
+            await utils.petitions.get.invalidate({id: petition_id});
+        },
+    });
+
     return isLoading ? (
         <Loading />
     ) : (
@@ -273,8 +279,7 @@ export default function Petition() {
                                     </Button>
                                 ) : null}
                                 {status === 'submitted' ||
-                                status === 'rejected' ||
-                                status === 'flagged' ? (
+                                status === 'rejected' ? (
                                     <Button
                                         size={'sm'}
                                         intent={'success'}
@@ -290,6 +295,22 @@ export default function Petition() {
                                         Approve
                                     </Button>
                                 ) : null}
+                                {status === 'flagged' && (
+                                    <Button
+                                        size={'sm'}
+                                        intent={'success'}
+                                        onClick={() =>
+                                            window.confirm(
+                                                'You sure you wanna unflag?',
+                                            ) &&
+                                            unflag({
+                                                petition_id:
+                                                    Number(petition_id),
+                                            })
+                                        }>
+                                        Unflag
+                                    </Button>
+                                )}
                                 {status !== 'rejected' &&
                                 status !== 'draft' &&
                                 status !== 'flagged' &&
