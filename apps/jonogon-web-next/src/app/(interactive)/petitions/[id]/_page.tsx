@@ -179,6 +179,18 @@ export default function Petition() {
     ) : (
         <>
             <div className="max-w-screen-sm mx-auto px-4 pt-12 mb-28 flex flex-col gap-4">
+                {status === 'flagged' &&
+                !isOwnPetition &&
+                !isMod &&
+                !isAdmin ? (
+                    <div className={'bg-border px-3 py-2 rounded-lg'}>
+                        <div className={'font-bold text-red-500 text-sm'}>
+                            This petition was flagged.
+                        </div>
+                        <div>{petition?.data.flagged_reason ?? ''}</div>
+                    </div>
+                ) : null}
+
                 {isOwnPetition || isMod || isAdmin ? (
                     <div
                         className={
