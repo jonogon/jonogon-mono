@@ -131,6 +131,44 @@ export const flag = protectedProcedure
         };
     });
 
+export const unflag = protectedProcedure
+    .input(
+        z.object({
+            petition_id: z.number(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        // Update the petition to remove the flag
+        const result = await ctx.services.postgresQueryBuilder
+            .updateTable('petitions')
+            .set({
+                flagged_at: null, // Remove the flagged timestamp
+                flagged_reason: null, // Remove the flagged reason
+                moderated_by: ctx.auth.user_id, // Set the user who unflagged
+            })
+            .where('id', '=', `${input.petition_id}`)
+            .returning(['id', 'created_by'])
+            .executeTakeFirst();
+
+        // If the petition was successfully updated, create a notification
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .insertInto('notifications')
+                .values({
+                    user_id: result.created_by, // Notify the creator of the petition
+                    type: 'petition_unflagged', // Type of notification
+                    actor_user_id: ctx.auth.user_id, // The user who unflagged the petition
+                    petition_id: input.petition_id,
+                })
+                .executeTakeFirst();
+        }
+
+        return {
+            input,
+            message: 'unflagged',
+        };
+    });
+
 export const formalize = protectedProcedure
     .input(
         z.object({
