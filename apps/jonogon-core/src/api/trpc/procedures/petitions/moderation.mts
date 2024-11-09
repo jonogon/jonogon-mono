@@ -109,7 +109,7 @@ export const flag = protectedProcedure
         z.object({
             petition_id: z.number(),
             reason: z.string().optional(),
-            flagged: z.boolean(), // Flag or unflag, if flagged === true, then unflag the petition and vice versa
+            flagged: z.boolean(), // Flag or unflag, if flagged === true,then unflag the petition and vice versa
         }),
     )
     .mutation(async ({input, ctx}) => {
