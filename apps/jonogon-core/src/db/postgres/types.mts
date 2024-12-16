@@ -126,6 +126,81 @@ export interface Users {
   username: string | null;
 }
 
+export interface Organizations {
+    id: Generated<Int8>;
+    type: 'organization' | 'expert';
+    name: string;
+    img: string | null;
+    bio: string | null;
+    website: string | null;
+    created_by: Int8;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
+}
+
+export interface OrganizationSocialAccounts {
+    id: Generated<Int8>;
+    organization_id: Int8;
+    platform: string; // e.g. 'twitter', 'facebook', 'linkedin', etc.
+    username: string;
+    url: string;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+}
+
+export interface Jobabs {
+    id: Generated<Int8>;
+    petition_id: Int8;
+    organization_id: Int8;
+    title: string | null;
+    description: string | null;
+    source_type:
+        | 'jonogon_direct'
+        | 'news_article'
+        | 'official_document'
+        | 'social_media'
+        | 'press_release';
+    source_url: string | null;
+    created_by: Int8; // moderator who created it
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
+}
+
+export interface JobabAttachments {
+    id: Generated<Int8>;
+    jobab_id: Int8;
+    filename: string;
+    attachment: string;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
+}
+
+export interface JobabVotes {
+    id: Generated<Int8>;
+    jobab_id: Int8;
+    user_id: Int8;
+    vote: number; // 1 for upvote, -1 for downvote
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    nullified_at: Timestamp | null;
+}
+
+export interface JobabComments {
+    id: Generated<Int8>;
+    jobab_id: Int8;
+    petition_id: Int8;
+    parent_id: Int8 | null; // for nested comments
+    body: string;
+    created_by: Int8;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
+    highlighted_at: Timestamp | null;
+}
+
 export interface DB {
   comment_votes: CommentVotes;
   comments: Comments;
@@ -135,4 +210,10 @@ export interface DB {
   petitions: Petitions;
   pgmigrations: Pgmigrations;
   users: Users;
+  organizations: Organizations;
+  organization_social_accounts: OrganizationSocialAccounts;
+  jobabs: Jobabs;
+  jobab_attachments: JobabAttachments;
+  jobab_votes: JobabVotes;
+  jobab_comments: JobabComments;
 }
