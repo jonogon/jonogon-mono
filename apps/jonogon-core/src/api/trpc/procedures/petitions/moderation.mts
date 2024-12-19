@@ -2,8 +2,9 @@ import {protectedProcedure} from '../../middleware/protected.mjs';
 import {z} from 'zod';
 import {calculateNoveltyBoost} from '../../../utility/feed-algorithm.mjs';
 import {TRPCError} from '@trpc/server';
+import {moderatorProcedure} from '../../middleware/moderator.mjs';
 
-export const approve = protectedProcedure
+export const approve = moderatorProcedure
     .input(
         z.object({
             petition_id: z.number(),
@@ -22,7 +23,7 @@ export const approve = protectedProcedure
                 formalized_at: null,
 
                 approved_at: new Date(),
-                moderated_by: ctx.auth.user_id,
+                moderated_by: ctx.auth!.user_id,
                 score: newScore,
                 log_score: logScore,
             })
@@ -36,7 +37,7 @@ export const approve = protectedProcedure
                 .values({
                     user_id: result.created_by,
                     type: 'petition_approved',
-                    actor_user_id: ctx.auth.user_id,
+                    actor_user_id: ctx.auth!.user_id,
                     petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
@@ -48,7 +49,7 @@ export const approve = protectedProcedure
         };
     });
 
-export const reject = protectedProcedure
+export const reject = moderatorProcedure
     .input(
         z.object({
             petition_id: z.number(),
@@ -80,7 +81,7 @@ export const reject = protectedProcedure
 
                 rejected_at: new Date(),
                 rejection_reason: input.reason,
-                moderated_by: ctx.auth.user_id,
+                moderated_by: ctx.auth!.user_id,
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
@@ -92,7 +93,7 @@ export const reject = protectedProcedure
                 .values({
                     user_id: result.created_by,
                     type: 'petition_rejected',
-                    actor_user_id: ctx.auth.user_id,
+                    actor_user_id: ctx.auth!.user_id,
                     petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
@@ -104,7 +105,7 @@ export const reject = protectedProcedure
         };
     });
 
-export const flag = protectedProcedure
+export const flag = moderatorProcedure
     .input(
         z.object({
             petition_id: z.number(),
@@ -123,7 +124,7 @@ export const flag = protectedProcedure
 
                 flagged_at: input.flagged ? null : new Date(), // Set the current timestamp
                 flagged_reason: input.flagged ? null : input.reason, // Set the reason for flagging
-                moderated_by: ctx.auth.user_id, // Set the user who flagged or unflagged
+                moderated_by: ctx.auth!.user_id, // Set the user who flagged or unflagged
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
@@ -136,7 +137,7 @@ export const flag = protectedProcedure
                 .values({
                     user_id: result.created_by, // Notify the creator of the petition
                     type: 'petition_flagged', // Type of notification
-                    actor_user_id: ctx.auth.user_id, // The user who flagged the petition
+                    actor_user_id: ctx.auth!.user_id, // The user who flagged the petition
                     petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
@@ -148,7 +149,7 @@ export const flag = protectedProcedure
         };
     });
 
-export const formalize = protectedProcedure
+export const formalize = moderatorProcedure
     .input(
         z.object({
             petition_id: z.number(),
@@ -160,7 +161,7 @@ export const formalize = protectedProcedure
             .updateTable('petitions')
             .set({
                 formalized_at: new Date(),
-                formalized_by: ctx.auth.user_id,
+                formalized_by: ctx.auth!.user_id,
 
                 rejected_at: null,
                 rejection_reason: null,
@@ -179,7 +180,7 @@ export const formalize = protectedProcedure
                 .values({
                     user_id: result.created_by,
                     type: 'petition_formalized',
-                    actor_user_id: ctx.auth.user_id,
+                    actor_user_id: ctx.auth!.user_id,
                     petition_id: input.petition_id,
                 })
                 .executeTakeFirst();
