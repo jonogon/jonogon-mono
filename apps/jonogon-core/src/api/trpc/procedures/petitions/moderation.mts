@@ -10,6 +10,13 @@ export const approve = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'You do not have permission to approve petitions.',
+            });
+        }
+
         // set initial score when the petition appears on feed
         const {logScore, newScore} = calculateNoveltyBoost();
         const result = await ctx.services.postgresQueryBuilder
@@ -56,6 +63,13 @@ export const reject = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'You do not have permission to reject petitions.',
+            });
+        }
+
         // Check if the petition is already approved
         const petition = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
@@ -113,6 +127,13 @@ export const flag = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
+            throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'You do not have permission to flag petitions.',
+            });
+        }
+
         // Update the petition to set flagged_at and flagged_reason
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
@@ -156,6 +177,13 @@ export const formalize = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+      if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
+          throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'You do not have permission to formalize petitions.',
+          });
+      }
+
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
