@@ -144,7 +144,7 @@ export interface Respondents {
     deleted_at: Timestamp | null;
 }
 
-export interface RespondentsSocialAccounts {
+export interface SocialAccounts {
     id: Generated<Int8>;
     respondent_id: Int8;
     platform: string; // e.g. 'twitter', 'facebook', 'linkedin', etc.
@@ -215,7 +215,7 @@ export interface DB {
     pgmigrations: Pgmigrations;
     users: Users;
     respondents: Respondents;
-    respondents_social_accounts: RespondentsSocialAccounts;
+    social_accounts: SocialAccounts;
     jobabs: Jobabs;
     jobab_attachments: JobabAttachments;
     jobab_votes: JobabVotes;
