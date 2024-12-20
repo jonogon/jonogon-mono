@@ -7,6 +7,7 @@ import {
     softDeleteJobab,
     removeAttachment,
 } from '../procedures/jobabs/crud.mjs';
+import { listJobabs } from '../procedures/jobabs/listings.mjs';
 
 export const jobabRouter = router({
     // CRUD
@@ -16,4 +17,7 @@ export const jobabRouter = router({
     softDeleteJobab: softDeleteJobab,
     remove: remove,
     removeAttachment: removeAttachment,
+
+    // listings
+    list: listJobabs,
 });
