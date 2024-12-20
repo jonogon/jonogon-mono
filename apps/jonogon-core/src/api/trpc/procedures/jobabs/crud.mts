@@ -46,7 +46,9 @@ export const getJobab = publicProcedure
         const votes = await ctx.services.postgresQueryBuilder
             .selectFrom('jobab_votes')
             .select([
-                ctx.services.postgresQueryBuilder.fn.sum('vote').as('vote_count'),
+                ctx.services.postgresQueryBuilder.fn
+                    .sum('vote')
+                    .as('vote_count'),
             ])
             .where('jobab_id', '=', `${input.id}`)
             .where('nullified_at', 'is', null)
@@ -228,6 +230,35 @@ export const updateJobab = protectedProcedure
         };
     });
 
+export const removeAttachment = protectedProcedure
+    .input(
+        z.object({
+            jobab_id: z.number(),
+            attachment_id: z.number(),
+        }),
+    )
+    .mutation(async ({ctx, input}) => {
+        if (!ctx.auth!.is_user_admin && !ctx.auth!.is_user_moderator) {
+            throw new TRPCError({
+                code: 'UNAUTHORIZED',
+                message: 'You are not authorized to remove attachments',
+            });
+        }
+
+        await ctx.services.postgresQueryBuilder
+            .updateTable('jobab_attachments')
+            .set({
+                deleted_at: new Date(),
+            })
+            .where('jobab_id', '=', `${input.jobab_id}`)
+            .where('id', '=', `${input.attachment_id}`)
+            .execute();
+
+        return {
+            message: 'Attachment removed successfully',
+        };
+    });
+
 export const softDeleteJobab = protectedProcedure
     .input(
         z.object({
@@ -277,4 +308,4 @@ export const remove = protectedProcedure
         return {
             message: 'Jobab permanently deleted',
         };
-    }); 
+    });
