@@ -57,6 +57,7 @@ export interface Notifications {
     id: Generated<Int8>;
     meta: Json | null;
     petition_id: Int8 | null;
+    jobab_id: Int8 | null;
     reply_comment_id: Int8 | null;
     type: string;
     user_id: Int8;

@@ -7,6 +7,7 @@ import {commentRouter} from './comments.mjs';
 import {activityRouter} from './activity.mjs';
 import {firebaseAuth} from '../../../services/firebase/index.mjs';
 import {respondentRouter} from './respondents.mjs';
+import {jobabRouter} from './jobabs.mjs';
 
 export const appRouter = router({
     _: publicProcedure.query(() => {
@@ -20,6 +21,7 @@ export const appRouter = router({
     comments: commentRouter,
     activity: activityRouter,
     respondents: respondentRouter,
+    jobabs: jobabRouter,
 
     ...(process.env.NODE_ENV === 'development'
         ? {
