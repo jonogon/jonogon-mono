@@ -238,4 +238,94 @@ export const respondentRouter = router({
                 message: 'Respondent deleted successfully',
             };
         }),
+
+    addSocialAccount: protectedProcedure
+        .input(
+            z.object({
+                respondent_id: z.string(),
+                platform: z.string(),
+                username: z.string(),
+                url: z.string().url(),
+            }),
+        )
+        .mutation(async ({ctx, input}) => {
+            if (!ctx.auth!.is_user_admin && !ctx.auth!.is_user_moderator) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'You are not authorized to add social accounts',
+                });
+            }
+
+            const socialAccount = await ctx.services.postgresQueryBuilder
+                .insertInto('social_accounts')
+                .values({
+                    respondent_id: BigInt(input.respondent_id),
+                    platform: input.platform,
+                    username: input.username,
+                    url: input.url,
+                })
+                .returning(['id'])
+                .executeTakeFirst();
+
+            return {
+                data: {
+                    id: socialAccount!.id,
+                },
+                message: 'Social account added successfully',
+            };
+        }),
+
+    removeSocialAccount: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+            }),
+        )
+        .mutation(async ({ctx, input}) => {
+            if (!ctx.auth!.is_user_admin && !ctx.auth!.is_user_moderator) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'You are not authorized to remove social accounts',
+                });
+            }
+
+            await ctx.services.postgresQueryBuilder
+                .deleteFrom('social_accounts')
+                .where('id', '=', input.id)
+                .execute();
+
+            return {
+                message: 'Social account removed successfully',
+            };
+        }),
+
+    updateSocialAccount: protectedProcedure
+        .input(
+            z.object({
+                id: z.string(),
+                platform: z.string().optional(),
+                username: z.string().optional(),
+                url: z.string().url().optional(),
+            }),
+        )
+        .mutation(async ({ctx, input}) => {
+            if (!ctx.auth!.is_user_admin && !ctx.auth!.is_user_moderator) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'You are not authorized to update social accounts',
+                });
+            }
+
+            const {id, ...updateData} = input;
+
+            await ctx.services.postgresQueryBuilder
+                .updateTable('social_accounts')
+                .set(updateData)
+                .where('id', '=', id)
+                .execute();
+
+            return {
+                message: 'Social account updated successfully',
+            };
+        }),
 });
