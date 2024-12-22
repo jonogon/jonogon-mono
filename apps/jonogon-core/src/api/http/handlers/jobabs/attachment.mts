@@ -4,6 +4,7 @@ import {nanoid} from 'nanoid';
 import {logger} from '../../../../logger.mjs';
 import {Request, Response} from 'express';
 import {z} from 'zod';
+import { requireAuth, requireModeratorOrAdmin } from '../../../utility/auth-utils.js';
 
 export function createJobabAttachmentHandler(createContext: TContextCreator) {
     return async (req: Request, res: Response) => {
@@ -30,18 +31,11 @@ export function createJobabAttachmentHandler(createContext: TContextCreator) {
                 });
             }
 
-            if (!ctx.auth?.user_id) {
-                return res.status(401).json({
-                    message: 'must be logged in to upload attachments',
-                });
-            }
+            // check if the user is logged in
+            requireAuth(ctx, res, 'must be logged in to upload attachments');
 
             // Check if user is moderator or admin
-            if (!ctx.auth.is_user_moderator && !ctx.auth.is_user_admin) {
-                return res.status(403).json({
-                    message: 'only moderators can add attachments to jobabs',
-                });
-            }
+            requireModeratorOrAdmin(ctx, res, 'only moderators can add attachments to jobabs');
 
             const jobab = await ctx.services.postgresQueryBuilder
                 .selectFrom('jobabs')

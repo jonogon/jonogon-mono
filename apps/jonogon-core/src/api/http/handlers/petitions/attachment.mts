@@ -4,6 +4,7 @@ import {nanoid} from 'nanoid';
 import {logger} from '../../../../logger.mjs';
 import {Request, Response} from 'express';
 import {z} from 'zod';
+import {requireAuth} from '../../../utility/auth-utils.js';
 
 export function createPetitionAttachmentHandler(
     createContext: TContextCreator,
@@ -32,11 +33,8 @@ export function createPetitionAttachmentHandler(
                 });
             }
 
-            if (!ctx.auth?.user_id) {
-                return res.status(401).json({
-                    message: 'must be logged in to set a profile picture',
-                });
-            }
+            // check if the user is logged in
+            requireAuth(ctx, res, 'must be logged in to set a profile picture');
 
             const petition = await ctx.services.postgresQueryBuilder
                 .selectFrom('petitions')
@@ -51,8 +49,8 @@ export function createPetitionAttachmentHandler(
             }
 
             if (
-                `${petition.created_by}` !== `${ctx.auth.user_id}` &&
-                !ctx.auth.is_user_admin
+                `${petition.created_by}` !== `${ctx.auth!.user_id}` &&
+                !ctx.auth!.is_user_admin
             ) {
                 return res.status(403).json({
                     message: 'you are not the creator of this petition',
