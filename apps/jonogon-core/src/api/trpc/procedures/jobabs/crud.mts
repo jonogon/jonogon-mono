@@ -134,6 +134,20 @@ export const createJobab = protectedProcedure
             });
         }
 
+        // check if the petition exists
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select(['created_by'])
+            .where('id', '=', `${input.petition_id}`)
+            .executeTakeFirst();
+
+        if (!petition) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'Petition not found',
+            });
+        }
+
         const jobab = await ctx.services.postgresQueryBuilder
             .insertInto('jobabs')
             .values({
@@ -159,13 +173,6 @@ export const createJobab = protectedProcedure
                 )
                 .execute();
         }
-
-        // Get petition creator to notify them
-        const petition = await ctx.services.postgresQueryBuilder
-            .selectFrom('petitions')
-            .select(['created_by'])
-            .where('id', '=', `${input.petition_id}`)
-            .executeTakeFirst();
 
         if (petition) {
             await ctx.services.postgresQueryBuilder
