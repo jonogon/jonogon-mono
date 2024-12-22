@@ -143,7 +143,7 @@ export const createJobab = protectedProcedure
                 description: input.description,
                 source_type: input.source_type,
                 source_url: input.source_url,
-                created_by: BigInt(ctx.auth!.user_id),
+                created_by: BigInt(ctx.auth?.user_id),
             })
             .returning(['id'])
             .executeTakeFirst();
@@ -173,7 +173,7 @@ export const createJobab = protectedProcedure
                 .values({
                     user_id: petition.created_by,
                     type: 'jobab_created',
-                    actor_user_id: ctx.auth!.user_id,
+                    actor_user_id: ctx.auth?.user_id,
                     petition_id: `${input.petition_id}`,
                     jobab_id: `${jobab!.id}`,
                     meta: {

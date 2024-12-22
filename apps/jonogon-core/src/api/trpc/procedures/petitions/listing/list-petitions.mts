@@ -95,7 +95,7 @@ export const listPetitions = publicProcedure
                             return query.where(
                                 'petitions.created_by',
                                 '=',
-                                `${ctx.auth!.user_id}`,
+                                `${ctx.auth?.user_id}`,
                             );
                         }
 

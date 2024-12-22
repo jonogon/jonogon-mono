@@ -3,6 +3,10 @@ import {protectedProcedure} from '../middleware/protected.mjs';
 import {z} from 'zod';
 import {TRPCError} from '@trpc/server';
 import {publicProcedure} from '../index.mjs';
+import {
+    requireAdmin,
+    requireModeratorOrAdmin,
+} from '../../utility/auth-utils.js';
 
 export const respondentRouter = router({
     list: publicProcedure
@@ -113,12 +117,11 @@ export const respondentRouter = router({
             }),
         )
         .mutation(async ({ctx, input}) => {
-            if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
-                throw new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'You are not authorized to create respondents',
-                });
-            }
+            requireModeratorOrAdmin(
+                ctx,
+                undefined,
+                'You are not authorized to create respondents',
+            );
 
             const respondent = await ctx.services.postgresQueryBuilder
                 .insertInto('respondents')
@@ -175,12 +178,11 @@ export const respondentRouter = router({
             }),
         )
         .mutation(async ({ctx, input}) => {
-            if (!ctx.auth.is_user_admin && !ctx.auth.is_user_moderator) {
-                throw new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'You are not authorized to update respondents',
-                });
-            }
+            requireModeratorOrAdmin(
+                ctx,
+                undefined,
+                'You are not authorized to update respondents',
+            );
 
             const {id, social_accounts, ...updateData} = input;
 
@@ -219,12 +221,11 @@ export const respondentRouter = router({
     delete: protectedProcedure
         .input(z.object({id: z.string()}))
         .mutation(async ({ctx, input}) => {
-            if (!ctx.auth.is_user_admin) {
-                throw new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'You are not authorized to delete respondents',
-                });
-            }
+            requireAdmin(
+                ctx,
+                undefined,
+                'You are not authorized to delete respondents',
+            );
 
             await ctx.services.postgresQueryBuilder
                 .updateTable('respondents')

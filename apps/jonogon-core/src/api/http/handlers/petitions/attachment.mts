@@ -49,13 +49,14 @@ export function createPetitionAttachmentHandler(
             }
 
             if (
-                `${petition.created_by}` !== `${ctx.auth!.user_id}` &&
+                `${petition.created_by}` !== `${ctx.auth?.user_id}` &&
                 !ctx.auth!.is_user_admin
             ) {
                 return res.status(403).json({
                     message: 'you are not the creator of this petition',
                 });
             }
+            
 
             const fileName = nanoid();
 

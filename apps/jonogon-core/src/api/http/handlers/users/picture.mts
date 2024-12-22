@@ -39,7 +39,7 @@ export function createProfilePictureHandler(createContext: TContextCreator) {
                 .set({
                     picture: fileKey,
                 })
-                .where('id', '=', `${ctx.auth!.user_id}`)
+                .where('id', '=', `${ctx.auth?.user_id}`)
                 .executeTakeFirst();
 
             if (env.NODE_ENV === 'development') {
