@@ -206,6 +206,15 @@ export interface JobabComments {
     highlighted_at: Timestamp | null;
 }
 
+export interface JobabCommentVotes {
+    id: Generated<Int8>;
+    comment_id: Int8;
+    user_id: Int8;
+    vote: number; // 1 for upvote, -1 for downvote
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+}
+
 export interface DB {
     comment_votes: CommentVotes;
     comments: Comments;
@@ -221,4 +230,5 @@ export interface DB {
     jobab_attachments: JobabAttachments;
     jobab_votes: JobabVotes;
     jobab_comments: JobabComments;
+    jobab_comment_votes: JobabCommentVotes;
 }
