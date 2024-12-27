@@ -233,6 +233,24 @@ export const createComment = protectedProcedure
         }),
     )
     .mutation(async ({input, ctx}) => {
+        // If parent_id is provided, verify it exists and is not deleted
+        if (input.parent_id) {
+            const parentComment = await baseCommentQuery(
+                ctx.services.postgresQueryBuilder,
+                input.jobab_id,
+            )
+                .select(['created_by'])
+                .where('jobab_comments.id', '=', `${input.parent_id}`)
+                .executeTakeFirst();
+
+            if (!parentComment) {
+                throw new TRPCError({
+                    code: 'NOT_FOUND',
+                    message: 'Parent comment not found or was deleted',
+                });
+            }
+        }
+
         const comment = await ctx.services.postgresQueryBuilder
             .insertInto('jobab_comments')
             .values({
