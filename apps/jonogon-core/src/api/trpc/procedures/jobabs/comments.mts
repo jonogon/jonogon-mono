@@ -3,74 +3,116 @@ import {publicProcedure} from '../../index.mjs';
 import {z} from 'zod';
 import {TRPCError} from '@trpc/server';
 import {sql} from 'kysely';
+import type {DB} from '../../../../db/postgres/types.mjs';
+
+const COMMENTS_PER_PAGE = 8;
+const REPLIES_PER_PAGE = 4;
+
+type Context = {
+    services: {
+        fileStorage: {
+            getFileURL: (path: string) => Promise<string>;
+        };
+    };
+};
+
+type Comment = {
+    profile_picture: string | null;
+    total_votes: string | number;
+    [key: string]: any;
+};
+
+async function processCommentUrls(comments: Comment[], ctx: Context) {
+    return Promise.all(
+        comments.map(async (comment) => ({
+            ...comment,
+            profile_picture: comment.profile_picture
+                ? await ctx.services.fileStorage.getFileURL(
+                      comment.profile_picture,
+                  )
+                : null,
+            total_votes: Number(comment.total_votes),
+        })),
+    );
+}
+
+const withVotes = (qb: any, userId?: string) => {
+    qb.leftJoin(
+        'jobab_comment_votes',
+        'jobab_comments.id',
+        'jobab_comment_votes.comment_id',
+    );
+
+    if (userId) {
+        qb.leftJoin('jobab_comment_votes as user_vote', (join: any) =>
+            join
+                .onRef('jobab_comments.id', '=', 'user_vote.comment_id')
+                .on('user_vote.user_id', '=', userId),
+        );
+    }
+
+    return qb;
+};
+
+const baseCommentQuery = (qb: any, jobabId: number) =>
+    qb
+        .selectFrom('jobab_comments')
+        .innerJoin('users', 'jobab_comments.created_by', 'users.id')
+        .where('jobab_comments.jobab_id', '=', `${jobabId}`)
+        .where('jobab_comments.deleted_at', 'is', null);
+
+const getCommentFields = () => [
+    'users.name as username',
+    'users.id as user_id',
+    'users.picture as profile_picture',
+    'jobab_comments.created_by',
+    'jobab_comments.parent_id',
+    'jobab_comments.id',
+    'jobab_comments.body',
+    'jobab_comments.highlighted_at',
+    'jobab_comments.deleted_at',
+    sql<number>`COALESCE(SUM(jobab_comment_votes.vote), 0)`.as('total_votes'),
+];
 
 export const countAllComments = publicProcedure
-    .input(
-        z.object({
-            jobab_id: z.number(),
-        }),
-    )
+    .input(z.object({jobab_id: z.number()}))
     .query(async ({input, ctx}) => {
-        const commentCount = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
-            .where('jobab_comments.deleted_at', 'is', null)
-            .select((eb) => eb.fn.count('jobab_comments.id').as('count'))
+        const result = await baseCommentQuery(
+            ctx.services.postgresQueryBuilder,
+            input.jobab_id,
+        )
+            .select((eb: any) => eb.fn.count('jobab_comments.id').as('count'))
             .executeTakeFirst();
 
-        const count = commentCount?.count ?? 0;
-        return {
-            data: {
-                count,
-            },
-        };
+        return {data: {count: Number(result?.count ?? 0)}};
     });
 
 export const countComments = publicProcedure
-    .input(
-        z.object({
-            jobab_id: z.number(),
-        }),
-    )
+    .input(z.object({jobab_id: z.number()}))
     .query(async ({input, ctx}) => {
-        const commentCount = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
+        const result = await baseCommentQuery(
+            ctx.services.postgresQueryBuilder,
+            input.jobab_id,
+        )
             .where('jobab_comments.parent_id', 'is', null)
-            .where('jobab_comments.deleted_at', 'is', null)
-            .select((eb) => eb.fn.count('jobab_comments.id').as('count'))
+            .select((eb: any) => eb.fn.count('jobab_comments.id').as('count'))
             .executeTakeFirst();
 
-        const count = commentCount?.count ?? 0;
-        return {
-            data: {
-                count,
-            },
-        };
+        return {data: {count: Number(result?.count ?? 0)}};
     });
 
 export const countReplies = publicProcedure
-    .input(
-        z.object({
-            jobab_id: z.number(),
-            parent_id: z.number(),
-        }),
-    )
+    .input(z.object({jobab_id: z.number(), parent_id: z.number()}))
     .query(async ({input, ctx}) => {
-        const replyCount = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
+        const result = await baseCommentQuery(
+            ctx.services.postgresQueryBuilder,
+            input.jobab_id,
+        )
             .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
-            .where('jobab_comments.deleted_at', 'is', null)
-            .select((eb) => eb.fn.count('jobab_comments.id').as('count'))
+            .select((eb: any) => eb.fn.count('jobab_comments.id').as('count'))
             .executeTakeFirst();
 
-        const count = replyCount?.count ?? 0;
-        return {
-            data: {
-                count,
-            },
-        };
+        return {data: {count: Number(result?.count ?? 0)}};
     });
 
 export const listPublicComments = publicProcedure
@@ -81,55 +123,21 @@ export const listPublicComments = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 8;
-        const comments = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .innerJoin('users', 'jobab_comments.created_by', 'users.id')
-            .leftJoin(
-                'jobab_comment_votes',
-                'jobab_comments.id',
-                'jobab_comment_votes.comment_id',
-            )
-            .select(({fn}) => [
-                'users.name as username',
-                'users.id as user_id',
-                'users.picture as profile_picture',
-                'jobab_comments.created_by',
-                'jobab_comments.parent_id',
-                'jobab_comments.id',
-                'jobab_comments.body',
-                'jobab_comments.highlighted_at',
-                'jobab_comments.deleted_at',
-                (eb) =>
-                    sql`COALESCE(${eb.fn.sum('jobab_comment_votes.vote')}, 0)`.as(
-                        'total_votes',
-                    ),
-            ])
+        const comments = await withVotes(
+            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
+        )
+            .select(getCommentFields())
             .groupBy(['users.id', 'jobab_comments.id'])
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
             .where('jobab_comments.parent_id', 'is', null)
-            .where('deleted_at', 'is', null)
             .orderBy('total_votes', 'desc')
             .orderBy('jobab_comments.created_at', 'asc')
-            .limit(limit)
-            .offset((input.page - 1) * limit)
+            .limit(COMMENTS_PER_PAGE)
+            .offset((input.page - 1) * COMMENTS_PER_PAGE)
             .execute();
 
-        const data = await Promise.all(
-            comments.map(async (comment) => {
-                return {
-                    ...comment,
-                    profile_picture: comment.profile_picture
-                        ? await ctx.services.fileStorage.getFileURL(
-                              comment.profile_picture,
-                          )
-                        : null,
-                    total_votes: Number(comment.total_votes),
-                };
-            }),
-        );
-
-        return {data};
+        return {
+            data: await processCommentUrls(comments, ctx),
+        };
     });
 
 export const listComments = publicProcedure
@@ -140,66 +148,29 @@ export const listComments = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 8;
-        const comments = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .innerJoin('users', 'jobab_comments.created_by', 'users.id')
-            .leftJoin(
-                'jobab_comment_votes',
-                'jobab_comments.id',
-                'jobab_comment_votes.comment_id',
-            )
-            .leftJoin('jobab_comment_votes as user_vote', (join) =>
-                join
-                    .onRef('jobab_comments.id', '=', 'user_vote.comment_id')
-                    .on('user_vote.user_id', '=', `${ctx.auth?.user_id}`),
-            )
-            .select(({fn}) => [
-                'users.name as username',
-                'users.id as user_id',
-                'users.picture as profile_picture',
-                'jobab_comments.created_by',
-                'jobab_comments.parent_id',
-                'jobab_comments.id',
-                'jobab_comments.body',
-                'jobab_comments.highlighted_at',
-                'jobab_comments.deleted_at',
-                (eb) =>
-                    sql`COALESCE(${eb.fn.sum('jobab_comment_votes.vote')}, 0)`.as(
-                        'total_votes',
-                    ),
+        const comments = await withVotes(
+            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
+            `${ctx.auth?.user_id}`,
+        )
+            .select([
+                ...getCommentFields(),
                 'user_vote.vote as user_vote',
-                sql`CASE 
-                    WHEN jobab_comments.created_by = ${ctx.auth?.user_id} THEN TRUE 
-                    ELSE FALSE 
-                END`.as('is_author'),
+                sql`CASE WHEN jobab_comments.created_by = ${ctx.auth?.user_id} THEN TRUE ELSE FALSE END`.as(
+                    'is_author',
+                ),
             ])
             .groupBy(['user_vote.vote', 'users.id', 'jobab_comments.id'])
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
-            .where('jobab_comments.deleted_at', 'is', null)
             .where('jobab_comments.parent_id', 'is', null)
-            .orderBy('is_author desc')
+            .orderBy('is_author', 'desc')
             .orderBy('total_votes', 'desc')
             .orderBy('jobab_comments.created_at', 'asc')
-            .limit(limit)
-            .offset((input.page - 1) * limit)
+            .limit(COMMENTS_PER_PAGE)
+            .offset((input.page - 1) * COMMENTS_PER_PAGE)
             .execute();
 
-        const data = await Promise.all(
-            comments.map(async (comment) => {
-                return {
-                    ...comment,
-                    profile_picture: comment.profile_picture
-                        ? await ctx.services.fileStorage.getFileURL(
-                              comment.profile_picture,
-                          )
-                        : null,
-                    total_votes: Number(comment.total_votes),
-                };
-            }),
-        );
-
-        return {data};
+        return {
+            data: await processCommentUrls(comments, ctx),
+        };
     });
 
 export const listPublicReplies = publicProcedure
@@ -211,51 +182,20 @@ export const listPublicReplies = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 4;
-        const replies = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .innerJoin('users', 'jobab_comments.created_by', 'users.id')
-            .leftJoin(
-                'jobab_comment_votes',
-                'jobab_comments.id',
-                'jobab_comment_votes.comment_id',
-            )
-            .select(({fn}) => [
-                'users.name as username',
-                'users.id as user_id',
-                'users.picture as profile_picture',
-                'jobab_comments.created_by',
-                'jobab_comments.parent_id',
-                'jobab_comments.id',
-                'jobab_comments.body',
-                'jobab_comments.highlighted_at',
-                'jobab_comments.deleted_at',
-                fn.sum('jobab_comment_votes.vote').as('total_votes'),
-            ])
+        const replies = await withVotes(
+            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
+        )
+            .select(getCommentFields())
             .groupBy(['users.id', 'jobab_comments.id'])
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
             .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
-            .where('jobab_comments.deleted_at', 'is', null)
             .orderBy('jobab_comments.created_at', 'asc')
-            .limit(limit)
-            .offset((input.page - 1) * limit)
+            .limit(REPLIES_PER_PAGE)
+            .offset((input.page - 1) * REPLIES_PER_PAGE)
             .execute();
 
-        const data = await Promise.all(
-            replies.map(async (reply) => {
-                return {
-                    ...reply,
-                    profile_picture: reply.profile_picture
-                        ? await ctx.services.fileStorage.getFileURL(
-                              reply.profile_picture,
-                          )
-                        : null,
-                    total_votes: Number(reply.total_votes),
-                };
-            }),
-        );
-
-        return {data};
+        return {
+            data: await processCommentUrls(replies, ctx),
+        };
     });
 
 export const listReplies = publicProcedure
@@ -267,57 +207,21 @@ export const listReplies = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
-        const limit = 4;
-        const replies = await ctx.services.postgresQueryBuilder
-            .selectFrom('jobab_comments')
-            .innerJoin('users', 'jobab_comments.created_by', 'users.id')
-            .leftJoin(
-                'jobab_comment_votes',
-                'jobab_comments.id',
-                'jobab_comment_votes.comment_id',
-            )
-            .leftJoin('jobab_comment_votes as user_vote', (join) =>
-                join
-                    .onRef('jobab_comments.id', '=', 'user_vote.comment_id')
-                    .on('user_vote.user_id', '=', `${ctx.auth?.user_id}`),
-            )
-            .select(({fn}) => [
-                'users.name as username',
-                'users.id as user_id',
-                'users.picture as profile_picture',
-                'jobab_comments.created_by',
-                'jobab_comments.parent_id',
-                'jobab_comments.id',
-                'jobab_comments.body',
-                'jobab_comments.highlighted_at',
-                'jobab_comments.deleted_at',
-                fn.sum('jobab_comment_votes.vote').as('total_votes'),
-                'user_vote.vote as user_vote',
-            ])
+        const replies = await withVotes(
+            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
+            `${ctx.auth?.user_id}`,
+        )
+            .select([...getCommentFields(), 'user_vote.vote as user_vote'])
             .groupBy(['user_vote.vote', 'users.id', 'jobab_comments.id'])
-            .where('jobab_comments.jobab_id', '=', `${input.jobab_id}`)
             .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
-            .where('jobab_comments.deleted_at', 'is', null)
             .orderBy('jobab_comments.created_at', 'asc')
-            .limit(limit)
-            .offset((input.page - 1) * limit)
+            .limit(REPLIES_PER_PAGE)
+            .offset((input.page - 1) * REPLIES_PER_PAGE)
             .execute();
 
-        const data = await Promise.all(
-            replies.map(async (reply) => {
-                return {
-                    ...reply,
-                    profile_picture: reply.profile_picture
-                        ? await ctx.services.fileStorage.getFileURL(
-                              reply.profile_picture,
-                          )
-                        : null,
-                    total_votes: Number(reply.total_votes),
-                };
-            }),
-        );
-
-        return {data};
+        return {
+            data: await processCommentUrls(replies, ctx),
+        };
     });
 
 export const createComment = protectedProcedure
@@ -328,7 +232,7 @@ export const createComment = protectedProcedure
             body: z.string(),
         }),
     )
-    .mutation(async ({ctx, input}) => {
+    .mutation(async ({input, ctx}) => {
         const comment = await ctx.services.postgresQueryBuilder
             .insertInto('jobab_comments')
             .values({
@@ -353,7 +257,7 @@ export const createComment = protectedProcedure
                 .values({
                     user_id: jobab.created_by,
                     type: 'jobab_comment',
-                    actor_user_id: ctx.auth?.user_id,
+                    actor_user_id: ctx.auth!.user_id,
                     jobab_id: `${input.jobab_id}`,
                 })
                 .execute();
@@ -373,7 +277,7 @@ export const createComment = protectedProcedure
                     .values({
                         user_id: parentComment.created_by,
                         type: 'jobab_comment_reply',
-                        actor_user_id: ctx.auth?.user_id,
+                        actor_user_id: ctx.auth!.user_id,
                         jobab_id: `${input.jobab_id}`,
                     })
                     .execute();
@@ -395,7 +299,7 @@ export const updateComment = protectedProcedure
             body: z.string(),
         }),
     )
-    .mutation(async ({ctx, input}) => {
+    .mutation(async ({input, ctx}) => {
         const comment = await ctx.services.postgresQueryBuilder
             .selectFrom('jobab_comments')
             .select(['created_by'])
@@ -419,9 +323,7 @@ export const updateComment = protectedProcedure
 
         await ctx.services.postgresQueryBuilder
             .updateTable('jobab_comments')
-            .set({
-                body: input.body,
-            })
+            .set({body: input.body})
             .where('id', '=', `${input.id}`)
             .execute();
 
@@ -432,7 +334,7 @@ export const updateComment = protectedProcedure
 
 export const deleteComment = protectedProcedure
     .input(z.object({id: z.number()}))
-    .mutation(async ({ctx, input}) => {
+    .mutation(async ({input, ctx}) => {
         const comment = await ctx.services.postgresQueryBuilder
             .selectFrom('jobab_comments')
             .select(['created_by'])
@@ -460,9 +362,7 @@ export const deleteComment = protectedProcedure
 
         await ctx.services.postgresQueryBuilder
             .updateTable('jobab_comments')
-            .set({
-                deleted_at: new Date(),
-            })
+            .set({deleted_at: new Date()})
             .where('id', '=', `${input.id}`)
             .execute();
 
