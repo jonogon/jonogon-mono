@@ -87,7 +87,7 @@ export const countAllComments = publicProcedure
         return {data: {count: Number(result?.count ?? 0)}};
     });
 
-export const countComments = publicProcedure
+export const countRootComments = publicProcedure
     .input(z.object({jobab_id: z.number()}))
     .query(async ({input, ctx}) => {
         const result = await baseCommentQuery(

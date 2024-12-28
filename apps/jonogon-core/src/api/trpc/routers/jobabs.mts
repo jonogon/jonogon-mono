@@ -1,7 +1,7 @@
 import {router} from '../index.mjs';
 import {
     countAllComments,
-    countComments,
+    countRootComments,
     countReplies,
     createComment,
     deleteComment,
@@ -20,7 +20,7 @@ import {
     removeAttachment,
 } from '../procedures/jobabs/crud.mjs';
 import {listJobabs} from '../procedures/jobabs/listings.mjs';
-import { clearVote, vote } from '../procedures/jobabs/voting.mjs';
+import {clearVote, vote} from '../procedures/jobabs/voting.mjs';
 
 export const jobabRouter = router({
     // CRUD
@@ -35,13 +35,13 @@ export const jobabRouter = router({
     list: listJobabs,
 
     // comments
+    countAllComments: countAllComments,
+    countRootComments: countRootComments,
     listComments: listComments,
     listPublicComments: listPublicComments,
     createComment: createComment,
     updateComment: updateComment,
     deleteComment: deleteComment,
-    countAllComments: countAllComments,
-    countComments: countComments,
     countReplies: countReplies,
     listPublicReplies: listPublicReplies,
     listReplies: listReplies,
