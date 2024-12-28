@@ -173,31 +173,6 @@ export const listComments = publicProcedure
         };
     });
 
-export const listPublicReplies = publicProcedure
-    .input(
-        z.object({
-            jobab_id: z.number(),
-            parent_id: z.number(),
-            page: z.number(),
-        }),
-    )
-    .query(async ({input, ctx}) => {
-        const replies = await withVotes(
-            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
-        )
-            .select(getCommentFields())
-            .groupBy(['users.id', 'jobab_comments.id'])
-            .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
-            .orderBy('jobab_comments.created_at', 'asc')
-            .limit(REPLIES_PER_PAGE)
-            .offset((input.page - 1) * REPLIES_PER_PAGE)
-            .execute();
-
-        return {
-            data: await processCommentUrls(replies, ctx),
-        };
-    });
-
 export const listReplies = publicProcedure
     .input(
         z.object({
@@ -207,12 +182,20 @@ export const listReplies = publicProcedure
         }),
     )
     .query(async ({input, ctx}) => {
+        const userId = ctx.auth?.user_id;
         const replies = await withVotes(
             baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
-            `${ctx.auth?.user_id}`,
+            userId ? `${userId}` : undefined,
         )
-            .select([...getCommentFields(), 'user_vote.vote as user_vote'])
-            .groupBy(['user_vote.vote', 'users.id', 'jobab_comments.id'])
+            .select([
+                ...getCommentFields(),
+                ...(userId ? ['user_vote.vote as user_vote'] : []),
+            ])
+            .groupBy([
+                ...(userId ? ['user_vote.vote'] : []),
+                'users.id',
+                'jobab_comments.id',
+            ])
             .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
             .orderBy('jobab_comments.created_at', 'asc')
             .limit(REPLIES_PER_PAGE)

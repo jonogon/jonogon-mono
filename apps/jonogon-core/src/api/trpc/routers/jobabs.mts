@@ -7,7 +7,6 @@ import {
     deleteComment,
     listComments,
     listPublicComments,
-    listPublicReplies,
     listReplies,
     updateComment,
 } from '../procedures/jobabs/comments.mjs';
@@ -43,7 +42,6 @@ export const jobabRouter = router({
     updateComment: updateComment,
     deleteComment: deleteComment,
     countReplies: countReplies,
-    listPublicReplies: listPublicReplies,
     listReplies: listReplies,
 
     // voting
