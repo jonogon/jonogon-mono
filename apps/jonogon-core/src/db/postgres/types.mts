@@ -57,6 +57,7 @@ export interface Notifications {
     id: Generated<Int8>;
     meta: Json | null;
     petition_id: Int8 | null;
+    jobab_id: Int8 | null;
     reply_comment_id: Int8 | null;
     type: string;
     user_id: Int8;
@@ -144,7 +145,7 @@ export interface Respondents {
     deleted_at: Timestamp | null;
 }
 
-export interface RespondentsSocialAccounts {
+export interface SocialAccounts {
     id: Generated<Int8>;
     respondent_id: Int8;
     platform: string; // e.g. 'twitter', 'facebook', 'linkedin', etc.
@@ -205,6 +206,15 @@ export interface JobabComments {
     highlighted_at: Timestamp | null;
 }
 
+export interface JobabCommentVotes {
+    id: Generated<Int8>;
+    comment_id: Int8;
+    user_id: Int8;
+    vote: number; // 1 for upvote, -1 for downvote
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+}
+
 export interface DB {
     comment_votes: CommentVotes;
     comments: Comments;
@@ -215,9 +225,10 @@ export interface DB {
     pgmigrations: Pgmigrations;
     users: Users;
     respondents: Respondents;
-    respondents_social_accounts: RespondentsSocialAccounts;
+    social_accounts: SocialAccounts;
     jobabs: Jobabs;
     jobab_attachments: JobabAttachments;
     jobab_votes: JobabVotes;
     jobab_comments: JobabComments;
+    jobab_comment_votes: JobabCommentVotes;
 }

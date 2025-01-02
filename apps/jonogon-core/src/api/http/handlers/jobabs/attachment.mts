@@ -4,11 +4,9 @@ import {nanoid} from 'nanoid';
 import {logger} from '../../../../logger.mjs';
 import {Request, Response} from 'express';
 import {z} from 'zod';
-import {requireAuth} from '../../../utility/auth-utils.js';
+import { requireAuth, requireModeratorOrAdmin } from '../../../utility/auth-utils.js';
 
-export function createPetitionAttachmentHandler(
-    createContext: TContextCreator,
-) {
+export function createJobabAttachmentHandler(createContext: TContextCreator) {
     return async (req: Request, res: Response) => {
         try {
             const ctx = await createContext({req, res});
@@ -34,35 +32,29 @@ export function createPetitionAttachmentHandler(
             }
 
             // check if the user is logged in
-            requireAuth(ctx, res, 'must be logged in to set a profile picture');
+            requireAuth(ctx, res, 'must be logged in to upload attachments');
 
-            const petition = await ctx.services.postgresQueryBuilder
-                .selectFrom('petitions')
+            // Check if user is moderator or admin
+            requireModeratorOrAdmin(ctx, res, 'only moderators can add attachments to jobabs');
+
+            const jobab = await ctx.services.postgresQueryBuilder
+                .selectFrom('jobabs')
                 .selectAll()
                 .where('id', '=', req.params.id)
+                .where('deleted_at', 'is', null)
                 .executeTakeFirst();
 
-            if (!petition) {
+            if (!jobab) {
                 return res.status(404).json({
-                    message: 'petition not found',
+                    message: 'jobab not found',
                 });
             }
-
-            if (
-                `${petition.created_by}` !== `${ctx.auth?.user_id}` &&
-                !ctx.auth!.is_user_admin
-            ) {
-                return res.status(403).json({
-                    message: 'you are not the creator of this petition',
-                });
-            }
-            
 
             const fileName = nanoid();
 
             if (queryParams.data.type === 'image') {
-                const imageKey = `attachment_${fileName}.jpg`;
-                const thumbnailKey = `attachment_thumbnail_${fileName}.jpg`;
+                const imageKey = `jobab_attachment_${fileName}.jpg`;
+                const thumbnailKey = `jobab_attachment_thumbnail_${fileName}.jpg`;
 
                 const imageStream = await sharp(req.body)
                     .rotate()
@@ -85,12 +77,10 @@ export function createPetitionAttachmentHandler(
                 ]);
 
                 const result = await ctx.services.postgresQueryBuilder
-                    .insertInto('petition_attachments')
+                    .insertInto('jobab_attachments')
                     .values({
-                        petition_id: req.params.id,
-                        is_image: true,
+                        jobab_id: req.params.id,
                         filename: queryParams.data.filename,
-                        thumbnail: thumbnailKey,
                         attachment: imageKey,
                     })
                     .returning(['id'])
@@ -100,25 +90,19 @@ export function createPetitionAttachmentHandler(
                     message: 'image-added',
                     data: {
                         attachment_id: result?.id,
-                        thumbnail_url:
-                            await ctx.services.fileStorage.getFileURL(
-                                thumbnailKey,
-                            ),
-                        image_url:
-                            await ctx.services.fileStorage.getFileURL(imageKey),
+                        url: await ctx.services.fileStorage.getFileURL(imageKey),
                     },
                 });
             } else {
                 const ext = queryParams.data.filename.split('.').pop();
-                const fileKey = `attachment_${fileName}.${ext}`;
+                const fileKey = `jobab_attachment_${fileName}.${ext}`;
 
                 await ctx.services.fileStorage.storeFile(fileKey, req.body);
 
                 const result = await ctx.services.postgresQueryBuilder
-                    .insertInto('petition_attachments')
+                    .insertInto('jobab_attachments')
                     .values({
-                        petition_id: req.params.id,
-                        is_image: false,
+                        jobab_id: req.params.id,
                         filename: queryParams.data.filename,
                         attachment: fileKey,
                     })
@@ -129,17 +113,16 @@ export function createPetitionAttachmentHandler(
                     message: 'attachment-added',
                     data: {
                         attachment_id: result?.id,
-                        file_url:
-                            await ctx.services.fileStorage.getFileURL(fileKey),
+                        url: await ctx.services.fileStorage.getFileURL(fileKey),
                     },
                 });
             }
         } catch (error) {
-            logger.error('error uploading attachment', {error});
+            logger.error('error uploading jobab attachment', {error});
 
             res.status(500).json({
                 message: 'INTERNAL SERVER ERROR',
             });
         }
     };
-}
+} 

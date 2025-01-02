@@ -4,7 +4,7 @@ import {scope} from 'scope-utilities';
 import {TRPCError} from '@trpc/server';
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {sql} from 'kysely';
-import { calculateCommentVelocity } from '../../../utility/feed-algorithm.mjs';
+import {calculateCommentVelocity} from '../../../utility/feed-algorithm.mjs';
 
 export const countAllComments = publicProcedure
     .input(
@@ -403,10 +403,13 @@ export const createComment = protectedProcedure
                 .executeTakeFirst();
 
             if (petition) {
-                const { logScore, newScore } = calculateCommentVelocity(petition?.approved_at, petition.score);
+                const {logScore, newScore} = calculateCommentVelocity(
+                    petition.approved_at ?? new Date(),
+                    petition.score,
+                );
                 await ctx.services.postgresQueryBuilder
                     .updateTable('petitions')
-                    .set({ score: newScore, log_score: logScore })
+                    .set({score: newScore, log_score: logScore})
                     .where('id', '=', input.petition_id)
                     .execute();
                 await ctx.services.postgresQueryBuilder
