@@ -168,6 +168,7 @@ export interface Jobabs {
         | 'social_media'
         | 'press_release';
     source_url: string | null;
+    responded_at: Generated<Timestamp>;
     created_by: Int8; // moderator who created it
     created_at: Generated<Timestamp>;
     updated_at: Generated<Timestamp>;
