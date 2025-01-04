@@ -30,6 +30,7 @@ export const listJobabs = publicProcedure
                 'description',
                 'source_type',
                 'source_url',
+                'responded_at',
                 'created_by',
                 'created_at',
             ])
