@@ -20,6 +20,7 @@ export const getJobab = publicProcedure
                 'description',
                 'source_type',
                 'source_url',
+                'responded_at',
                 'created_by',
                 'created_at',
             ])
@@ -116,6 +117,7 @@ export const createJobab = protectedProcedure
                 'press_release',
             ]),
             source_url: z.string().url().optional(),
+            responded_at: z.date(),
             attachments: z
                 .array(
                     z.object({
@@ -157,6 +159,7 @@ export const createJobab = protectedProcedure
                 description: input.description,
                 source_type: input.source_type,
                 source_url: input.source_url,
+                responded_at: input.responded_at,
                 created_by: BigInt(ctx.auth?.user_id),
             })
             .returning(['id'])
@@ -214,6 +217,7 @@ export const updateJobab = protectedProcedure
                 ])
                 .optional(),
             source_url: z.string().url().optional(),
+            responded_at: z.date().optional(),
         }),
     )
     .mutation(async ({ctx, input}) => {
