@@ -117,7 +117,20 @@ export const createJobab = protectedProcedure
                 'press_release',
             ]),
             source_url: z.string().url().optional(),
-            responded_at: z.date(),
+            responded_at: z.string().transform((str) => {
+                const date = new Date(str);
+                return new Date(
+                    Date.UTC(
+                        date.getUTCFullYear(),
+                        date.getUTCMonth(),
+                        date.getUTCDate(),
+                        0,
+                        0,
+                        0,
+                        0,
+                    ),
+                );
+            }),
             attachments: z
                 .array(
                     z.object({

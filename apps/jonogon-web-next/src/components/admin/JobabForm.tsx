@@ -1,0 +1,874 @@
+import {useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogClose,
+} from '@/components/ui/dialog';
+import {Textarea} from '@/components/ui/textarea';
+import {trpc} from '@/trpc/client';
+import {
+    CalendarIcon,
+    MinusIcon,
+    PlusIcon,
+    TrashIcon,
+    Building2,
+    UserCog,
+    X,
+} from 'lucide-react';
+import {Calendar} from '@/components/ui/calendar';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {cn} from '@/lib/utils';
+import {format} from 'date-fns';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {Drawer, DrawerContent, DrawerTrigger} from '@/components/ui/drawer';
+import {useMediaQuery} from 'react-responsive';
+import {Tabs, TabsList, TabsContent, TabsTrigger} from '@/components/ui/tabs';
+import {z} from 'zod';
+
+interface JobabFormProps {
+    isOpen: boolean;
+    onClose: () => void;
+    petitionId: number;
+}
+
+const respondentLabels = {
+    organization: {
+        title: 'Organization',
+        description: 'Official response from government bodies',
+        selectLabel: 'Select Organization',
+        icon: Building2,
+    },
+    expert: {
+        title: 'Individual Expert',
+        description: 'Expert opinion from qualified individuals',
+        selectLabel: 'Select Expert',
+        icon: UserCog,
+    },
+} as const;
+
+const isValidUrl = (url: string) => {
+    if (!url) return true;
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+const socialAccountSchema = z.object({
+    platform: z.string().min(1, 'Platform is required'),
+    username: z.string().min(1, 'Username is required'),
+    url: z.string().url('Please enter a valid URL'),
+});
+
+const respondentSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    bio: z.string().optional(),
+    website: z.string().url('Please enter a valid URL').optional(),
+    social_accounts: z.array(socialAccountSchema).optional(),
+});
+
+const jobabSchema = z.object({
+    respondentId: z.string().min(1, 'Please select a respondent'),
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().min(1, 'Description is required'),
+    sourceType: z.enum(
+        [
+            'jonogon_direct',
+            'news_article',
+            'official_document',
+            'social_media',
+            'press_release',
+        ],
+        {
+            required_error: 'Please select a source platform',
+        },
+    ),
+    sourceUrl: z.string().url('Please enter a valid URL').optional(),
+    respondedAt: z.date().optional(),
+});
+
+export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
+    const [respondentType, setRespondentType] = useState<
+        'organization' | 'expert'
+    >('organization');
+    const [showNewRespondent, setShowNewRespondent] = useState(false);
+    const [date, setDate] = useState<Date | undefined>(undefined);
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        respondentId: '',
+        sourceType: 'jonogon_direct' as const,
+        sourceUrl: '',
+        newRespondentName: '',
+        newRespondentBio: '',
+        newRespondentWebsite: '',
+        socialAccounts: [] as Array<{
+            platform: string;
+            username: string;
+            url: string;
+        }>,
+    });
+
+    const [errors, setErrors] = useState({
+        website: '',
+        socialAccounts: [] as string[],
+        respondentId: '',
+        title: '',
+        description: '',
+        sourceType: '',
+        sourceUrl: '',
+        respondedAt: '',
+    });
+
+    const [comboboxOpen, setComboboxOpen] = useState(false);
+    const isDesktop = useMediaQuery({minWidth: 768});
+
+    const {data: respondents} = trpc.respondents.list.useQuery(
+        {
+            type: respondentType,
+        },
+        {
+            enabled: !!respondentType,
+        },
+    );
+
+    const {mutate: createRespondent} = trpc.respondents.create.useMutation({
+        onSuccess: (data) => {
+            setFormData((prev) => ({
+                ...prev,
+                respondentId: String(data.data.id),
+            }));
+            setShowNewRespondent(false);
+            utils.respondents.list.invalidate();
+        },
+    });
+
+    const {mutate: createJobab, isLoading} = trpc.jobabs.create.useMutation({
+        onSuccess: () => {
+            onClose();
+        },
+    });
+
+    const utils = trpc.useUtils();
+    const currentLabel = respondentLabels[respondentType];
+
+    const handleRespondentTypeChange = (val: string) => {
+        setRespondentType(val as 'organization' | 'expert');
+        setFormData((prev) => ({
+            ...prev,
+            respondentId: '',
+        }));
+    };
+
+    const addSocialAccount = () => {
+        setFormData((prev) => ({
+            ...prev,
+            socialAccounts: [
+                ...prev.socialAccounts,
+                {platform: '', username: '', url: ''},
+            ],
+        }));
+    };
+
+    const removeSocialAccount = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            socialAccounts: prev.socialAccounts.filter((_, i) => i !== index),
+        }));
+    };
+
+    const updateSocialAccount = (
+        index: number,
+        field: keyof (typeof formData.socialAccounts)[0],
+        value: string,
+    ) => {
+        setFormData((prev) => ({
+            ...prev,
+            socialAccounts: prev.socialAccounts.map((account, i) =>
+                i === index ? {...account, [field]: value} : account,
+            ),
+        }));
+    };
+
+    const validateForm = () => {
+        if (!showNewRespondent) {
+            if (!date) {
+                setErrors((prev) => ({
+                    ...prev,
+                    respondedAt: 'Response date is required',
+                }));
+                return false;
+            }
+
+            const result = jobabSchema.safeParse({
+                ...formData,
+                respondedAt: date,
+            });
+            if (!result.success) {
+                const formattedErrors = result.error.format();
+                setErrors({
+                    ...errors,
+                    respondentId:
+                        formattedErrors.respondentId?._errors[0] || '',
+                    title: formattedErrors.title?._errors[0] || '',
+                    description: formattedErrors.description?._errors[0] || '',
+                    sourceType: formattedErrors.sourceType?._errors[0] || '',
+                    sourceUrl: formattedErrors.sourceUrl?._errors[0] || '',
+                });
+                return false;
+            }
+            return true;
+        }
+
+        const result = respondentSchema.safeParse({
+            name: formData.newRespondentName,
+            bio: formData.newRespondentBio,
+            website: formData.newRespondentWebsite,
+            social_accounts: formData.socialAccounts,
+        });
+
+        if (!result.success) {
+            const formattedErrors = result.error.format();
+            setErrors({
+                ...errors,
+                website: formattedErrors.website?._errors[0] || '',
+                socialAccounts: formattedErrors.social_accounts?._errors || [],
+            });
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleCreateRespondent = () => {
+        if (!validateForm()) return;
+
+        createRespondent({
+            type: respondentType,
+            name: formData.newRespondentName,
+            bio: formData.newRespondentBio,
+            website: formData.newRespondentWebsite || undefined,
+            social_accounts:
+                formData.socialAccounts.length > 0
+                    ? formData.socialAccounts
+                    : undefined,
+        });
+    };
+
+    const handleSubmit = () => {
+        if (!validateForm() || !date) return;
+        const utcDate = new Date(
+            Date.UTC(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate(),
+                0,
+                0,
+                0,
+                0,
+            ),
+        );
+
+        createJobab({
+            petition_id: petitionId,
+            respondent_id: Number(formData.respondentId),
+            title: formData.title || undefined,
+            description: formData.description || undefined,
+            source_type: formData.sourceType,
+            source_url: formData.sourceUrl || undefined,
+            responded_at: utcDate.toISOString(),
+        });
+    };
+
+    const ResponsiveCombobox = () => {
+        if (isDesktop) {
+            return (
+                <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            className="w-full justify-start">
+                            {formData.respondentId
+                                ? respondents?.data?.find(
+                                      (r) => r.id === formData.respondentId,
+                                  )?.name
+                                : currentLabel.selectLabel}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                        <RespondentList />
+                    </PopoverContent>
+                </Popover>
+            );
+        }
+
+        return (
+            <Drawer open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                <DrawerTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                        {formData.respondentId
+                            ? respondents?.data?.find(
+                                  (r) => r.id === formData.respondentId,
+                              )?.name
+                            : currentLabel.selectLabel}
+                    </Button>
+                </DrawerTrigger>
+                <DrawerContent>
+                    <div className="mt-4 border-t">
+                        <RespondentList />
+                    </div>
+                </DrawerContent>
+            </Drawer>
+        );
+    };
+
+    const RespondentList = () => {
+        const [search, setSearch] = useState('');
+
+        const filteredRespondents = respondents?.data?.filter(
+            (r) =>
+                r.type === respondentType &&
+                (search
+                    ? r.name.toLowerCase().includes(search.toLowerCase())
+                    : true),
+        );
+
+        const displayRespondents = search
+            ? filteredRespondents
+            : filteredRespondents?.slice(0, 5);
+
+        return (
+            <Command className="w-full md:min-w-[480px]">
+                <CommandInput
+                    placeholder={`Search ${respondentType}...`}
+                    value={search}
+                    onValueChange={setSearch}
+                    className="w-full"
+                />
+                <CommandList className="w-full">
+                    <CommandEmpty>No {respondentType} found.</CommandEmpty>
+                    <CommandGroup>
+                        {displayRespondents?.map((respondent) => (
+                            <CommandItem
+                                key={respondent.id}
+                                value={respondent.name.toLowerCase()}
+                                onSelect={() => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        respondentId: String(respondent.id),
+                                    }));
+                                    setComboboxOpen(false);
+                                    setShowNewRespondent(false);
+                                }}>
+                                {respondent.name}
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+        );
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Add New জবাব</DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-2">
+                    <div>
+                        <Label>Response From</Label>
+                        <Tabs
+                            value={respondentType}
+                            onValueChange={handleRespondentTypeChange}
+                            className="w-full mt-2">
+                            <TabsList className="w-full grid grid-cols-2 h-auto p-2 bg-muted/50">
+                                {(
+                                    Object.entries(respondentLabels) as Array<
+                                        [
+                                            keyof typeof respondentLabels,
+                                            (typeof respondentLabels)[keyof typeof respondentLabels],
+                                        ]
+                                    >
+                                ).map(([key, value]) => {
+                                    const Icon = value.icon;
+                                    return (
+                                        <TabsTrigger
+                                            key={key}
+                                            value={key}
+                                            className="data-[state=active]:border-red-500 data-[state=active]:text-red-500 border-2 border-transparent py-3 hover:bg-accent/50 transition-colors">
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Icon className="h-5 w-5" />
+                                                <div className="space-y-1 text-center">
+                                                    <p className="font-medium leading-none">
+                                                        {value.title}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground leading-snug">
+                                                        {value.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </TabsTrigger>
+                                    );
+                                })}
+                            </TabsList>
+                        </Tabs>
+                    </div>
+
+                    <div>
+                        <Label>
+                            <div className="font-bold text-lg">
+                                {currentLabel.title}{' '}
+                                <span className="text-red-500">*</span>
+                            </div>
+                            <div className="text-stone-500">
+                                Select or create a new{' '}
+                                {respondentType.toLowerCase()}
+                            </div>
+                        </Label>
+                        <div className="flex gap-2 items-end mt-2">
+                            <div className="w-full">
+                                <ResponsiveCombobox />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                    if (formData.respondentId) {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            respondentId: '',
+                                        }));
+                                    } else {
+                                        setShowNewRespondent(
+                                            !showNewRespondent,
+                                        );
+                                    }
+                                }}>
+                                {formData.respondentId ? (
+                                    <X className="h-4 w-4" />
+                                ) : showNewRespondent ? (
+                                    <MinusIcon className="h-4 w-4" />
+                                ) : (
+                                    <PlusIcon className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+                    {showNewRespondent ? (
+                        <div className="space-y-4">
+                            <div className="flex flex-col gap-2">
+                                <Label>
+                                    <div className="font-bold text-lg">
+                                        Name
+                                    </div>
+                                    <div className="text-stone-500">
+                                        Enter {respondentType} name
+                                    </div>
+                                </Label>
+                                <Input
+                                    value={formData.newRespondentName}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            newRespondentName: e.target.value,
+                                        })
+                                    }
+                                    className="bg-card text-card-foreground"
+                                    placeholder={`Enter ${respondentType} name`}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Label>
+                                    <div className="font-bold text-lg">Bio</div>
+                                    <div className="text-stone-500">
+                                        Brief description about the{' '}
+                                        {respondentType}
+                                    </div>
+                                </Label>
+                                <Textarea
+                                    value={formData.newRespondentBio}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            newRespondentBio: e.target.value,
+                                        })
+                                    }
+                                    className="font-mono p-3"
+                                    placeholder={`Enter ${respondentType} bio`}
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Label>
+                                    <div className="font-bold text-lg">
+                                        Website
+                                    </div>
+                                    <div className="text-stone-500">
+                                        Official website URL
+                                    </div>
+                                </Label>
+                                <Input
+                                    type="url"
+                                    value={formData.newRespondentWebsite}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            newRespondentWebsite:
+                                                e.target.value,
+                                        })
+                                    }
+                                    className={cn(
+                                        'bg-card text-card-foreground',
+                                        errors.website && 'border-red-500',
+                                    )}
+                                    placeholder="https://"
+                                />
+                                {errors.website && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.website}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>
+                                        <div className="font-bold text-lg">
+                                            Social Accounts
+                                        </div>
+                                        <div className="text-stone-500">
+                                            Add social media profiles
+                                        </div>
+                                    </Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={addSocialAccount}>
+                                        Add Account
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {formData.socialAccounts.map(
+                                        (account, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex gap-2 items-start relative">
+                                                <Input
+                                                    placeholder="Platform"
+                                                    value={account.platform}
+                                                    onChange={(e) =>
+                                                        updateSocialAccount(
+                                                            index,
+                                                            'platform',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="bg-card text-card-foreground flex-1"
+                                                />
+                                                <Input
+                                                    placeholder="Username"
+                                                    value={account.username}
+                                                    onChange={(e) =>
+                                                        updateSocialAccount(
+                                                            index,
+                                                            'username',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className="bg-card text-card-foreground flex-1"
+                                                />
+                                                <Input
+                                                    placeholder="URL"
+                                                    type="url"
+                                                    value={account.url}
+                                                    onChange={(e) =>
+                                                        updateSocialAccount(
+                                                            index,
+                                                            'url',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    className={cn(
+                                                        'bg-card text-card-foreground flex-1',
+                                                        errors.socialAccounts[
+                                                            index
+                                                        ] && 'border-red-500',
+                                                    )}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        removeSocialAccount(
+                                                            index,
+                                                        )
+                                                    }>
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </Button>
+                                                {errors.socialAccounts[
+                                                    index
+                                                ] && (
+                                                    <p className="text-sm text-red-500 absolute -bottom-5 left-0">
+                                                        {
+                                                            errors
+                                                                .socialAccounts[
+                                                                index
+                                                            ]
+                                                        }
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={handleCreateRespondent}
+                                disabled={
+                                    !formData.newRespondentName ||
+                                    (formData.newRespondentWebsite &&
+                                        !isValidUrl(
+                                            formData.newRespondentWebsite,
+                                        )) ||
+                                    formData.socialAccounts.some(
+                                        (account) =>
+                                            !account.platform ||
+                                            !account.username ||
+                                            !isValidUrl(account.url),
+                                    )
+                                }
+                                className="w-full mt-6">
+                                Create {respondentType}
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <div>
+                                <Label>
+                                    Response Title
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    value={formData.title}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            title: e.target.value,
+                                        })
+                                    }
+                                    className={cn(
+                                        'bg-card text-card-foreground mt-2',
+                                        errors.title && 'border-red-500',
+                                    )}
+                                    placeholder="Enter a clear title for this response"
+                                />
+                                {errors.title && (
+                                    <p className="text-sm text-red-500 mt-1">
+                                        {errors.title}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>
+                                        Source Platform
+                                        <span className="text-red-500">*</span>
+                                    </Label>
+                                    <select
+                                        className={cn(
+                                            'w-full p-2 mt-2 bg-card text-card-foreground border rounded-md',
+                                            errors.sourceType &&
+                                                'border-red-500',
+                                        )}
+                                        value={formData.sourceType}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                sourceType: e.target
+                                                    .value as any,
+                                            })
+                                        }>
+                                        <option value="">
+                                            Select Platform
+                                        </option>
+                                        <option value="jonogon_direct">
+                                            Jonogon Direct
+                                        </option>
+                                        <option value="news_article">
+                                            News Article
+                                        </option>
+                                        <option value="official_document">
+                                            Official Document
+                                        </option>
+                                        <option value="social_media">
+                                            Social Media
+                                        </option>
+                                        <option value="press_release">
+                                            Press Release
+                                        </option>
+                                    </select>
+                                    {errors.sourceType && (
+                                        <p className="text-sm text-red-500 mt-1">
+                                            {errors.sourceType}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <Label>
+                                        Response Date
+                                        <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                className={cn(
+                                                    'w-full mt-2 pl-3 text-left font-normal bg-card text-card-foreground border border-input hover:bg-accent hover:text-accent-foreground',
+                                                    !date &&
+                                                        'text-muted-foreground',
+                                                )}>
+                                                {date ? (
+                                                    format(date, 'PPP')
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent
+                                            className="w-auto p-0"
+                                            align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={(newDate) => {
+                                                    if (newDate) {
+                                                        const selectedDate =
+                                                            new Date(newDate);
+                                                        selectedDate.setHours(
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            0,
+                                                        );
+                                                        setDate(selectedDate);
+                                                    } else {
+                                                        setDate(undefined);
+                                                    }
+                                                }}
+                                                disabled={(date) =>
+                                                    date > new Date()
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label>Source URL</Label>
+                                <Input
+                                    type="url"
+                                    value={formData.sourceUrl}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            sourceUrl: e.target.value,
+                                        })
+                                    }
+                                    className={cn(
+                                        'bg-card text-card-foreground mt-2',
+                                        errors.sourceUrl && 'border-red-500',
+                                    )}
+                                    placeholder="https://"
+                                />
+                                {errors.sourceUrl && (
+                                    <p className="text-sm text-red-500 mt-1">
+                                        {errors.sourceUrl}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label>
+                                    Response Content
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Textarea
+                                    value={formData.description}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    className="mt-2 bg-card text-card-foreground"
+                                    placeholder="Enter the response content..."
+                                    rows={5}
+                                />
+                            </div>
+
+                            <div>
+                                <Label>Attachments</Label>
+                                <div className="mt-2 p-8 border-2 border-dashed rounded-lg text-center">
+                                    <Button variant="outline" type="button">
+                                        Choose Files
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <DialogClose asChild>
+                                    <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={Boolean(
+                                        isLoading ||
+                                            !formData.respondentId ||
+                                            !formData.title ||
+                                            !formData.description ||
+                                            !formData.sourceType ||
+                                            !date ||
+                                            (formData.sourceUrl &&
+                                                !isValidUrl(
+                                                    formData.sourceUrl,
+                                                )),
+                                    )}>
+                                    Add Response
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}

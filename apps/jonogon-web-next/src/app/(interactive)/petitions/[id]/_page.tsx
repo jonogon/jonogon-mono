@@ -23,6 +23,7 @@ import CommentThread from './_components/comments/Thread';
 import SuggestedPetitions from './_components/SuggestedPetitions';
 
 import {useToast} from '@/components/ui/use-toast';
+import {JobabForm} from '@/components/admin/JobabForm';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -53,6 +54,7 @@ export default function Petition() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showSuggestedPetitionsModal, setShowSuggestedPetitionsModal] =
         useState(false);
+    const [showJobabForm, setShowJobabForm] = useState(false);
 
     useEffect(() => {
         if (isSubmitted) {
@@ -227,6 +229,13 @@ export default function Petition() {
                                         NOT MODERATED YET
                                     </span>
                                 ) : null}
+                                {(isAdmin || isMod) && (
+                                    <Button
+                                        size={'sm'}
+                                        onClick={() => setShowJobabForm(true)}>
+                                        Add জবাব
+                                    </Button>
+                                )}
                                 {status === 'approved' ? (
                                     <Button
                                         size={'sm'}
@@ -570,6 +579,11 @@ export default function Petition() {
 
                 <SocialShareSheet />
             </div>
+            <JobabForm
+                isOpen={showJobabForm}
+                onClose={() => setShowJobabForm(false)}
+                petitionId={Number(petition_id)}
+            />
         </>
     );
 }
