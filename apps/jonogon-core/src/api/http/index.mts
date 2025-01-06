@@ -12,6 +12,7 @@ import {milestoneDetectionQueue} from '../../services/queues/milestoneDetectionQ
 import {notificationsSchedulerQueue} from '../../services/queues/notificationsSchedulerQueue.mjs';
 import {smsNotificationDispatchQueue} from '../../services/queues/smsNotificationDispatchQueue.mjs';
 import basicAuth from 'express-basic-auth';
+import {createRespondentImageHandler} from './handlers/respondents/image.mjs';
 
 export async function registerHTTPRoutes(
     expressApp: Express,
@@ -49,6 +50,15 @@ export async function registerHTTPRoutes(
             limit: 16 * 1024 * 1024,
         }),
         createProfilePictureHandler(createContext),
+    );
+
+    app.post(
+        '/respondents/image',
+        express.raw({
+            inflate: true,
+            limit: 16 * 1024 * 1024,
+        }),
+        createRespondentImageHandler(createContext),
     );
 
     if (env.NODE_ENV === 'development') {

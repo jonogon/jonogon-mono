@@ -37,6 +37,8 @@ import {Drawer, DrawerContent, DrawerTrigger} from '@/components/ui/drawer';
 import {useMediaQuery} from 'react-responsive';
 import {Tabs, TabsList, TabsContent, TabsTrigger} from '@/components/ui/tabs';
 import {z} from 'zod';
+import {useAuthState} from '@/auth/token-manager';
+import {firebaseAuth} from '@/firebase';
 
 interface JobabFormProps {
     isOpen: boolean;
@@ -103,6 +105,10 @@ const jobabSchema = z.object({
 });
 
 export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
+    const isAuthenticated = useAuthState();
+    const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
+        enabled: !!isAuthenticated,
+    });
     const [respondentType, setRespondentType] = useState<
         'organization' | 'expert'
     >('organization');
@@ -138,6 +144,10 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
     const [comboboxOpen, setComboboxOpen] = useState(false);
     const isDesktop = useMediaQuery({minWidth: 768});
 
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isImageLoading, setIsImageLoading] = useState(false);
+
     const {data: respondents} = trpc.respondents.list.useQuery(
         {
             type: respondentType,
@@ -152,8 +162,14 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
             setFormData((prev) => ({
                 ...prev,
                 respondentId: String(data.data.id),
+                newRespondentName: '',
+                newRespondentBio: '',
+                newRespondentWebsite: '',
+                socialAccounts: [],
             }));
             setShowNewRespondent(false);
+            setImageFile(null);
+            setPreviewUrl(null);
             utils.respondents.list.invalidate();
         },
     });
@@ -255,14 +271,20 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         return true;
     };
 
-    const handleCreateRespondent = () => {
+    const handleCreateRespondent = async () => {
         if (!validateForm()) return;
+
+        let imageKey = null;
+        if (imageFile) {
+            imageKey = await uploadRespondentImage(imageFile, respondentType);
+        }
 
         createRespondent({
             type: respondentType,
             name: formData.newRespondentName,
             bio: formData.newRespondentBio,
             website: formData.newRespondentWebsite || undefined,
+            img: imageKey || undefined,
             social_accounts:
                 formData.socialAccounts.length > 0
                     ? formData.socialAccounts
@@ -384,6 +406,48 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         );
     };
 
+    const uploadRespondentImage = async (
+        file: File,
+        type: 'organization' | 'expert',
+    ) => {
+        const user = firebaseAuth().currentUser;
+        if (!isAuthenticated || !user) return null;
+
+        setIsImageLoading(true);
+        try {
+            const search = new URLSearchParams({
+                type: type,
+            });
+
+            const response = await fetch(
+                process.env.NODE_ENV === 'development'
+                    ? `http://${window.location.hostname}:12001/respondents/image?${search}`
+                    : `https://core.jonogon.org/respondents/image?${search}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        Authorization: `Bearer ${await user.getIdToken()}`,
+                    },
+                    body: file,
+                },
+            );
+
+            const data = (await response.json()) as {
+                message: 'image-uploaded';
+                data: {
+                    imageKey: string;
+                };
+            };
+            return data.data.imageKey;
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            return null;
+        } finally {
+            setIsImageLoading(false);
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-xl">
@@ -435,7 +499,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                         <Label>
                             <div className="font-bold text-lg">
                                 {currentLabel.title}{' '}
-                                <span className="text-red-500">*</span>
+                                <span className="text-red-500 ml-1">*</span>
                             </div>
                             <div className="text-stone-500">
                                 Select or create a new{' '}
@@ -477,12 +541,8 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                         <div className="space-y-4">
                             <div className="flex flex-col gap-2">
                                 <Label>
-                                    <div className="font-bold text-lg">
-                                        Name
-                                    </div>
-                                    <div className="text-stone-500">
-                                        Enter {respondentType} name
-                                    </div>
+                                    Name
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Input
                                     value={formData.newRespondentName}
@@ -497,13 +557,65 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                 />
                             </div>
 
+                            <div className="flex flex-col gap-4">
+                                <Label>Profile Image</Label>
+                                <div className="flex items-center gap-6">
+                                    <div className="relative w-32 h-32 border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-muted/50 hover:bg-muted/70 transition-colors">
+                                        {previewUrl ? (
+                                            <img
+                                                src={previewUrl}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                                <span className="text-3xl">
+                                                    +
+                                                </span>
+                                                <span className="text-xs">
+                                                    Click to upload
+                                                </span>
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file =
+                                                    e.target.files?.[0];
+                                                if (file) {
+                                                    setImageFile(file);
+                                                    setPreviewUrl(
+                                                        URL.createObjectURL(
+                                                            file,
+                                                        ),
+                                                    );
+                                                }
+                                            }}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm text-muted-foreground">
+                                            Recommended: Square image, at least
+                                            300x300px
+                                        </p>
+                                        {isImageLoading && (
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full" />
+                                                <span className="text-sm text-muted-foreground">
+                                                    Uploading...
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="flex flex-col gap-2">
                                 <Label>
-                                    <div className="font-bold text-lg">Bio</div>
-                                    <div className="text-stone-500">
-                                        Brief description about the{' '}
-                                        {respondentType}
-                                    </div>
+                                    Bio
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Textarea
                                     value={formData.newRespondentBio}
@@ -521,12 +633,8 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
                             <div className="flex flex-col gap-2">
                                 <Label>
-                                    <div className="font-bold text-lg">
-                                        Website
-                                    </div>
-                                    <div className="text-stone-500">
-                                        Official website URL
-                                    </div>
+                                    Website
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Input
                                     type="url"
@@ -553,14 +661,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
                             <div className="flex flex-col gap-2">
                                 <div className="flex justify-between items-center">
-                                    <Label>
-                                        <div className="font-bold text-lg">
-                                            Social Accounts
-                                        </div>
-                                        <div className="text-stone-500">
-                                            Add social media profiles
-                                        </div>
-                                    </Label>
+                                    <Label>Social Accounts</Label>
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -671,7 +772,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                             <div>
                                 <Label>
                                     Response Title
-                                    <span className="text-red-500">*</span>
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Input
                                     value={formData.title}
@@ -698,7 +799,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                 <div>
                                     <Label>
                                         Source Platform
-                                        <span className="text-red-500">*</span>
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
                                     </Label>
                                     <select
                                         className={cn(
@@ -743,7 +846,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                 <div>
                                     <Label>
                                         Response Date
-                                        <span className="text-red-500">*</span>
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
                                     </Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -819,7 +924,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                             <div>
                                 <Label>
                                     Response Content
-                                    <span className="text-red-500">*</span>
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Textarea
                                     value={formData.description}
