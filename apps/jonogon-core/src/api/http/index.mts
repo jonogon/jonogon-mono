@@ -13,6 +13,7 @@ import {notificationsSchedulerQueue} from '../../services/queues/notificationsSc
 import {smsNotificationDispatchQueue} from '../../services/queues/smsNotificationDispatchQueue.mjs';
 import basicAuth from 'express-basic-auth';
 import {createRespondentImageHandler} from './handlers/respondents/image.mjs';
+import {createJobabAttachmentHandler} from './handlers/jobabs/attachment.mjs';
 
 export async function registerHTTPRoutes(
     expressApp: Express,
@@ -59,6 +60,15 @@ export async function registerHTTPRoutes(
             limit: 16 * 1024 * 1024,
         }),
         createRespondentImageHandler(createContext),
+    );
+
+    app.post(
+        '/jobabs/:id/attachments',
+        express.raw({
+            inflate: true,
+            limit: 16 * 1024 * 1024,
+        }),
+        createJobabAttachmentHandler(createContext),
     );
 
     if (env.NODE_ENV === 'development') {

@@ -2,7 +2,6 @@ import {useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
 import {
     Dialog,
     DialogContent,
@@ -20,6 +19,9 @@ import {
     Building2,
     UserCog,
     X,
+    ImageIcon,
+    UploadIcon,
+    FileIcon,
 } from 'lucide-react';
 import {Calendar} from '@/components/ui/calendar';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
@@ -39,6 +41,15 @@ import {Tabs, TabsList, TabsContent, TabsTrigger} from '@/components/ui/tabs';
 import {z} from 'zod';
 import {useAuthState} from '@/auth/token-manager';
 import {firebaseAuth} from '@/firebase';
+import {toast} from '@/components/ui/use-toast';
+import {useMutation} from '@tanstack/react-query';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface JobabFormProps {
     isOpen: boolean;
@@ -174,9 +185,111 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         },
     });
 
+    const [attachmentQueue, setAttachmentQueue] = useState<File[]>([]);
+
+    const resetForm = () => {
+        setFormData({
+            title: '',
+            description: '',
+            respondentId: '',
+            sourceType: 'jonogon_direct' as const,
+            sourceUrl: '',
+            newRespondentName: '',
+            newRespondentBio: '',
+            newRespondentWebsite: '',
+            socialAccounts: [],
+        });
+        setDate(undefined);
+        setAttachmentQueue([]);
+        setShowNewRespondent(false);
+        setImageFile(null);
+        setPreviewUrl(null);
+        setErrors({
+            website: '',
+            socialAccounts: [],
+            respondentId: '',
+            title: '',
+            description: '',
+            sourceType: '',
+            sourceUrl: '',
+            respondedAt: '',
+        });
+    };
+
     const {mutate: createJobab, isLoading} = trpc.jobabs.create.useMutation({
-        onSuccess: () => {
+        onSuccess: async (response) => {
+            // Upload attachments after jobab is created
+            if (attachmentQueue.length > 0) {
+                for (const file of attachmentQueue) {
+                    await uploadAttachment({
+                        jobabId: Number(response.data.id),
+                        file,
+                    });
+                }
+            }
+            toast({
+                title: 'Success',
+                description: `Response has been successfully added${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
+            });
+            resetForm();
             onClose();
+        },
+    });
+
+    const {mutate: uploadAttachment} = useMutation({
+        mutationFn: async ({jobabId, file}: {jobabId: number; file: File}) => {
+            const user = firebaseAuth().currentUser;
+            if (!user) {
+                throw new Error('Must be logged in to upload attachments');
+            }
+
+            const isImage = file.type.startsWith('image/');
+            const search = new URLSearchParams({
+                filename: file.name,
+                type: isImage ? 'image' : 'file',
+            });
+
+            const baseUrl =
+                process.env.NODE_ENV === 'development'
+                    ? `http://${window.location.hostname}:12001`
+                    : 'https://core.jonogon.org';
+
+            const response = await fetch(
+                `${baseUrl}/jobabs/${jobabId}/attachments?${search}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/octet-stream',
+                        Authorization: `Bearer ${await user.getIdToken()}`,
+                    },
+                    body: file,
+                },
+            );
+
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = (await response.json()) as {
+                        message: string;
+                    };
+                    throw new Error(errorData.message || 'Upload failed');
+                }
+                throw new Error(
+                    `Upload failed with status: ${response.status}`,
+                );
+            }
+
+            return await response.json();
+        },
+        onError: (error) => {
+            toast({
+                title: 'Error',
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to upload attachment',
+                variant: 'destructive',
+            });
         },
     });
 
@@ -448,6 +561,120 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         }
     };
 
+    const AttachmentQueue = () => {
+        const getFileTypeIcon = (filename: string) => {
+            const ext = filename.split('.').pop()?.toLowerCase();
+            if (ext && ['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                return (
+                    <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                );
+            }
+            return (
+                <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+            );
+        };
+
+        return (
+            <div className="space-y-2">
+                <Label className="flex justify-between items-center">
+                    <span>Attachments</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                            {attachmentQueue.length} files
+                        </span>
+                        <Input
+                            type="file"
+                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                            className="hidden"
+                            id="attachment-input"
+                            onChange={(e) => {
+                                const files = e.target.files;
+                                if (files?.length) {
+                                    setAttachmentQueue((prev) => [
+                                        ...prev,
+                                        ...Array.from(files),
+                                    ]);
+                                    e.target.value = '';
+                                }
+                            }}
+                            multiple
+                        />
+                        <Button
+                            variant="outline"
+                            type="button"
+                            size="sm"
+                            className="h-8"
+                            onClick={() =>
+                                document
+                                    .getElementById('attachment-input')
+                                    ?.click()
+                            }>
+                            <UploadIcon className="h-4 w-4 mr-2" />
+                            Choose Files
+                        </Button>
+                    </div>
+                </Label>
+
+                {attachmentQueue.length > 0 && (
+                    <div className="relative px-8">
+                        <Carousel
+                            opts={{align: 'start', loop: false}}
+                            className="w-full max-w-[calc(100vw-4rem)]">
+                            <CarouselContent>
+                                {attachmentQueue.map((file, index) => (
+                                    <CarouselItem
+                                        key={index}
+                                        className="basis-[140px] md:basis-[160px]">
+                                        <div className="relative group flex items-center gap-1 bg-card rounded-lg p-1.5 border text-sm mr-1">
+                                            {getFileTypeIcon(file.name)}
+                                            <div className="w-[80px] min-w-0">
+                                                <p className="truncate">
+                                                    {file.name}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {(file.size / 1024).toFixed(
+                                                        1,
+                                                    )}{' '}
+                                                    KB
+                                                </p>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() =>
+                                                    setAttachmentQueue((prev) =>
+                                                        prev.filter(
+                                                            (_, i) =>
+                                                                i !== index,
+                                                        ),
+                                                    )
+                                                }>
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            {attachmentQueue.length > 3 && (
+                                <>
+                                    <CarouselPrevious
+                                        variant="outline"
+                                        className="h-7 w-7 -left-8"
+                                    />
+                                    <CarouselNext
+                                        variant="outline"
+                                        className="h-7 w-7 -right-8"
+                                    />
+                                </>
+                            )}
+                        </Carousel>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-xl">
@@ -455,7 +682,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                     <DialogTitle>Add New জবাব</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-hidden">
                     <div>
                         <Label>Response From</Label>
                         <Tabs
@@ -625,7 +852,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                             newRespondentBio: e.target.value,
                                         })
                                     }
-                                    className="font-mono p-3"
+                                    className="mt-2 bg-card text-card-foreground"
                                     placeholder={`Enter ${respondentType} bio`}
                                     rows={3}
                                 />
@@ -795,8 +1022,8 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
+                            <div className="flex gap-4 items-start">
+                                <div className="flex-1">
                                     <Label>
                                         Source Platform
                                         <span className="text-red-500 ml-1">
@@ -805,7 +1032,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                     </Label>
                                     <select
                                         className={cn(
-                                            'w-full p-2 mt-2 bg-card text-card-foreground border rounded-md',
+                                            'w-full mt-1 bg-card text-card-foreground border rounded-md h-9 px-3',
                                             errors.sourceType &&
                                                 'border-red-500',
                                         )}
@@ -817,7 +1044,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                                     .value as any,
                                             })
                                         }>
-                                        <option value="">
+                                        <option value="" disabled>
                                             Select Platform
                                         </option>
                                         <option value="jonogon_direct">
@@ -836,14 +1063,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                             Press Release
                                         </option>
                                     </select>
-                                    {errors.sourceType && (
-                                        <p className="text-sm text-red-500 mt-1">
-                                            {errors.sourceType}
-                                        </p>
-                                    )}
                                 </div>
 
-                                <div>
+                                <div className="flex-1">
                                     <Label>
                                         Response Date
                                         <span className="text-red-500 ml-1">
@@ -854,7 +1076,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                         <PopoverTrigger asChild>
                                             <Button
                                                 className={cn(
-                                                    'w-full mt-2 pl-3 text-left font-normal bg-card text-card-foreground border border-input hover:bg-accent hover:text-accent-foreground',
+                                                    'w-full mt-1 h-9 pl-3 text-left font-normal bg-card text-card-foreground border border-input hover:bg-card hover:text-card-foreground',
                                                     !date &&
                                                         'text-muted-foreground',
                                                 )}>
@@ -872,21 +1094,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                             <Calendar
                                                 mode="single"
                                                 selected={date}
-                                                onSelect={(newDate) => {
-                                                    if (newDate) {
-                                                        const selectedDate =
-                                                            new Date(newDate);
-                                                        selectedDate.setHours(
-                                                            0,
-                                                            0,
-                                                            0,
-                                                            0,
-                                                        );
-                                                        setDate(selectedDate);
-                                                    } else {
-                                                        setDate(undefined);
-                                                    }
-                                                }}
+                                                onSelect={setDate}
                                                 disabled={(date) =>
                                                     date > new Date()
                                                 }
@@ -940,14 +1148,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                 />
                             </div>
 
-                            <div>
-                                <Label>Attachments</Label>
-                                <div className="mt-2 p-8 border-2 border-dashed rounded-lg text-center">
-                                    <Button variant="outline" type="button">
-                                        Choose Files
-                                    </Button>
-                                </div>
-                            </div>
+                            <AttachmentQueue />
 
                             <div className="flex justify-end gap-2">
                                 <DialogClose asChild>
