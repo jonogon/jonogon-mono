@@ -1,8 +1,17 @@
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
-import {ThumbsUp, MessageCircle, Check} from 'lucide-react';
+import {ThumbsUp, MessageCircle, Check, FileIcon} from 'lucide-react';
 import Image from 'next/image';
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
+import {Dialog, DialogContent} from '@/components/ui/dialog';
+import {useState} from 'react';
 
 interface JobabCardProps {
     id: number;
@@ -28,6 +37,7 @@ interface JobabCardProps {
     attachments: {
         id: number;
         filename: string;
+        type: 'image' | 'file';
         url: string;
     }[];
 }
@@ -45,9 +55,9 @@ export default function JobabCard({
     user_vote,
     attachments,
 }: JobabCardProps) {
-    const mainImage = attachments.find((a) =>
-        a.filename.match(/\.(jpg|jpeg|png|gif)$/i),
-    );
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    console.log(attachments);
 
     const sourceTypeLabels: Record<JobabCardProps['source_type'], string> = {
         jonogon_direct: 'Jonogon Direct',
@@ -65,6 +75,9 @@ export default function JobabCard({
             enabled: !!isAuthenticated,
         },
     );
+
+    const imageAttachments = attachments.filter((a) => a.type === 'image');
+    const fileAttachments = attachments.filter((a) => a.type === 'file');
 
     return (
         <div className="flex gap-3">
@@ -163,17 +176,85 @@ export default function JobabCard({
                             {description}
                         </p>
                     )}
+                    {fileAttachments.length > 0 && (
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-muted-foreground">
+                                Attached Files
+                            </h4>
+                            <div className="flex flex-wrap gap-1.5">
+                                {fileAttachments.map((file) => (
+                                    <a
+                                        key={file.id}
+                                        href={file.url.replace(
+                                            '$CORE_HOSTNAME',
+                                            window.location.hostname,
+                                        )}
+                                        target="_blank"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 rounded-md shadow-sm transition-all text-sm group">
+                                        <div className="p-0.5 bg-neutral-100 rounded">
+                                            <FileIcon className="w-3 h-3 text-neutral-500" />
+                                        </div>
+                                        <span className="font-medium text-neutral-700 text-xs">
+                                            {file.filename}
+                                        </span>
+                                        <span className="text-[10px] font-medium text-neutral-400 bg-neutral-100 px-1 py-0.5 rounded uppercase">
+                                            {file.filename.split('.').pop()}
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Image if exists */}
-                {mainImage && (
-                    <img
-                        src={mainImage.url}
-                        alt={mainImage.filename}
-                        className="w-full h-64 object-cover rounded-lg"
-                    />
-                )}
+                {imageAttachments.length > 0 && (
+                    <div className="relative w-full">
+                        <Carousel className="w-full">
+                            <CarouselContent>
+                                {imageAttachments.map((image) => (
+                                    <CarouselItem key={image.id}>
+                                        <img
+                                            src={image.url.replace(
+                                                '$CORE_HOSTNAME',
+                                                window.location.hostname,
+                                            )}
+                                            alt={image.filename}
+                                            className="w-full h-64 object-cover rounded-lg cursor-pointer"
+                                            onClick={() =>
+                                                setSelectedImage(
+                                                    image.url.replace(
+                                                        '$CORE_HOSTNAME',
+                                                        window.location
+                                                            .hostname,
+                                                    ),
+                                                )
+                                            }
+                                        />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            {imageAttachments.length > 1 && (
+                                <>
+                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                </>
+                            )}
+                        </Carousel>
 
+                        {/* Full Screen Image Modal */}
+                        <Dialog
+                            open={!!selectedImage}
+                            onOpenChange={() => setSelectedImage(null)}>
+                            <DialogContent className="max-w-[95vw] max-h-[95vh] w-fit h-fit p-0">
+                                <img
+                                    src={selectedImage ?? ''}
+                                    alt="Full screen view"
+                                    className="w-auto h-auto max-w-full max-h-[95vh] object-contain"
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
                 {/* Interactions */}
                 <div className="flex items-center gap-8 pt-2">
                     <div className="flex items-center gap-4">

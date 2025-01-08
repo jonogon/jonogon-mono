@@ -31,6 +31,17 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
             (r) => r.id === jobab.respondent_id,
         );
 
+        // Transform attachments data with correct type assertion
+        const transformedAttachments =
+            jobab.attachments?.map((attachment) => ({
+                id: Number(attachment.id),
+                filename: attachment.filename,
+                type: attachment.filename.match(/\.(jpg|jpeg|png|gif)$/i)
+                    ? ('image' as const)
+                    : ('file' as const),
+                url: attachment.url,
+            })) || [];
+
         return {
             id: Number(jobab.id),
             title: jobab.title,
@@ -40,8 +51,8 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
             responded_at: jobab.responded_at,
             created_at: jobab.created_at,
             vote_count: jobab.vote_count || 0,
-            user_vote: null, // Will be implemented with user authentication
-            attachments: [], // Will be implemented with attachments API
+            user_vote: null,
+            attachments: transformedAttachments,
             respondent: respondent
                 ? {
                       id: Number(respondent.id),
@@ -68,7 +79,20 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
             ) : (
                 <div className="space-y-6">
                     {transformedJobabs.map((jobab) => (
-                        <JobabCard key={jobab.id} {...jobab} />
+                        <JobabCard
+                            key={jobab.id}
+                            id={jobab.id}
+                            title={jobab.title}
+                            description={jobab.description}
+                            source_type={jobab.source_type}
+                            source_url={jobab.source_url}
+                            responded_at={jobab.responded_at}
+                            created_at={jobab.created_at}
+                            vote_count={jobab.vote_count}
+                            user_vote={jobab.user_vote}
+                            attachments={jobab.attachments}
+                            respondent={jobab.respondent}
+                        />
                     ))}
                 </div>
             )}

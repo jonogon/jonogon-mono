@@ -49,8 +49,8 @@ export const listJobabs = publicProcedure
 
         const jobabs = await query.execute();
 
-        // Get vote counts for each jobab
-        const jobabsWithVotes = await Promise.all(
+        // Get jobabs with votes and attachments
+        const jobabsWithDetails = await Promise.all(
             jobabs.map(async (jobab) => {
                 const votes = await ctx.services.postgresQueryBuilder
                     .selectFrom('jobab_votes')
@@ -63,14 +63,33 @@ export const listJobabs = publicProcedure
                     .where('nullified_at', 'is', null)
                     .executeTakeFirst();
 
+                // Get attachments for each jobab
+                const attachments = await ctx.services.postgresQueryBuilder
+                    .selectFrom('jobab_attachments')
+                    .select(['id', 'filename', 'attachment'])
+                    .where('jobab_id', '=', `${jobab.id}`)
+                    .where('deleted_at', 'is', null)
+                    .execute();
+
+                // Transform attachments to include URLs
+                const transformedAttachments = await Promise.all(
+                    attachments.map(async (attachment) => ({
+                        ...attachment,
+                        url: await ctx.services.fileStorage.getFileURL(
+                            attachment.attachment,
+                        ),
+                    })),
+                );
+
                 return {
                     ...jobab,
+                    attachments: transformedAttachments,
                     vote_count: Number(votes?.vote_count || 0),
                 };
             }),
         );
 
         return {
-            data: jobabsWithVotes,
+            data: jobabsWithDetails,
         };
     });
