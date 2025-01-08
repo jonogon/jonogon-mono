@@ -7,6 +7,7 @@ export const runtime = 'edge';
 import {ImageCarousel} from '@/app/(interactive)/petitions/[id]/_components/ImageCarousel';
 import {useAuthState} from '@/auth/token-manager';
 import {Button} from '@/components/ui/button';
+import {Separator} from '@/components/ui/separator';
 import {trpc} from '@/trpc/client';
 import {Share2} from 'lucide-react';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
@@ -24,6 +25,7 @@ import SuggestedPetitions from './_components/SuggestedPetitions';
 
 import {useToast} from '@/components/ui/use-toast';
 import {JobabForm} from '@/components/admin/JobabForm';
+import JobabTimeline from './_components/JobabTimeline';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -497,6 +499,9 @@ export default function Petition() {
                             ))}
                     </div>
                 )}
+                <Separator />
+                <JobabTimeline petitionId={Number(petition_id)} />
+                <Separator />
                 <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
