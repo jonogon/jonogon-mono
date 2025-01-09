@@ -63,6 +63,23 @@ export const listJobabs = publicProcedure
                     .where('nullified_at', 'is', null)
                     .executeTakeFirst();
 
+                // Get user's vote if authenticated
+                let userVote = null;
+                if (ctx.auth?.user_id) {
+                    const userVoteResult =
+                        await ctx.services.postgresQueryBuilder
+                            .selectFrom('jobab_votes')
+                            .select(['vote'])
+                            .where('jobab_id', '=', `${jobab.id}`)
+                            .where('user_id', '=', `${ctx.auth.user_id}`)
+                            .where('nullified_at', 'is', null)
+                            .executeTakeFirst();
+
+                    if (userVoteResult) {
+                        userVote = userVoteResult.vote;
+                    }
+                }
+
                 // Get attachments for each jobab
                 const attachments = await ctx.services.postgresQueryBuilder
                     .selectFrom('jobab_attachments')
@@ -85,6 +102,7 @@ export const listJobabs = publicProcedure
                     ...jobab,
                     attachments: transformedAttachments,
                     vote_count: Number(votes?.vote_count || 0),
+                    user_vote: userVote,
                 };
             }),
         );

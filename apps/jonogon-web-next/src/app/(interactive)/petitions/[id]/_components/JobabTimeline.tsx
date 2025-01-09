@@ -1,7 +1,7 @@
 'use client';
 
 import {trpc} from '@/trpc/client';
-import JobabCard from './JobabCard';
+import JobabCard from './jobabs/JobabCard';
 
 interface JobabTimelineProps {
     petitionId: number;
@@ -51,7 +51,7 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
             responded_at: jobab.responded_at,
             created_at: jobab.created_at,
             vote_count: jobab.vote_count || 0,
-            user_vote: null,
+            user_vote: jobab.user_vote,
             attachments: transformedAttachments,
             respondent: respondent
                 ? {

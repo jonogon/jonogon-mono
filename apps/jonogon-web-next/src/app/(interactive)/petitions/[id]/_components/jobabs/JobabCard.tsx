@@ -11,7 +11,9 @@ import {
     CarouselPrevious,
 } from '@/components/ui/carousel';
 import {Dialog, DialogContent} from '@/components/ui/dialog';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {useToast} from '@/components/ui/use-toast';
 
 interface JobabCardProps {
     id: number;
@@ -56,8 +58,8 @@ export default function JobabCard({
     attachments,
 }: JobabCardProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-    console.log(attachments);
+    const router = useRouter();
+    const {toast} = useToast();
 
     const sourceTypeLabels: Record<JobabCardProps['source_type'], string> = {
         jonogon_direct: 'Jonogon Direct',
@@ -78,6 +80,94 @@ export default function JobabCard({
 
     const imageAttachments = attachments.filter((a) => a.type === 'image');
     const fileAttachments = attachments.filter((a) => a.type === 'file');
+
+    const [voted, setVoted] = useState(!!user_vote);
+    const [totalVotes, setTotalVotes] = useState(vote_count);
+
+    const utils = trpc.useUtils();
+    const voteMutation = trpc.jobabs.vote.useMutation({
+        onMutate: () => {
+            // Optimistically update
+            setVoted(true);
+            setTotalVotes((prev) => prev + 1);
+        },
+        onError: () => {
+            // Revert on error
+            setVoted(false);
+            setTotalVotes((prev) => prev - 1);
+        },
+        onSuccess: () => {
+            const petitionId = Number(window.location.pathname.split('/')[2]);
+            utils.jobabs.list.invalidate({
+                petition_id: petitionId,
+                limit: 10,
+                offset: 0,
+            });
+        },
+    });
+    const clearVoteMutation = trpc.jobabs.clearVote.useMutation({
+        onMutate: () => {
+            // Optimistically update
+            setVoted(false);
+            setTotalVotes((prev) => prev - 1);
+        },
+        onError: () => {
+            // Revert on error
+            setVoted(true);
+            setTotalVotes((prev) => prev + 1);
+        },
+        onSuccess: () => {
+            const petitionId = Number(window.location.pathname.split('/')[2]);
+            utils.jobabs.list.invalidate({
+                petition_id: petitionId,
+                limit: 10,
+                offset: 0,
+            });
+        },
+    });
+
+    const redirectToLoginPage = () => {
+        const nextUrl = encodeURIComponent(window.location.pathname);
+        router.push(`/login?next=${nextUrl}`);
+    };
+
+    const voteJobab = async () => {
+        if (!isAuthenticated) {
+            redirectToLoginPage();
+            return;
+        }
+
+        try {
+            if (voted) {
+                await clearVoteMutation.mutateAsync({
+                    jobab_id: id,
+                });
+                toast({
+                    title: '👎🏽 Removed Vote',
+                    description: 'You have successfully removed your vote',
+                });
+            } else {
+                await voteMutation.mutateAsync({
+                    jobab_id: id,
+                    vote: 'up',
+                });
+                toast({
+                    title: '👍🏽 Upvoted জবাব',
+                    description: 'You have successfully upvoted the জবাব',
+                });
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: 'Failed to update vote',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    useEffect(() => {
+        setTotalVotes(vote_count);
+    }, [vote_count]);
 
     return (
         <div className="flex gap-3">
@@ -260,12 +350,14 @@ export default function JobabCard({
                     <div className="flex items-center gap-4">
                         <button
                             className={`flex items-center gap-2 hover:bg-neutral-100 px-3 py-1.5 rounded-md transition-colors ${
-                                user_vote === 1
-                                    ? 'text-green-600'
-                                    : 'text-neutral-600'
-                            }`}>
-                            <ThumbsUp className="w-5 h-5" />
-                            <span className="font-medium">{vote_count}</span>
+                                voted ? 'text-green-600' : 'text-neutral-600'
+                            }`}
+                            onClick={voteJobab}>
+                            <ThumbsUp
+                                className="w-5 h-5"
+                                fill={voted ? 'currentColor' : 'none'}
+                            />
+                            <span className="font-medium">{totalVotes}</span>
                         </button>
                         <button className="flex items-center gap-2 hover:bg-neutral-100 px-3 py-1.5 rounded-md transition-colors text-neutral-600">
                             <MessageCircle className="w-5 h-5" />
