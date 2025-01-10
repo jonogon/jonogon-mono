@@ -67,3 +67,26 @@ export interface JobabVoteResponse {
     message?: string;
     data?: JobabVote;
 }
+
+export interface JobabListItem {
+    id: string;
+    petition_id: string;
+    respondent_id: string;
+    title: string | null;
+    description: string | null;
+    source_type: JobabSourceType;
+    source_url: string | null;
+    responded_at: string;
+    created_at: string;
+    attachments?: Array<{
+        id: string;
+        filename: string;
+        url: string;
+    }>;
+    vote_count: number;
+    user_vote: number | null;
+}
+
+export interface JobabsResponse {
+    data: JobabListItem[];
+}

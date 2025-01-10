@@ -233,7 +233,7 @@ export default function JobabCard({
                                         <a
                                             href={source_url}
                                             target="_blank"
-                                            className="text-blue-600 hover:underline">
+                                            className="underline">
                                             Source
                                         </a>
                                     </>

@@ -178,6 +178,17 @@ export default function Petition() {
         },
     });
 
+    const {data: jobabsData} = trpc.jobabs.list.useQuery(
+        {
+            petition_id: Number(petition_id),
+            limit: 10,
+            offset: 0,
+        },
+        {
+            enabled: !!petition_id,
+        },
+    );
+
     return isLoading ? (
         <Loading />
     ) : (
@@ -231,13 +242,11 @@ export default function Petition() {
                                         NOT MODERATED YET
                                     </span>
                                 ) : null}
-                                {(isAdmin || isMod) && (
-                                    <Button
-                                        size={'sm'}
-                                        onClick={() => setShowJobabForm(true)}>
-                                        Add জবাব
-                                    </Button>
-                                )}
+                                <Button
+                                    size={'sm'}
+                                    onClick={() => setShowJobabForm(true)}>
+                                    Add জবাব
+                                </Button>
                                 {status === 'approved' ? (
                                     <Button
                                         size={'sm'}
@@ -499,9 +508,14 @@ export default function Petition() {
                             ))}
                     </div>
                 )}
-                <Separator />
-                <JobabTimeline petitionId={Number(petition_id)} />
-                <Separator />
+                {(jobabsData?.data?.length ?? 0) > 0 && (
+                    <>
+                        <JobabTimeline
+                            jobabsData={jobabsData}
+                            isLoading={isLoading}
+                        />
+                    </>
+                )}
                 <CommentThread />
             </div>
             <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">

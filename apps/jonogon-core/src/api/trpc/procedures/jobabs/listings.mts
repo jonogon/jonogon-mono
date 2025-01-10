@@ -20,6 +20,14 @@ export const listJobabs = publicProcedure
         }),
     )
     .query(async ({ctx, input}) => {
+        // Get total count
+        const totalCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('jobabs')
+            .select((eb) => eb.fn.count('id').as('count'))
+            .where('deleted_at', 'is', null)
+            .where('petition_id', '=', `${input.petition_id}`)
+            .executeTakeFirst();
+
         const query = ctx.services.postgresQueryBuilder
             .selectFrom('jobabs')
             .select([
@@ -36,6 +44,7 @@ export const listJobabs = publicProcedure
             ])
             .where('deleted_at', 'is', null)
             .where('petition_id', '=', `${input.petition_id}`)
+            .orderBy('responded_at', 'desc')
             .limit(input.limit)
             .offset(input.offset);
 
@@ -109,5 +118,6 @@ export const listJobabs = publicProcedure
 
         return {
             data: jobabsWithDetails,
+            total: Number(totalCount?.count || 0),
         };
     });

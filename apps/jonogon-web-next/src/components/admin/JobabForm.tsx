@@ -10,6 +10,7 @@ import {
     DialogClose,
 } from '@/components/ui/dialog';
 import {Textarea} from '@/components/ui/textarea';
+import {Separator} from '@/components/ui/separator';
 import {trpc} from '@/trpc/client';
 import {
     CalendarIcon,
@@ -216,6 +217,8 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         });
     };
 
+    const utils = trpc.useUtils();
+
     const {mutate: createJobab, isLoading} = trpc.jobabs.create.useMutation({
         onSuccess: async (response) => {
             // Upload attachments after jobab is created
@@ -227,9 +230,17 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                     });
                 }
             }
+
+            // Invalidate the jobabs list query to trigger a refetch
+            utils.jobabs.list.invalidate({
+                petition_id: petitionId,
+                limit: 10,
+                offset: 0,
+            });
+
             toast({
                 title: 'Success',
-                description: `Response has been successfully added${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
+                description: `জবাব has been successfully added${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
             });
             resetForm();
             onClose();
@@ -293,7 +304,6 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         },
     });
 
-    const utils = trpc.useUtils();
     const currentLabel = respondentLabels[respondentType];
 
     const handleRespondentTypeChange = (val: string) => {
@@ -412,7 +422,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                 date.getFullYear(),
                 date.getMonth(),
                 date.getDate(),
-                0,
+                12,
                 0,
                 0,
                 0,
@@ -677,12 +687,12 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-xl">
+            <DialogContent className="max-w-xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>Add New জবাব</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-2 overflow-hidden">
+                <div className="space-y-2 overflow-y-auto flex-1 pr-6 -mr-6">
                     <div>
                         <Label>Response From</Label>
                         <Tabs
@@ -705,12 +715,12 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                             value={key}
                                             className="data-[state=active]:border-red-500 data-[state=active]:text-red-500 border-2 border-transparent py-3 hover:bg-accent/50 transition-colors">
                                             <div className="flex flex-col items-center gap-2">
-                                                <Icon className="h-5 w-5" />
+                                                <Icon className="h-6 w-6" />
                                                 <div className="space-y-1 text-center">
                                                     <p className="font-medium leading-none">
                                                         {value.title}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground leading-snug">
+                                                    <p className="text-xs text-muted-foreground leading-normal whitespace-normal">
                                                         {value.description}
                                                     </p>
                                                 </div>
@@ -1147,7 +1157,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                     rows={5}
                                 />
                             </div>
-
+                            <Separator />
                             <AttachmentQueue />
 
                             <div className="flex justify-end gap-2">
