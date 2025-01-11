@@ -37,14 +37,12 @@ async function processCommentUrls(comments: Comment[], ctx: Context) {
 }
 
 const withVotes = (qb: any, userId?: string) => {
-    qb.leftJoin(
-        'jobab_comment_votes',
-        'jobab_comments.id',
-        'jobab_comment_votes.comment_id',
+    qb = qb.leftJoin('jobab_comment_votes', (join: any) =>
+        join.onRef('jobab_comments.id', '=', 'jobab_comment_votes.comment_id'),
     );
 
     if (userId) {
-        qb.leftJoin('jobab_comment_votes as user_vote', (join: any) =>
+        qb = qb.leftJoin('jobab_comment_votes as user_vote', (join: any) =>
             join
                 .onRef('jobab_comments.id', '=', 'user_vote.comment_id')
                 .on('user_vote.user_id', '=', userId),
@@ -71,6 +69,7 @@ const getCommentFields = () => [
     'jobab_comments.body',
     'jobab_comments.highlighted_at',
     'jobab_comments.deleted_at',
+    'jobab_comments.created_at',
     sql<number>`COALESCE(SUM(jobab_comment_votes.vote), 0)`.as('total_votes'),
 ];
 
@@ -127,8 +126,8 @@ export const listPublicComments = publicProcedure
             baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
         )
             .select(getCommentFields())
-            .groupBy(['users.id', 'jobab_comments.id'])
             .where('jobab_comments.parent_id', 'is', null)
+            .groupBy(['users.id', 'jobab_comments.id'])
             .orderBy('total_votes', 'desc')
             .orderBy('jobab_comments.created_at', 'asc')
             .limit(COMMENTS_PER_PAGE)
@@ -145,31 +144,179 @@ export const listComments = publicProcedure
         z.object({
             jobab_id: z.number(),
             page: z.number(),
+            limit: z.number().optional(),
         }),
     )
     .query(async ({input, ctx}) => {
-        const comments = await withVotes(
-            baseCommentQuery(ctx.services.postgresQueryBuilder, input.jobab_id),
-            `${ctx.auth?.user_id}`,
-        )
+        const {jobab_id, page, limit = 10} = input;
+        const offset = (page - 1) * limit;
+
+        // Base query for both authenticated and unauthenticated users
+        const baseQuery = ctx.services.postgresQueryBuilder
+            .selectFrom('jobab_comments')
+            .innerJoin('users', 'jobab_comments.created_by', 'users.id')
+            .leftJoin(
+                'jobab_comment_votes',
+                'jobab_comments.id',
+                'jobab_comment_votes.comment_id',
+            )
             .select([
-                ...getCommentFields(),
-                'user_vote.vote as user_vote',
-                sql`CASE WHEN jobab_comments.created_by = ${ctx.auth?.user_id} THEN TRUE ELSE FALSE END`.as(
-                    'is_author',
+                'users.name as username',
+                'users.id as user_id',
+                'users.picture as profile_picture',
+                'jobab_comments.created_by',
+                'jobab_comments.parent_id',
+                'jobab_comments.id',
+                'jobab_comments.body',
+                'jobab_comments.highlighted_at',
+                'jobab_comments.deleted_at',
+                'jobab_comments.created_at',
+                sql<number>`COALESCE(SUM(jobab_comment_votes.vote), 0)`.as(
+                    'total_votes',
                 ),
             ])
-            .groupBy(['user_vote.vote', 'users.id', 'jobab_comments.id'])
-            .where('jobab_comments.parent_id', 'is', null)
-            .orderBy('is_author', 'desc')
-            .orderBy('total_votes', 'desc')
-            .orderBy('jobab_comments.created_at', 'asc')
-            .limit(COMMENTS_PER_PAGE)
-            .offset((input.page - 1) * COMMENTS_PER_PAGE)
-            .execute();
+            .where('jobab_comments.jobab_id', '=', `${jobab_id}`)
+            .where('jobab_comments.deleted_at', 'is', null);
+
+        // Get root comments first
+        const rootComments = ctx.auth?.user_id
+            ? await baseQuery
+                  .where('jobab_comments.parent_id', 'is', null)
+                  .leftJoin('jobab_comment_votes as user_vote', (join) =>
+                      join
+                          .onRef(
+                              'jobab_comments.id',
+                              '=',
+                              'user_vote.comment_id',
+                          )
+                          .on('user_vote.user_id', '=', `${ctx.auth!.user_id}`),
+                  )
+                  .select('user_vote.vote as user_vote')
+                  .groupBy(['users.id', 'jobab_comments.id', 'user_vote.vote'])
+                  .orderBy('jobab_comments.created_at', 'desc')
+                  .orderBy('total_votes', 'desc')
+                  .limit(limit)
+                  .offset(offset)
+                  .execute()
+            : await baseQuery
+                  .where('jobab_comments.parent_id', 'is', null)
+                  .select(sql<null>`NULL`.as('user_vote'))
+                  .groupBy(['users.id', 'jobab_comments.id'])
+                  .orderBy('jobab_comments.created_at', 'desc')
+                  .orderBy('total_votes', 'desc')
+                  .limit(limit)
+                  .offset(offset)
+                  .execute();
+
+        // Get second layer replies
+        const rootCommentIds = rootComments.map((comment) => comment.id);
+        const secondLayerReplies =
+            rootCommentIds.length > 0
+                ? ctx.auth?.user_id
+                    ? await baseQuery
+                          .where(
+                              'jobab_comments.parent_id',
+                              'in',
+                              rootCommentIds,
+                          )
+                          .leftJoin(
+                              'jobab_comment_votes as user_vote',
+                              (join) =>
+                                  join
+                                      .onRef(
+                                          'jobab_comments.id',
+                                          '=',
+                                          'user_vote.comment_id',
+                                      )
+                                      .on(
+                                          'user_vote.user_id',
+                                          '=',
+                                          `${ctx.auth!.user_id}`,
+                                      ),
+                          )
+                          .select('user_vote.vote as user_vote')
+                          .groupBy([
+                              'users.id',
+                              'jobab_comments.id',
+                              'user_vote.vote',
+                          ])
+                          .orderBy('jobab_comments.created_at', 'asc')
+                          .execute()
+                    : await baseQuery
+                          .where(
+                              'jobab_comments.parent_id',
+                              'in',
+                              rootCommentIds,
+                          )
+                          .select(sql<null>`NULL`.as('user_vote'))
+                          .groupBy(['users.id', 'jobab_comments.id'])
+                          .orderBy('jobab_comments.created_at', 'asc')
+                          .execute()
+                : [];
+
+        // Get third layer replies
+        const secondLayerIds = secondLayerReplies.map((comment) => comment.id);
+        const thirdLayerReplies =
+            secondLayerIds.length > 0
+                ? ctx.auth?.user_id
+                    ? await baseQuery
+                          .where(
+                              'jobab_comments.parent_id',
+                              'in',
+                              secondLayerIds,
+                          )
+                          .leftJoin(
+                              'jobab_comment_votes as user_vote',
+                              (join) =>
+                                  join
+                                      .onRef(
+                                          'jobab_comments.id',
+                                          '=',
+                                          'user_vote.comment_id',
+                                      )
+                                      .on(
+                                          'user_vote.user_id',
+                                          '=',
+                                          `${ctx.auth!.user_id}`,
+                                      ),
+                          )
+                          .select('user_vote.vote as user_vote')
+                          .groupBy([
+                              'users.id',
+                              'jobab_comments.id',
+                              'user_vote.vote',
+                          ])
+                          .orderBy('jobab_comments.created_at', 'asc')
+                          .execute()
+                    : await baseQuery
+                          .where(
+                              'jobab_comments.parent_id',
+                              'in',
+                              secondLayerIds,
+                          )
+                          .select(sql<null>`NULL`.as('user_vote'))
+                          .groupBy(['users.id', 'jobab_comments.id'])
+                          .orderBy('jobab_comments.created_at', 'asc')
+                          .execute()
+                : [];
+
+        // Process URLs for all comments
+        const [
+            processedRootComments,
+            processedSecondLayer,
+            processedThirdLayer,
+        ] = await Promise.all([
+            processCommentUrls(rootComments, ctx),
+            processCommentUrls(secondLayerReplies, ctx),
+            processCommentUrls(thirdLayerReplies, ctx),
+        ]);
 
         return {
-            data: await processCommentUrls(comments, ctx),
+            data: [
+                ...processedRootComments,
+                ...processedSecondLayer,
+                ...processedThirdLayer,
+            ],
         };
     });
 
@@ -190,13 +337,20 @@ export const listReplies = publicProcedure
             .select([
                 ...getCommentFields(),
                 ...(userId ? ['user_vote.vote as user_vote'] : []),
-            ])
-            .groupBy([
-                ...(userId ? ['user_vote.vote'] : []),
-                'users.id',
-                'jobab_comments.id',
+                ...(userId
+                    ? [
+                          sql`CASE WHEN jobab_comments.created_by = ${userId} THEN TRUE ELSE FALSE END`.as(
+                              'is_author',
+                          ),
+                      ]
+                    : []),
             ])
             .where('jobab_comments.parent_id', '=', `${input.parent_id}`)
+            .groupBy([
+                'users.id',
+                'jobab_comments.id',
+                ...(userId ? ['user_vote.vote', 'is_author'] : []),
+            ])
             .orderBy('jobab_comments.created_at', 'asc')
             .limit(REPLIES_PER_PAGE)
             .offset((input.page - 1) * REPLIES_PER_PAGE)

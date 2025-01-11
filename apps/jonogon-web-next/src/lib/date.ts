@@ -21,3 +21,16 @@ export const formatDate = (date: Date) => {
 
     return `${day}${getDaySuffix(day)} ${month}, ${year}`;
 };
+
+export const formatFullDateTime = (date: Date | string) => {
+    const d = new Date(date);
+    return d.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
+};
