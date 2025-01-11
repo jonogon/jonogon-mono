@@ -2,7 +2,12 @@
 
 import {trpc} from '@/trpc/client';
 import JobabCard from './jobabs/JobabCard';
-import {JobabSourceType, JobabsResponse} from './jobabs/types';
+import {
+    JobabInterface,
+    JobabSourceType,
+    JobabAttachment,
+    JobabListItem,
+} from './jobabs/types';
 import {Separator} from '@/components/ui/separator';
 import {Button} from '@/components/ui/button';
 import {useEffect, useState} from 'react';
@@ -14,19 +19,25 @@ interface JobabTimelineProps {
 
 const ITEMS_PER_PAGE = 5;
 
+interface JobabResponse {
+    id: number;
+    petition_id: number;
+    respondent_id: number;
+    title: string | null;
+    description: string | null;
+    source_type: JobabSourceType;
+    source_url: string | null;
+    responded_at: string;
+    created_at: string;
+    vote_count: number;
+    user_vote: number | null;
+    attachments: JobabAttachment[];
+}
+
 export default function JobabTimeline({petitionId}: JobabTimelineProps) {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const [allJobabs, setAllJobabs] = useState<any[]>([]);
-
-    const {data: respondentsData} = trpc.respondents.list.useQuery(
-        {
-            type: undefined,
-        },
-        {
-            enabled: true,
-        },
-    );
+    const [allJobabs, setAllJobabs] = useState<JobabResponse[]>([]);
 
     const {data: jobabsData, isLoading} = trpc.jobabs.list.useQuery(
         {
@@ -41,58 +52,34 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
 
     useEffect(() => {
         if (jobabsData?.data) {
+            const transformedData = jobabsData.data.map((jobab: any) => ({
+                ...jobab,
+                id: Number(jobab.id),
+                petition_id: Number(jobab.petition_id),
+                respondent_id: Number(jobab.respondent_id),
+                attachments: jobab.attachments.map((attachment: any) => ({
+                    ...attachment,
+                    id: Number(attachment.id),
+                    type: attachment.filename.match(/\.(jpg|jpeg|png|gif)$/i)
+                        ? ('image' as const)
+                        : ('file' as const),
+                })),
+            })) as JobabResponse[];
+
             if (offset === 0) {
-                setAllJobabs(jobabsData.data);
+                setAllJobabs(transformedData);
             } else {
-                setAllJobabs((prev) => [...prev, ...jobabsData.data]);
+                setAllJobabs((prev) => [...prev, ...transformedData]);
             }
             setHasMore(jobabsData.data.length === ITEMS_PER_PAGE);
         }
     }, [jobabsData?.data, offset]);
 
-    const respondents = respondentsData?.data || [];
     const jobabs = allJobabs || [];
 
     if (!isLoading && jobabs.length === 0) {
         return null;
     }
-
-    const transformedJobabs = jobabs.map((jobab: any) => {
-        const respondent = respondents.find(
-            (r: any) => r.id === jobab.respondent_id,
-        );
-
-        const transformedAttachments =
-            jobab.attachments?.map((attachment: any) => ({
-                id: Number(attachment.id),
-                filename: attachment.filename,
-                type: attachment.filename.match(/\.(jpg|jpeg|png|gif)$/i)
-                    ? ('image' as const)
-                    : ('file' as const),
-                url: attachment.url,
-            })) || [];
-
-        return {
-            id: Number(jobab.id),
-            title: jobab.title,
-            description: jobab.description,
-            source_type: jobab.source_type,
-            source_url: jobab.source_url,
-            responded_at: jobab.responded_at,
-            created_at: jobab.created_at,
-            vote_count: jobab.vote_count || 0,
-            user_vote: jobab.user_vote,
-            attachments: transformedAttachments,
-            respondent: respondent
-                ? {
-                      id: Number(respondent.id),
-                      name: respondent.name,
-                      type: respondent.type as 'organization' | 'expert',
-                      img_url: respondent.img_url,
-                  }
-                : null,
-        };
-    });
 
     return (
         <>
@@ -113,21 +100,8 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                     <div>জবাবs Loading...</div>
                 ) : (
                     <div className="space-y-6">
-                        {transformedJobabs.map((jobab: any) => (
-                            <JobabCard
-                                key={jobab.id}
-                                id={jobab.id}
-                                title={jobab.title}
-                                description={jobab.description}
-                                source_type={jobab.source_type}
-                                source_url={jobab.source_url}
-                                responded_at={jobab.responded_at}
-                                created_at={jobab.created_at}
-                                vote_count={jobab.vote_count}
-                                user_vote={jobab.user_vote}
-                                attachments={jobab.attachments}
-                                respondent={jobab.respondent}
-                            />
+                        {jobabs.map((jobab) => (
+                            <JobabCard key={jobab.id} {...jobab} />
                         ))}
                         {hasMore && (
                             <>
@@ -143,8 +117,8 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                                             : 'Load More জবাবs'}
                                     </Button>
                                     <p className="text-xs text-neutral-600">
-                                        Showing {transformedJobabs.length} out
-                                        of {jobabsData?.total} জবাবs
+                                        Showing {jobabs.length} out of{' '}
+                                        {jobabsData?.total} জবাবs
                                     </p>
                                 </div>
                             </>

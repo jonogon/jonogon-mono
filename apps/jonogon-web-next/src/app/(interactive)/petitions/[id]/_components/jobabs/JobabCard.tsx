@@ -1,6 +1,5 @@
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {ThumbsUp, MessageCircle, Check, FileIcon} from 'lucide-react';
-import Image from 'next/image';
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
 import {
@@ -14,10 +13,29 @@ import {Dialog, DialogContent} from '@/components/ui/dialog';
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {useToast} from '@/components/ui/use-toast';
-import {JobabInterface, JobabSourceType} from './types';
+import RespondentHoverCard from '@/components/custom/RespondentHoverCard';
+import {
+    JobabInterface,
+    JobabSourceType,
+    JobabListItem,
+    JobabAttachment,
+} from './types';
 import {formatDate} from '@/lib/date';
 
-type JobabCardProps = JobabInterface;
+type JobabCardProps = {
+    id: number;
+    petition_id: number;
+    respondent_id: number;
+    title: string | null;
+    description: string | null;
+    source_type: JobabSourceType;
+    source_url: string | null;
+    responded_at: string;
+    created_at: string;
+    vote_count: number;
+    user_vote: number | null;
+    attachments: JobabAttachment[];
+};
 
 export default function JobabCard({
     id,
@@ -27,14 +45,25 @@ export default function JobabCard({
     source_url,
     responded_at,
     created_at,
-    respondent,
     vote_count,
     user_vote,
     attachments,
+    respondent_id,
 }: JobabCardProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const router = useRouter();
     const {toast} = useToast();
+
+    const {data: respondentData} = trpc.respondents.get.useQuery(
+        {
+            id: respondent_id.toString(),
+        },
+        {
+            enabled: !!respondent_id,
+        },
+    );
+
+    const respondent = respondentData?.data;
 
     const sourceTypeLabels: Record<JobabSourceType, string> = {
         jonogon_direct: 'Jonogon Direct',
@@ -150,26 +179,30 @@ export default function JobabCard({
             <div className="flex-1 space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12">
-                            <AvatarImage
-                                className="border-4 rounded-full w-12 h-12"
-                                src={(
-                                    respondent?.img_url ??
-                                    `https://static.jonogon.org/placeholder-images/${((Number(respondent?.id ?? 0) + 1) % 11) + 1}.jpg`
-                                ).replace(
-                                    '$CORE_HOSTNAME',
-                                    window.location.hostname,
-                                )}
-                                alt={respondent?.name ?? 'Respondent'}
-                            />
-                            <AvatarFallback>
-                                <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
-                            </AvatarFallback>
-                        </Avatar>
+                        <RespondentHoverCard respondent={respondent}>
+                            <Avatar className="h-12 w-12 cursor-pointer">
+                                <AvatarImage
+                                    className="border-4 rounded-full w-12 h-12"
+                                    src={(
+                                        respondent?.img_url ??
+                                        `https://static.jonogon.org/placeholder-images/${((Number(respondent?.id ?? 0) + 1) % 11) + 1}.jpg`
+                                    ).replace(
+                                        '$CORE_HOSTNAME',
+                                        window.location.hostname,
+                                    )}
+                                    alt={respondent?.name ?? 'Respondent'}
+                                />
+                                <AvatarFallback>
+                                    <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
+                                </AvatarFallback>
+                            </Avatar>
+                        </RespondentHoverCard>
                         <div className="space-y-1">
-                            <p className="font-semibold text-base">
-                                {respondent?.name}
-                            </p>
+                            <RespondentHoverCard respondent={respondent}>
+                                <p className="font-semibold text-base flex items-center gap-2">
+                                    {respondent?.name}
+                                </p>
+                            </RespondentHoverCard>
                             <p className="text-sm text-muted-foreground space-x-2">
                                 <span>
                                     {formatDate(new Date(responded_at))}
@@ -192,7 +225,7 @@ export default function JobabCard({
                                         <a
                                             href={source_url}
                                             target="_blank"
-                                            className="underline">
+                                            className="text-blue-600 hover:text-blue-700 hover:underline transition-colors">
                                             Source
                                         </a>
                                     </>
@@ -201,7 +234,7 @@ export default function JobabCard({
                         </div>
                     </div>
 
-                    <div className="px-3 py-1.5 border rounded-md border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2">
+                    <div className="px-3 py-1.5 border rounded-md border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2 shadow-sm">
                         <span className="font-medium">
                             {respondent?.type === 'organization'
                                 ? 'Official'
@@ -214,7 +247,7 @@ export default function JobabCard({
                 </div>
 
                 {/* Content */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {title && (
                         <h4 className="text-xl font-semibold text-foreground">
                             {title}
@@ -226,11 +259,12 @@ export default function JobabCard({
                         </p>
                     )}
                     {fileAttachments.length > 0 && (
-                        <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-muted-foreground">
+                        <div className="space-y-2.5">
+                            <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                                <FileIcon className="w-4 h-4" />
                                 Attached Files
                             </h4>
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-2">
                                 {fileAttachments.map((file) => (
                                     <a
                                         key={file.id}
@@ -239,14 +273,14 @@ export default function JobabCard({
                                             window.location.hostname,
                                         )}
                                         target="_blank"
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 rounded-md shadow-sm transition-all text-sm group">
-                                        <div className="p-0.5 bg-neutral-100 rounded">
-                                            <FileIcon className="w-3 h-3 text-neutral-500" />
+                                        className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 rounded-lg shadow-sm transition-all text-sm group">
+                                        <div className="p-1 bg-neutral-100 rounded">
+                                            <FileIcon className="w-3.5 h-3.5 text-neutral-500" />
                                         </div>
-                                        <span className="font-medium text-neutral-700 text-xs">
+                                        <span className="font-medium text-neutral-700 text-sm">
                                             {file.filename}
                                         </span>
-                                        <span className="text-[10px] font-medium text-neutral-400 bg-neutral-100 px-1 py-0.5 rounded uppercase">
+                                        <span className="text-[10px] font-medium text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded-full uppercase">
                                             {file.filename.split('.').pop()}
                                         </span>
                                     </a>
@@ -268,7 +302,7 @@ export default function JobabCard({
                                                 window.location.hostname,
                                             )}
                                             alt={image.filename}
-                                            className="w-full h-64 object-cover rounded-lg cursor-pointer"
+                                            className="w-full h-64 object-cover rounded-xl cursor-pointer shadow-sm hover:shadow-md transition-shadow"
                                             onClick={() =>
                                                 setSelectedImage(
                                                     image.url.replace(
@@ -284,8 +318,8 @@ export default function JobabCard({
                             </CarouselContent>
                             {imageAttachments.length > 1 && (
                                 <>
-                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                    <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2" />
+                                    <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2" />
                                 </>
                             )}
                         </Carousel>
@@ -305,31 +339,33 @@ export default function JobabCard({
                     </div>
                 )}
                 {/* Interactions */}
-                <div className="flex items-center gap-8 pt-2">
+                <div className="flex items-center justify-between pt-3">
                     <div className="flex items-center gap-4">
                         <button
-                            className={`flex items-center gap-2 hover:bg-neutral-100 px-3 py-1.5 rounded-md transition-colors ${
-                                voted ? 'text-green-600' : 'text-neutral-600'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                                voted
+                                    ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                                    : 'hover:bg-neutral-100 text-neutral-600'
                             }`}
                             onClick={voteJobab}>
                             <ThumbsUp
-                                className="w-5 h-5"
+                                className={`w-5 h-5 transition-transform ${voted ? 'scale-110' : ''}`}
                                 fill={voted ? 'currentColor' : 'none'}
                             />
                             <span className="font-medium">{totalVotes}</span>
                         </button>
-                        <button className="flex items-center gap-2 hover:bg-neutral-100 px-3 py-1.5 rounded-md transition-colors text-neutral-600">
+                        <button className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-neutral-100 transition-all text-neutral-600">
                             <MessageCircle className="w-5 h-5" />
                             <span className="font-medium">Comments</span>
                         </button>
                     </div>
-                    <button className="text-neutral-600 hover:text-neutral-800 transition-colors">
+                    <button className="text-neutral-600 hover:text-neutral-800 transition-colors text-sm font-medium hover:underline">
                         See all comments
                     </button>
                 </div>
 
                 {/* Comments Section */}
-                <div className="space-y-3 pt-2">
+                <div className="space-y-3 pt-3">
                     {/* Comment Input */}
                     {isAuthenticated && (
                         <div className="flex items-center gap-3">
@@ -352,7 +388,7 @@ export default function JobabCard({
                                 <input
                                     type="text"
                                     placeholder="Write a comment..."
-                                    className="w-full px-4 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-2.5 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-50 hover:bg-white transition-colors"
                                 />
                             </div>
                         </div>

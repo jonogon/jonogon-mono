@@ -51,6 +51,11 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from '@/components/ui/carousel';
+import {
+    SOCIAL_NETWORKS,
+    SocialNetwork,
+    SocialAccount,
+} from '@/app/(interactive)/petitions/[id]/_components/jobabs/types';
 
 interface JobabFormProps {
     isOpen: boolean;
@@ -112,7 +117,11 @@ const jobabSchema = z.object({
             required_error: 'Please select a source platform',
         },
     ),
-    sourceUrl: z.string().url('Please enter a valid URL').optional(),
+    sourceUrl: z
+        .string()
+        .url('Please enter a valid URL')
+        .optional()
+        .or(z.literal('')),
     respondedAt: z.date().optional(),
 });
 
@@ -135,11 +144,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         newRespondentName: '',
         newRespondentBio: '',
         newRespondentWebsite: '',
-        socialAccounts: [] as Array<{
-            platform: string;
-            username: string;
-            url: string;
-        }>,
+        socialAccounts: [] as SocialAccount[],
     });
 
     const [errors, setErrors] = useState({
@@ -315,13 +320,30 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
     };
 
     const addSocialAccount = () => {
-        setFormData((prev) => ({
-            ...prev,
-            socialAccounts: [
-                ...prev.socialAccounts,
-                {platform: '', username: '', url: ''},
-            ],
-        }));
+        if (
+            formData.socialAccounts.length >=
+            Object.keys(SOCIAL_NETWORKS).length
+        ) {
+            return;
+        }
+
+        // Find first unused platform
+        const usedPlatforms = new Set(
+            formData.socialAccounts.map((acc) => acc.platform),
+        );
+        const availablePlatform = Object.keys(SOCIAL_NETWORKS).find(
+            (platform) => !usedPlatforms.has(platform as SocialNetwork),
+        ) as SocialNetwork;
+
+        if (availablePlatform) {
+            setFormData((prev) => ({
+                ...prev,
+                socialAccounts: [
+                    ...prev.socialAccounts,
+                    {platform: availablePlatform, username: '', url: ''},
+                ],
+            }));
+        }
     };
 
     const removeSocialAccount = (index: number) => {
@@ -333,14 +355,28 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
     const updateSocialAccount = (
         index: number,
-        field: keyof (typeof formData.socialAccounts)[0],
+        field: 'platform' | 'username',
         value: string,
     ) => {
         setFormData((prev) => ({
             ...prev,
-            socialAccounts: prev.socialAccounts.map((account, i) =>
-                i === index ? {...account, [field]: value} : account,
-            ),
+            socialAccounts: prev.socialAccounts.map((account, i) => {
+                if (i !== index) return account;
+
+                const newAccount = {...account, [field]: value};
+
+                // Always auto-generate URL
+                if (field === 'username') {
+                    newAccount.url =
+                        SOCIAL_NETWORKS[account.platform].baseUrl + value;
+                } else if (field === 'platform') {
+                    newAccount.url =
+                        SOCIAL_NETWORKS[value as SocialNetwork].baseUrl +
+                        account.username;
+                }
+
+                return newAccount;
+            }),
         }));
     };
 
@@ -417,6 +453,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
     const handleSubmit = () => {
         if (!validateForm() || !date) return;
+
         const utcDate = new Date(
             Date.UTC(
                 date.getFullYear(),
@@ -776,212 +813,194 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
                     {showNewRespondent ? (
                         <div className="space-y-4">
-                            <div className="flex flex-col gap-2">
-                                <Label>
-                                    Name
-                                    <span className="text-red-500 ml-1">*</span>
-                                </Label>
-                                <Input
-                                    value={formData.newRespondentName}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            newRespondentName: e.target.value,
-                                        })
-                                    }
-                                    className="bg-card text-card-foreground"
-                                    placeholder={`Enter ${respondentType} name`}
-                                />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-2">
+                                    <Label>
+                                        Name
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        value={formData.newRespondentName}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                newRespondentName:
+                                                    e.target.value,
+                                            })
+                                        }
+                                        className="bg-card text-card-foreground"
+                                        placeholder={`Enter ${respondentType} name`}
+                                    />
+                                </div>
 
-                            <div className="flex flex-col gap-4">
-                                <Label>Profile Image</Label>
-                                <div className="flex items-center gap-6">
-                                    <div className="relative w-32 h-32 border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-muted/50 hover:bg-muted/70 transition-colors">
-                                        {previewUrl ? (
-                                            <img
-                                                src={previewUrl}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                                <span className="text-3xl">
-                                                    +
-                                                </span>
-                                                <span className="text-xs">
-                                                    Click to upload
-                                                </span>
-                                            </div>
+                                <div className="flex flex-col gap-2">
+                                    <Label>
+                                        Website
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        type="url"
+                                        value={formData.newRespondentWebsite}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                newRespondentWebsite:
+                                                    e.target.value,
+                                            })
+                                        }
+                                        className={cn(
+                                            'bg-card text-card-foreground',
+                                            errors.website && 'border-red-500',
                                         )}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                                const file =
-                                                    e.target.files?.[0];
-                                                if (file) {
-                                                    setImageFile(file);
-                                                    setPreviewUrl(
-                                                        URL.createObjectURL(
-                                                            file,
-                                                        ),
-                                                    );
-                                                }
-                                            }}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-muted-foreground">
-                                            Recommended: Square image, at least
-                                            300x300px
+                                        placeholder="https://"
+                                    />
+                                    {errors.website && (
+                                        <p className="text-sm text-red-500">
+                                            {errors.website}
                                         </p>
-                                        {isImageLoading && (
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full" />
-                                                <span className="text-sm text-muted-foreground">
-                                                    Uploading...
-                                                </span>
-                                            </div>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-2 md:col-span-2">
+                                    <Label>
+                                        Bio
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
+                                    </Label>
+                                    <Textarea
+                                        value={formData.newRespondentBio}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                newRespondentBio:
+                                                    e.target.value,
+                                            })
+                                        }
+                                        className="bg-card text-card-foreground"
+                                        placeholder={`Enter ${respondentType} bio`}
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-[120px,1fr] gap-4 items-start">
+                                <div className="relative w-[120px] h-[120px] border-2 border-dashed rounded-full flex items-center justify-center overflow-hidden bg-muted/50 hover:bg-muted/70 transition-colors">
+                                    {previewUrl ? (
+                                        <img
+                                            src={previewUrl}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                            <span className="text-3xl">+</span>
+                                            <span className="text-xs">
+                                                Upload
+                                            </span>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setImageFile(file);
+                                                setPreviewUrl(
+                                                    URL.createObjectURL(file),
+                                                );
+                                            }
+                                        }}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <Label className="mb-2 block">
+                                        Social Accounts
+                                    </Label>
+                                    <div className="space-y-2">
+                                        {formData.socialAccounts.map(
+                                            (account, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex gap-2 items-center relative">
+                                                    <select
+                                                        value={account.platform}
+                                                        onChange={(e) =>
+                                                            updateSocialAccount(
+                                                                index,
+                                                                'platform',
+                                                                e.target
+                                                                    .value as SocialNetwork,
+                                                            )
+                                                        }
+                                                        className="bg-card text-card-foreground h-9 rounded-md border border-input w-[140px]">
+                                                        {Object.entries(
+                                                            SOCIAL_NETWORKS,
+                                                        ).map(
+                                                            ([key, value]) => (
+                                                                <option
+                                                                    key={key}
+                                                                    value={key}
+                                                                    disabled={formData.socialAccounts.some(
+                                                                        (
+                                                                            acc,
+                                                                            i,
+                                                                        ) =>
+                                                                            i !==
+                                                                                index &&
+                                                                            acc.platform ===
+                                                                                key,
+                                                                    )}>
+                                                                    {value.name}
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                    <Input
+                                                        placeholder="Username"
+                                                        value={account.username}
+                                                        onChange={(e) =>
+                                                            updateSocialAccount(
+                                                                index,
+                                                                'username',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="bg-card text-card-foreground flex-1"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            removeSocialAccount(
+                                                                index,
+                                                            )
+                                                        }>
+                                                        <TrashIcon className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ),
+                                        )}
+                                        {formData.socialAccounts.length <
+                                            Object.keys(SOCIAL_NETWORKS)
+                                                .length && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={addSocialAccount}
+                                                className="w-full">
+                                                Add Social Account
+                                            </Button>
                                         )}
                                     </div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <Label>
-                                    Bio
-                                    <span className="text-red-500 ml-1">*</span>
-                                </Label>
-                                <Textarea
-                                    value={formData.newRespondentBio}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            newRespondentBio: e.target.value,
-                                        })
-                                    }
-                                    className="mt-2 bg-card text-card-foreground"
-                                    placeholder={`Enter ${respondentType} bio`}
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <Label>
-                                    Website
-                                    <span className="text-red-500 ml-1">*</span>
-                                </Label>
-                                <Input
-                                    type="url"
-                                    value={formData.newRespondentWebsite}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            newRespondentWebsite:
-                                                e.target.value,
-                                        })
-                                    }
-                                    className={cn(
-                                        'bg-card text-card-foreground',
-                                        errors.website && 'border-red-500',
-                                    )}
-                                    placeholder="https://"
-                                />
-                                {errors.website && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.website}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <div className="flex justify-between items-center">
-                                    <Label>Social Accounts</Label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={addSocialAccount}>
-                                        Add Account
-                                    </Button>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {formData.socialAccounts.map(
-                                        (account, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex gap-2 items-start relative">
-                                                <Input
-                                                    placeholder="Platform"
-                                                    value={account.platform}
-                                                    onChange={(e) =>
-                                                        updateSocialAccount(
-                                                            index,
-                                                            'platform',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    className="bg-card text-card-foreground flex-1"
-                                                />
-                                                <Input
-                                                    placeholder="Username"
-                                                    value={account.username}
-                                                    onChange={(e) =>
-                                                        updateSocialAccount(
-                                                            index,
-                                                            'username',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    className="bg-card text-card-foreground flex-1"
-                                                />
-                                                <Input
-                                                    placeholder="URL"
-                                                    type="url"
-                                                    value={account.url}
-                                                    onChange={(e) =>
-                                                        updateSocialAccount(
-                                                            index,
-                                                            'url',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    className={cn(
-                                                        'bg-card text-card-foreground flex-1',
-                                                        errors.socialAccounts[
-                                                            index
-                                                        ] && 'border-red-500',
-                                                    )}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        removeSocialAccount(
-                                                            index,
-                                                        )
-                                                    }>
-                                                    <TrashIcon className="h-4 w-4" />
-                                                </Button>
-                                                {errors.socialAccounts[
-                                                    index
-                                                ] && (
-                                                    <p className="text-sm text-red-500 absolute -bottom-5 left-0">
-                                                        {
-                                                            errors
-                                                                .socialAccounts[
-                                                                index
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ),
-                                    )}
                                 </div>
                             </div>
 
@@ -1000,7 +1019,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                             !isValidUrl(account.url),
                                     )
                                 }
-                                className="w-full mt-6">
+                                className="w-full mt-4">
                                 Create {respondentType}
                             </Button>
                         </div>
@@ -1165,7 +1184,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                     <Button variant="outline">Cancel</Button>
                                 </DialogClose>
                                 <Button
-                                    onClick={handleSubmit}
+                                    onClick={(e) => {
+                                        handleSubmit();
+                                    }}
                                     disabled={Boolean(
                                         isLoading ||
                                             !formData.respondentId ||

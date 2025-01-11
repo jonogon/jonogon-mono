@@ -75,6 +75,15 @@ export const getJobab = publicProcedure
             .where('deleted_at', 'is', null)
             .executeTakeFirst();
 
+        // Get social accounts for the respondent
+        const socialAccounts = respondent
+            ? await ctx.services.postgresQueryBuilder
+                  .selectFrom('social_accounts')
+                  .select(['id', 'platform', 'username', 'url'])
+                  .where('respondent_id', '=', `${jobab.respondent_id}`)
+                  .execute()
+            : [];
+
         return {
             data: {
                 ...jobab,
@@ -96,6 +105,7 @@ export const getJobab = publicProcedure
                                     respondent.img,
                                 )
                               : null,
+                          social_accounts: socialAccounts,
                       }
                     : null,
             },

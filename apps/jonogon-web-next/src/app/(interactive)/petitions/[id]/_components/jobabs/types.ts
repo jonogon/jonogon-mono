@@ -17,6 +17,7 @@ export interface JobabRespondent {
     name: string;
     type: 'organization' | 'expert';
     img_url: string | null;
+    social_accounts?: SocialAccount[];
 }
 
 export interface JobabInterface {
@@ -85,6 +86,54 @@ export interface JobabListItem {
     }>;
     vote_count: number;
     user_vote: number | null;
+}
+
+export interface SocialNetworkConfig {
+    readonly name: string;
+    readonly icon: string;
+    readonly baseUrl: string;
+    readonly usernamePattern: RegExp;
+}
+
+export const SOCIAL_NETWORKS: Record<string, SocialNetworkConfig> = {
+    facebook: {
+        name: 'Facebook',
+        icon: 'facebook',
+        baseUrl: 'https://facebook.com/',
+        usernamePattern: /^[a-zA-Z0-9.]+$/,
+    },
+    instagram: {
+        name: 'Instagram',
+        icon: 'instagram',
+        baseUrl: 'https://instagram.com/',
+        usernamePattern: /^[a-zA-Z0-9._]+$/,
+    },
+    twitter: {
+        name: 'X (Twitter)',
+        icon: 'twitter',
+        baseUrl: 'https://x.com/',
+        usernamePattern: /^[a-zA-Z0-9_]+$/,
+    },
+    linkedin: {
+        name: 'LinkedIn',
+        icon: 'linkedin',
+        baseUrl: 'https://linkedin.com/in/',
+        usernamePattern: /^[a-zA-Z0-9-]+$/,
+    },
+    youtube: {
+        name: 'YouTube',
+        icon: 'youtube',
+        baseUrl: 'https://youtube.com/@',
+        usernamePattern: /^[a-zA-Z0-9-_]+$/,
+    },
+} as const;
+
+export type SocialNetwork = keyof typeof SOCIAL_NETWORKS;
+
+export interface SocialAccount {
+    platform: SocialNetwork;
+    username: string;
+    url: string;
 }
 
 export interface JobabsResponse {
