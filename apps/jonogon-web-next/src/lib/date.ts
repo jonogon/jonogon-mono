@@ -34,3 +34,13 @@ export const formatFullDateTime = (date: Date | string) => {
         hour12: true,
     });
 };
+
+export const formatFullDate = (date: Date | string) => {
+    const d = new Date(date);
+    return d.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+};

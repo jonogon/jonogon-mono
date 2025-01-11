@@ -1,5 +1,5 @@
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
-import {ThumbsUp, Reply} from 'lucide-react';
+import {ThumbsUp, Reply, Trash, SendHorizontal} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Separator} from '@/components/ui/separator';
 import {useRelativeTime} from '@/lib/useRelativeTime';
@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/tooltip';
 import {useRef, useState} from 'react';
 import {JSX} from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type Comment = {
     id: number;
@@ -77,6 +79,7 @@ type JobabCommentsProps = {
     showAllComments: boolean;
     commentsPerPage: number;
     isAuthenticated: boolean;
+    onDelete: (commentId: number) => void;
 };
 
 function CommentItem({
@@ -91,6 +94,7 @@ function CommentItem({
     onReplySubmit,
     mostRecentCommentId,
     isAuthenticated,
+    onDelete,
 }: {
     comment: CommentWithReplies;
     depth?: number;
@@ -107,6 +111,7 @@ function CommentItem({
     onReplySubmit: (commentId: number) => void;
     mostRecentCommentId?: number;
     isAuthenticated: boolean;
+    onDelete: (commentId: number) => void;
 }): JSX.Element {
     const relativeTime = useRelativeTime(comment.created_at);
     const fullDateTime = formatFullDateTime(comment.created_at);
@@ -147,36 +152,75 @@ function CommentItem({
             <div className="flex items-start gap-3">
                 <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage
-                        src={
+                        className="border-4 rounded-full w-8 h-8"
+                        src={(
                             comment.profile_picture ??
                             `https://static.jonogon.org/placeholder-images/${((Number(comment.user_id) + 1) % 11) + 1}.jpg`
-                        }
+                        ).replace('$CORE_HOSTNAME', window.location.hostname)}
                         alt={comment.username}
-                        className="object-cover"
                     />
                     <AvatarFallback>
-                        {comment.username.charAt(0)}
+                        <div className="bg-border rounded-full animate-pulse h-8 w-8"></div>
                     </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                            {comment.username}
-                        </span>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span className="text-xs text-neutral-500 cursor-default">
-                                        {relativeTime}
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{fullDateTime}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">
+                                {comment.username}
+                            </span>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="text-xs text-neutral-500 cursor-default">
+                                            {relativeTime}
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{fullDateTime}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                        {isAuthenticated &&
+                            selfData?.id === comment.user_id && (
+                                <button
+                                    onClick={() => onDelete(commentId)}
+                                    className="text-red-500 hover:text-red-600 transition-colors">
+                                    <Trash className="w-4 h-4" />
+                                </button>
+                            )}
                     </div>
-                    <p className="text-sm text-neutral-700">{comment.body}</p>
+                    <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                a: ({href, children}) => {
+                                    if (!href) return <span>{children}</span>;
+
+                                    let url = href;
+                                    try {
+                                        if (!href.startsWith('http')) {
+                                            url = 'https://' + href;
+                                        }
+                                        new URL(url);
+                                        return (
+                                            <a
+                                                href={url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-700 hover:underline">
+                                                {children}
+                                            </a>
+                                        );
+                                    } catch {
+                                        return <span>{children}</span>;
+                                    }
+                                },
+                            }}>
+                            {comment.body}
+                        </ReactMarkdown>
+                    </div>
                     <div className="flex items-center gap-4 text-sm text-neutral-500">
                         <button
                             onClick={handleVote}
@@ -219,28 +263,55 @@ function CommentItem({
                     <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8 shrink-0">
                             <AvatarImage
-                                src={
+                                className="border-4 rounded-full w-8 h-8"
+                                src={(
                                     selfData.picture_url ??
                                     `https://static.jonogon.org/placeholder-images/${((Number(selfData.id ?? 0) + 1) % 11) + 1}.jpg`
-                                }
+                                ).replace(
+                                    '$CORE_HOSTNAME',
+                                    window.location.hostname,
+                                )}
                                 alt="Your avatar"
-                                className="object-cover"
                             />
                             <AvatarFallback>
-                                {selfData.name?.charAt(0)}
+                                <div className="bg-border rounded-full animate-pulse h-8 w-8"></div>
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                            <input
-                                type="text"
-                                value={replyText}
-                                onChange={(e) =>
-                                    onReplyTextChange(e.target.value)
-                                }
-                                placeholder="Write a reply..."
-                                className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                onKeyDown={handleSubmitReply}
-                            />
+                            <div className="flex gap-2">
+                                <textarea
+                                    value={replyText}
+                                    onChange={(e) =>
+                                        onReplyTextChange(e.target.value)
+                                    }
+                                    placeholder="Write a reply..."
+                                    className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none overflow-hidden min-h-[40px]"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            onReplySubmit(commentId);
+                                        }
+                                    }}
+                                    rows={1}
+                                    style={{
+                                        height: 'auto',
+                                        minHeight: '40px',
+                                    }}
+                                    onInput={(e) => {
+                                        const target =
+                                            e.target as HTMLTextAreaElement;
+                                        target.style.height = 'auto';
+                                        target.style.height = `${target.scrollHeight}px`;
+                                    }}
+                                />
+                                <Button
+                                    size="sm"
+                                    className="px-3 h-10"
+                                    onClick={() => onReplySubmit(commentId)}
+                                    disabled={!replyText.trim()}>
+                                    <SendHorizontal className="w-5 h-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,6 +332,7 @@ function CommentItem({
                             onReplySubmit={onReplySubmit}
                             mostRecentCommentId={mostRecentCommentId}
                             isAuthenticated={isAuthenticated}
+                            onDelete={onDelete}
                         />
                     ))}
                 </div>
@@ -284,6 +356,7 @@ export default function JobabComments({
     showAllComments,
     commentsPerPage,
     isAuthenticated,
+    onDelete,
 }: JobabCommentsProps) {
     const loadMoreButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -337,6 +410,7 @@ export default function JobabComments({
                         onReplySubmit={onReplySubmit}
                         mostRecentCommentId={mostRecentCommentId}
                         isAuthenticated={isAuthenticated}
+                        onDelete={onDelete}
                     />
                 </div>
             ))}

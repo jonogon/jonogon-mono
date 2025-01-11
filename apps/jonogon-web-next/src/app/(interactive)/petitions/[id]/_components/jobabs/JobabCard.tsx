@@ -6,6 +6,8 @@ import {
     FileIcon,
     Reply,
     Trash,
+    SendHorizontal,
+    MessageSquare,
 } from 'lucide-react';
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
@@ -27,8 +29,7 @@ import {
     JobabListItem,
     JobabAttachment,
 } from './types';
-import {useRelativeTime} from '@/lib/useRelativeTime';
-import {formatFullDateTime} from '@/lib/date';
+import {formatDate, formatFullDate} from '@/lib/date';
 import {Button} from '@/components/ui/button';
 import {Separator} from '@/components/ui/separator';
 import JobabComments from './JobabComments';
@@ -38,6 +39,16 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Comment = {
     id: number;
@@ -238,6 +249,49 @@ export default function JobabCard({
         },
     });
 
+    const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+
+    const deleteCommentMutation = trpc.jobabs.deleteComment.useMutation({
+        onSuccess: () => {
+            utils.jobabs.listComments.invalidate({jobab_id: id});
+            utils.jobabs.countRootComments.invalidate({jobab_id: id});
+            toast({
+                title: '🗑️ Comment Deleted',
+                description: 'Your comment has been deleted successfully',
+            });
+            setCommentToDelete(null);
+        },
+        onError: (error) => {
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to delete comment',
+                variant: 'destructive',
+            });
+            setCommentToDelete(null);
+        },
+    });
+
+    const handleDeleteComment = async (commentId: number) => {
+        if (!isAuthenticated) {
+            redirectToLoginPage();
+            return;
+        }
+
+        setCommentToDelete(commentId);
+    };
+
+    const confirmDelete = async () => {
+        if (!commentToDelete) return;
+
+        try {
+            await deleteCommentMutation.mutateAsync({
+                id: commentToDelete,
+            });
+        } catch (error) {
+            // Error is handled in onError callback
+        }
+    };
+
     const redirectToLoginPage = () => {
         const nextUrl = encodeURIComponent(window.location.pathname);
         router.push(`/login?next=${nextUrl}`);
@@ -368,8 +422,8 @@ export default function JobabCard({
         }
     }, [commentsData?.data, currentPage]);
 
-    const respondedTime = useRelativeTime(responded_at);
-    const fullDateTime = formatFullDateTime(responded_at);
+    const respondedTime = formatDate(new Date(responded_at));
+    const fullDateTime = formatFullDate(responded_at);
 
     return (
         <div className="flex gap-3">
@@ -553,7 +607,7 @@ export default function JobabCard({
                         </button>
                         <button
                             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all hover:bg-neutral-100 text-neutral-600`}>
-                            <MessageCircle className="w-5 h-5" />
+                            <MessageSquare className="w-5 h-5" />
                             <span className="font-medium">
                                 {(commentCountData?.data.count ?? 0) > 0
                                     ? `${commentCountData?.data.count} Comments`
@@ -580,7 +634,7 @@ export default function JobabCard({
 
                 {/* Comment Input */}
                 {isAuthenticated && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                         <Avatar className="h-10 w-10 shrink-0">
                             <AvatarImage
                                 className="border-4 rounded-full w-10 h-10"
@@ -597,19 +651,40 @@ export default function JobabCard({
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                            <input
-                                type="text"
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                placeholder="Write a comment..."
-                                className="w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-50 hover:bg-white transition-colors"
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleCommentSubmit();
+                            <div className="flex gap-2">
+                                <textarea
+                                    value={commentText}
+                                    onChange={(e) =>
+                                        setCommentText(e.target.value)
                                     }
-                                }}
-                            />
+                                    placeholder="Write a comment..."
+                                    className="w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-50 hover:bg-white transition-colors resize-none overflow-hidden min-h-[44px]"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleCommentSubmit();
+                                        }
+                                    }}
+                                    rows={1}
+                                    style={{
+                                        height: 'auto',
+                                        minHeight: '44px',
+                                    }}
+                                    onInput={(e) => {
+                                        const target =
+                                            e.target as HTMLTextAreaElement;
+                                        target.style.height = 'auto';
+                                        target.style.height = `${target.scrollHeight}px`;
+                                    }}
+                                />
+                                <Button
+                                    size="sm"
+                                    className="px-4 h-11"
+                                    onClick={handleCommentSubmit}
+                                    disabled={!commentText.trim()}>
+                                    <SendHorizontal className="w-5 h-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -635,6 +710,7 @@ export default function JobabCard({
                         showAllComments={showAllComments}
                         commentsPerPage={COMMENTS_PER_PAGE}
                         isAuthenticated={!!isAuthenticated}
+                        onDelete={handleDeleteComment}
                     />
                 )}
 
@@ -650,6 +726,29 @@ export default function JobabCard({
                         />
                     </DialogContent>
                 </Dialog>
+
+                {/* Delete Confirmation Dialog */}
+                <AlertDialog
+                    open={!!commentToDelete}
+                    onOpenChange={() => setCommentToDelete(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to delete this comment?
+                                This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={confirmDelete}
+                                className="bg-red-500 hover:bg-red-600">
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );
