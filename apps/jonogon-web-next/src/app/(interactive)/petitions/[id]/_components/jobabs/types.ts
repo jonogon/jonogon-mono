@@ -22,6 +22,8 @@ export interface JobabRespondent {
 
 export interface JobabInterface {
     id: number;
+    petition_id: number;
+    respondent_id: number;
     title: string | null;
     description: string | null;
     source_type: JobabSourceType;
@@ -31,7 +33,7 @@ export interface JobabInterface {
     vote_count: number;
     user_vote: number | null;
     attachments: JobabAttachment[];
-    respondent: JobabRespondent | null;
+    created_by: string;
 }
 
 export interface JobabFormData {

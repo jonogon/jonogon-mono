@@ -300,10 +300,32 @@ export const softDeleteJobab = protectedProcedure
         }),
     )
     .mutation(async ({ctx, input}) => {
-        if (!ctx.auth!.is_user_admin && !ctx.auth!.is_user_moderator) {
+        // Get the jobab to check if the user is the creator
+        const jobab = await ctx.services.postgresQueryBuilder
+            .selectFrom('jobabs')
+            .select(['created_by'])
+            .where('id', '=', `${input.id}`)
+            .where('deleted_at', 'is', null)
+            .executeTakeFirst();
+
+        if (!jobab) {
+            throw new TRPCError({
+                code: 'NOT_FOUND',
+                message: 'Jobab not found',
+            });
+        }
+
+        // Check if user is authorized to delete
+        const isCreator =
+            BigInt(jobab.created_by) === BigInt(ctx.auth!.user_id);
+        if (
+            !ctx.auth!.is_user_admin &&
+            !ctx.auth!.is_user_moderator &&
+            !isCreator
+        ) {
             throw new TRPCError({
                 code: 'UNAUTHORIZED',
-                message: 'You are not authorized to delete jobabs',
+                message: 'You are not authorized to delete this jobab',
             });
         }
 

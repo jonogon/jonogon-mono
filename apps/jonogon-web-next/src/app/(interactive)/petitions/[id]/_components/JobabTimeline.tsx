@@ -32,6 +32,7 @@ interface JobabResponse {
     vote_count: number;
     user_vote: number | null;
     attachments: JobabAttachment[];
+    created_by: string;
 }
 
 export default function JobabTimeline({petitionId}: JobabTimelineProps) {
@@ -66,14 +67,17 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                 })),
             })) as JobabResponse[];
 
-            if (offset === 0) {
+            if (jobabsData.total <= offset) {
+                setOffset(0);
+                setAllJobabs(transformedData);
+            } else if (offset === 0) {
                 setAllJobabs(transformedData);
             } else {
                 setAllJobabs((prev) => [...prev, ...transformedData]);
             }
             setHasMore(jobabsData.data.length === ITEMS_PER_PAGE);
         }
-    }, [jobabsData?.data, offset]);
+    }, [jobabsData?.data, offset, jobabsData?.total]);
 
     const jobabs = allJobabs || [];
 

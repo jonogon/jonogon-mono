@@ -8,6 +8,7 @@ import {
     Trash,
     SendHorizontal,
     MessageSquare,
+    MoreVertical,
 } from 'lucide-react';
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
@@ -78,6 +79,7 @@ type JobabCardProps = {
     vote_count: number;
     user_vote: number | null;
     attachments: JobabAttachment[];
+    created_by: string;
 };
 
 export default function JobabCard({
@@ -92,6 +94,7 @@ export default function JobabCard({
     user_vote,
     attachments,
     respondent_id,
+    created_by,
 }: JobabCardProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [commentText, setCommentText] = useState('');
@@ -425,6 +428,60 @@ export default function JobabCard({
     const respondedTime = formatDate(new Date(responded_at));
     const fullDateTime = formatFullDate(responded_at);
 
+    const [jobabToDelete, setJobabToDelete] = useState<number | null>(null);
+
+    const softDeleteJobabMutation = trpc.jobabs.softDeleteJobab.useMutation({
+        onSuccess: () => {
+            toast({
+                title: '🗑️ জবাব Deleted',
+                description: 'The জবাব has been deleted successfully',
+            });
+            setJobabToDelete(null);
+            // Invalidate the jobabs list query to trigger a refetch
+            const petitionId = Number(window.location.pathname.split('/')[2]);
+            utils.jobabs.list.invalidate({
+                petition_id: petitionId,
+                limit: 5,
+                offset: 0,
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to delete জবাব',
+                variant: 'destructive',
+            });
+            setJobabToDelete(null);
+        },
+    });
+
+    const handleDeleteJobab = () => {
+        if (!isAuthenticated) {
+            redirectToLoginPage();
+            return;
+        }
+        setJobabToDelete(id);
+    };
+
+    const confirmJobabDelete = async () => {
+        if (!jobabToDelete) return;
+
+        try {
+            await softDeleteJobabMutation.mutateAsync({
+                id: jobabToDelete,
+            });
+        } catch (error) {
+            // Error is handled in onError callback
+        }
+    };
+
+    const canDeleteJobab =
+        isAuthenticated &&
+        selfDataResponse?.data &&
+        (selfDataResponse.data.is_admin ||
+            selfDataResponse.data.is_moderator ||
+            selfDataResponse.data.id === created_by);
+
     return (
         <div className="flex gap-3">
             <div className="w-1 bg-red-500 rounded-full" />
@@ -496,14 +553,25 @@ export default function JobabCard({
                         </div>
                     </div>
 
-                    <div className="px-3 py-1.5 border rounded-md border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2 shadow-sm">
-                        <span className="font-medium">
-                            {respondent?.type === 'organization'
-                                ? 'Official'
-                                : 'Expert'}
-                        </span>
-                        <div className="bg-green-500 rounded-full p-0.5">
-                            <Check className="w-3.5 h-3.5 text-green-100" />
+                    <div className="flex items-center gap-2">
+                        {canDeleteJobab && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                onClick={handleDeleteJobab}>
+                                <Trash className="h-4 w-4" />
+                            </Button>
+                        )}
+                        <div className="px-3 py-1.5 border rounded-md border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2 shadow-sm">
+                            <span className="font-medium">
+                                {respondent?.type === 'organization'
+                                    ? 'Official'
+                                    : 'Expert'}
+                            </span>
+                            <div className="bg-green-500 rounded-full p-0.5">
+                                <Check className="w-3.5 h-3.5 text-green-100" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -729,20 +797,20 @@ export default function JobabCard({
 
                 {/* Delete Confirmation Dialog */}
                 <AlertDialog
-                    open={!!commentToDelete}
-                    onOpenChange={() => setCommentToDelete(null)}>
+                    open={!!jobabToDelete}
+                    onOpenChange={() => setJobabToDelete(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                            <AlertDialogTitle>Delete জবাব</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Are you sure you want to delete this comment?
-                                This action cannot be undone.
+                                Are you sure you want to delete this জবাব? This
+                                action cannot be undone.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                                onClick={confirmDelete}
+                                onClick={confirmJobabDelete}
                                 className="bg-red-500 hover:bg-red-600">
                                 Delete
                             </AlertDialogAction>
