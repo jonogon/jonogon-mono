@@ -27,7 +27,7 @@ export interface JobabInterface {
     source_url: string | null;
     responded_at: string;
     created_at: string;
-    total_votes: number;
+    vote_count: number;
     user_vote: number | null;
     attachments: JobabAttachment[];
     respondent: JobabRespondent | null;

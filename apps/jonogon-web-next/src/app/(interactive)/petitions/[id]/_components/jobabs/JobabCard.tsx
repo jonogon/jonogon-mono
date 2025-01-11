@@ -14,35 +14,10 @@ import {Dialog, DialogContent} from '@/components/ui/dialog';
 import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {useToast} from '@/components/ui/use-toast';
+import {JobabInterface, JobabSourceType} from './types';
+import {formatDate} from '@/lib/date';
 
-interface JobabCardProps {
-    id: number;
-    title: string | null;
-    description: string | null;
-    source_type:
-        | 'jonogon_direct'
-        | 'news_article'
-        | 'official_document'
-        | 'social_media'
-        | 'press_release';
-    source_url: string | null;
-    responded_at: string;
-    created_at: string;
-    respondent: {
-        id: number;
-        name: string;
-        type: 'organization' | 'expert';
-        img_url: string | null;
-    } | null;
-    vote_count: number;
-    user_vote: number | null;
-    attachments: {
-        id: number;
-        filename: string;
-        type: 'image' | 'file';
-        url: string;
-    }[];
-}
+type JobabCardProps = JobabInterface;
 
 export default function JobabCard({
     id,
@@ -61,7 +36,7 @@ export default function JobabCard({
     const router = useRouter();
     const {toast} = useToast();
 
-    const sourceTypeLabels: Record<JobabCardProps['source_type'], string> = {
+    const sourceTypeLabels: Record<JobabSourceType, string> = {
         jonogon_direct: 'Jonogon Direct',
         news_article: 'News Article',
         official_document: 'Official Document',
@@ -197,23 +172,7 @@ export default function JobabCard({
                             </p>
                             <p className="text-sm text-muted-foreground space-x-2">
                                 <span>
-                                    {(() => {
-                                        const date = new Date(responded_at);
-                                        const day = date.getDate();
-                                        const suffix = ['th', 'st', 'nd', 'rd'][
-                                            day % 10 > 3 ||
-                                            (day % 100) - (day % 10) == 10
-                                                ? 0
-                                                : day % 10
-                                        ];
-                                        return `${day}${suffix} ${date.toLocaleDateString(
-                                            'en-US',
-                                            {
-                                                month: 'long',
-                                                year: 'numeric',
-                                            },
-                                        )}`;
-                                    })()}
+                                    {formatDate(new Date(responded_at))}
                                 </span>
                                 {source_type && (
                                     <>
