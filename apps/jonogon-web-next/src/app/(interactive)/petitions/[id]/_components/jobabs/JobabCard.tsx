@@ -465,12 +465,12 @@ export default function JobabCard({
     return (
         <div className="flex gap-3">
             <div className="w-1 bg-red-500 rounded-full" />
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 overflow-hidden">
                 {/* Jobab Header */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 overflow-hidden">
                         <RespondentHoverCard respondent={respondent}>
-                            <Avatar className="h-12 w-12 cursor-pointer">
+                            <Avatar className="h-12 w-12 cursor-pointer shrink-0">
                                 <AvatarImage
                                     className="border-4 rounded-full w-12 h-12"
                                     src={(
@@ -487,13 +487,13 @@ export default function JobabCard({
                                 </AvatarFallback>
                             </Avatar>
                         </RespondentHoverCard>
-                        <div className="space-y-1">
+                        <div className="space-y-1 overflow-hidden">
                             <RespondentHoverCard respondent={respondent}>
-                                <p className="font-semibold text-base flex items-center gap-2">
+                                <p className="font-semibold text-base flex items-center gap-2 break-words">
                                     {respondent?.name}
                                 </p>
                             </RespondentHoverCard>
-                            <p className="text-sm text-muted-foreground space-x-2">
+                            <p className="text-xs sm:text-sm text-muted-foreground flex items-center flex-wrap gap-x-1.5 gap-y-1">
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -508,8 +508,8 @@ export default function JobabCard({
                                 </TooltipProvider>
                                 {source_type && (
                                     <>
-                                        <span className="text-muted-foreground">
-                                            |
+                                        <span className="text-muted-foreground text-[10px]">
+                                            •
                                         </span>
                                         <span>
                                             {sourceTypeLabels[source_type]}
@@ -518,8 +518,8 @@ export default function JobabCard({
                                 )}
                                 {source_url && (
                                     <>
-                                        <span className="text-muted-foreground">
-                                            |
+                                        <span className="text-muted-foreground text-[10px]">
+                                            •
                                         </span>
                                         <a
                                             href={source_url}
@@ -559,12 +559,12 @@ export default function JobabCard({
                 {/* Jobab Content */}
                 <div className="space-y-4">
                     {title && (
-                        <h4 className="text-xl font-semibold text-foreground">
+                        <h4 className="text-xl font-semibold text-foreground break-words">
                             {title}
                         </h4>
                     )}
                     {description && (
-                        <p className="text-base leading-relaxed text-neutral-700">
+                        <p className="text-base leading-relaxed text-neutral-700 break-words">
                             {description}
                         </p>
                     )}
@@ -653,14 +653,14 @@ export default function JobabCard({
                                 fill={voted ? 'currentColor' : 'none'}
                             />
                             <span
-                                className={`font-medium ${isVoting ? 'opacity-50' : ''}`}>
+                                className={`font-medium text-sm sm:text-base ${isVoting ? 'opacity-50' : ''}`}>
                                 {totalVotes}
                             </span>
                         </button>
                         <button
                             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all hover:bg-neutral-100 text-neutral-600`}>
                             <MessageSquare className="w-5 h-5" />
-                            <span className="font-medium">
+                            <span className="font-medium text-sm sm:text-base whitespace-nowrap">
                                 {(commentCountData?.data.count ?? 0) > 0
                                     ? `${commentCountData?.data.count} Comments`
                                     : 'Comments'}
@@ -670,16 +670,14 @@ export default function JobabCard({
                     {(commentCountData?.data.count ?? 0) > 3 && (
                         <Button
                             variant="ghost"
-                            className="text-muted-foreground hover:text-muted-foreground hover:bg-background"
+                            className="text-muted-foreground hover:text-muted-foreground hover:bg-background text-sm shrink-0"
                             onClick={() => {
                                 setShowAllComments(!showAllComments);
                                 if (!showAllComments) {
                                     setCurrentPage(1);
                                 }
                             }}>
-                            {showAllComments
-                                ? 'Hide comments'
-                                : `View all comments`}
+                            {showAllComments ? 'Hide' : `View all`}
                         </Button>
                     )}
                 </div>
@@ -710,7 +708,7 @@ export default function JobabCard({
                                         setCommentText(e.target.value)
                                     }
                                     placeholder="Write a comment..."
-                                    className="w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-50 hover:bg-white transition-colors resize-none overflow-hidden min-h-[44px]"
+                                    className="w-full px-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-50 hover:bg-white transition-colors resize-none overflow-y-auto min-h-[44px]"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
