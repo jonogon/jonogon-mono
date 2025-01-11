@@ -111,6 +111,7 @@ export default function JobabCard({
 
     const [voted, setVoted] = useState(!!user_vote);
     const [totalVotes, setTotalVotes] = useState(vote_count);
+    const [isVoting, setIsVoting] = useState(false);
 
     const utils = trpc.useUtils();
     const voteMutation = trpc.jobabs.vote.useMutation({
@@ -121,6 +122,11 @@ export default function JobabCard({
         onError: () => {
             setVoted(false);
             setTotalVotes((prev) => prev - 1);
+            toast({
+                title: 'Error',
+                description: 'Failed to update vote',
+                variant: 'destructive',
+            });
         },
         onSuccess: () => {
             const petitionId = Number(window.location.pathname.split('/')[2]);
@@ -128,6 +134,10 @@ export default function JobabCard({
                 petition_id: petitionId,
                 limit: 10,
                 offset: 0,
+            });
+            toast({
+                title: '👍🏽 Upvoted জবাব',
+                description: 'You have successfully upvoted the জবাব',
             });
         },
     });
@@ -140,6 +150,11 @@ export default function JobabCard({
         onError: () => {
             setVoted(true);
             setTotalVotes((prev) => prev + 1);
+            toast({
+                title: 'Error',
+                description: 'Failed to update vote',
+                variant: 'destructive',
+            });
         },
         onSuccess: () => {
             const petitionId = Number(window.location.pathname.split('/')[2]);
@@ -278,31 +293,24 @@ export default function JobabCard({
             return;
         }
 
+        if (isVoting) return;
+        setIsVoting(true);
+
         try {
             if (voted) {
                 await clearVoteMutation.mutateAsync({
                     jobab_id: id,
-                });
-                toast({
-                    title: '👎🏽 Removed Vote',
-                    description: 'You have successfully removed your vote',
                 });
             } else {
                 await voteMutation.mutateAsync({
                     jobab_id: id,
                     vote: 'up',
                 });
-                toast({
-                    title: '👍🏽 Upvoted জবাব',
-                    description: 'You have successfully upvoted the জবাব',
-                });
             }
         } catch (error) {
-            toast({
-                title: 'Error',
-                description: 'Failed to update vote',
-                variant: 'destructive',
-            });
+            // Error is handled in onError callbacks
+        } finally {
+            setIsVoting(false);
         }
     };
 
@@ -638,12 +646,16 @@ export default function JobabCard({
                                     ? 'bg-green-50 text-green-600 hover:bg-green-100'
                                     : 'hover:bg-neutral-100 text-neutral-600'
                             }`}
-                            onClick={voteJobab}>
+                            onClick={voteJobab}
+                            disabled={isVoting}>
                             <ThumbsUp
-                                className={`w-5 h-5 transition-transform ${voted ? 'scale-110' : ''}`}
+                                className={`w-5 h-5 transition-transform ${voted ? 'scale-110' : ''} ${isVoting ? 'opacity-50' : ''}`}
                                 fill={voted ? 'currentColor' : 'none'}
                             />
-                            <span className="font-medium">{totalVotes}</span>
+                            <span
+                                className={`font-medium ${isVoting ? 'opacity-50' : ''}`}>
+                                {totalVotes}
+                            </span>
                         </button>
                         <button
                             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all hover:bg-neutral-100 text-neutral-600`}>
@@ -658,7 +670,7 @@ export default function JobabCard({
                     {(commentCountData?.data.count ?? 0) > 3 && (
                         <Button
                             variant="ghost"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-muted-foreground hover:text-muted-foreground hover:bg-background"
                             onClick={() => {
                                 setShowAllComments(!showAllComments);
                                 if (!showAllComments) {
