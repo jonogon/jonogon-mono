@@ -14,26 +14,7 @@ import {useRef, useState} from 'react';
 import {JSX} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-type Comment = {
-    id: number;
-    body: string;
-    username: string;
-    user_id: string;
-    profile_picture: string | null;
-    total_votes: number;
-    user_vote: number | null;
-    is_author?: boolean;
-    created_by: string;
-    parent_id: number | null;
-    highlighted_at: string | null;
-    deleted_at: string | null;
-    created_at: string;
-};
-
-type CommentWithReplies = Comment & {
-    replies?: CommentWithReplies[];
-};
+import {Comment, CommentWithReplies} from './types';
 
 function organizeComments(comments: Comment[]): CommentWithReplies[] {
     const commentMap = new Map<number, CommentWithReplies>();

@@ -29,6 +29,7 @@ import {
     JobabSourceType,
     JobabListItem,
     JobabAttachment,
+    Comment,
 } from './types';
 import {formatDate, formatFullDate} from '@/lib/date';
 import {Button} from '@/components/ui/button';
@@ -51,36 +52,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type Comment = {
-    id: number;
-    body: string;
-    username: string;
-    user_id: string;
-    profile_picture: string | null;
-    total_votes: number;
-    user_vote: number | null;
-    created_by: string;
-    parent_id: number | null;
-    highlighted_at: string | null;
-    deleted_at: string | null;
-    created_at: string;
-};
-
-type JobabCardProps = {
-    id: number;
-    petition_id: number;
-    respondent_id: number;
-    title: string | null;
-    description: string | null;
-    source_type: JobabSourceType;
-    source_url: string | null;
-    responded_at: string;
-    created_at: string;
-    vote_count: number;
-    user_vote: number | null;
-    attachments: JobabAttachment[];
-    created_by: string;
-};
+type JobabCardProps = JobabInterface;
 
 export default function JobabCard({
     id,
@@ -477,9 +449,9 @@ export default function JobabCard({
 
     const canDeleteJobab =
         isAuthenticated &&
-        selfDataResponse?.data &&
-        (selfDataResponse.data.is_admin ||
-            selfDataResponse.data.is_moderator ||
+        selfDataResponse?.meta.token &&
+        (selfDataResponse.meta.token.is_user_admin ||
+            selfDataResponse.meta.token.is_user_moderator ||
             selfDataResponse.data.id === created_by);
 
     return (
@@ -795,7 +767,30 @@ export default function JobabCard({
                     </DialogContent>
                 </Dialog>
 
-                {/* Delete Confirmation Dialog */}
+                {/* Delete Comment Confirmation Dialog */}
+                <AlertDialog
+                    open={!!commentToDelete}
+                    onOpenChange={() => setCommentToDelete(null)}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to delete this comment?
+                                This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={confirmDelete}
+                                className="bg-red-500 hover:bg-red-600">
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Delete Jobab Confirmation Dialog */}
                 <AlertDialog
                     open={!!jobabToDelete}
                     onOpenChange={() => setJobabToDelete(null)}>

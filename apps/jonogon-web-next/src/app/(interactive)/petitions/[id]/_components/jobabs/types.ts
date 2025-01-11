@@ -5,6 +5,26 @@ export type JobabSourceType =
     | 'social_media'
     | 'press_release';
 
+export interface Comment {
+    id: number;
+    body: string;
+    username: string;
+    user_id: string;
+    profile_picture: string | null;
+    total_votes: number;
+    user_vote: number | null;
+    is_author?: boolean;
+    created_by: string;
+    parent_id: number | null;
+    highlighted_at: string | null;
+    deleted_at: string | null;
+    created_at: string;
+}
+
+export interface CommentWithReplies extends Comment {
+    replies?: CommentWithReplies[];
+}
+
 export interface JobabAttachment {
     id: number;
     filename: string;
