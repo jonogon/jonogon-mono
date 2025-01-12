@@ -17,6 +17,7 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import {useEffect, useState} from 'react';
 
 export default function PetitionCard(props: {
     id: string;
@@ -40,11 +41,21 @@ export default function PetitionCard(props: {
     mode: 'request' | 'formalized' | 'own' | 'flagged';
 }) {
     const isAuthenticated = useAuthState();
+    // Keep vote state exactly as received from backend
+    const [localUserVote, setLocalUserVote] = useState<number | null>(
+        props.userVote,
+    );
+
+    // Simple helper for vote state
+    const hasVoted = isAuthenticated === true && localUserVote !== null;
+
+    useEffect(() => {
+        // Only update when props.userVote changes
+        setLocalUserVote(props.userVote);
+    }, [props.userVote]);
 
     const router = useRouter();
     const totalVotes = props.upvotes + props.downvotes;
-
-    const userVote = props.userVote;
 
     const achievement = props.upvotes / Number(props.upvoteTarget);
     const achievementPercentage = Math.round(achievement * 100);
@@ -122,10 +133,8 @@ export default function PetitionCard(props: {
                             </p>
                             <Button
                                 size={'sm'}
-                                variant={
-                                    userVote === null ? 'outline' : 'ghost'
-                                }
-                                disabled={userVote !== null}
+                                variant={hasVoted ? 'ghost' : 'outline'}
+                                disabled={hasVoted}
                                 onClick={() => {
                                     const href = `/petitions/${props.id}`;
 
@@ -135,14 +144,14 @@ export default function PetitionCard(props: {
                                               `/login?next=${encodeURIComponent(href)}`,
                                           );
                                 }}>
-                                {userVote === null ? 'VOTE' : 'VOTED'}
+                                {hasVoted ? 'VOTED' : 'VOTE'}
                             </Button>
                         </>
                     ) : props.mode === 'request' ? (
                         <>
                             <div className={'flex flex-row gap-6 px-1'}>
                                 <div className={'flex flex-row gap-2'}>
-                                    {userVote === 1 ? (
+                                    {localUserVote === 1 ? (
                                         <ThumbsUpIconSolid
                                             className={'w-5 h-5 text-green-500'}
                                         />
@@ -155,7 +164,7 @@ export default function PetitionCard(props: {
                                     {props.upvotes}
                                 </div>
                                 <div className={'flex flex-row gap-2'}>
-                                    {userVote === -1 ? (
+                                    {localUserVote === -1 ? (
                                         <ThumbsDownIconSolid
                                             className={'w-5 h-5 text-red-500'}
                                         />
@@ -179,10 +188,8 @@ export default function PetitionCard(props: {
                             </div>
                             <Button
                                 size={'sm'}
-                                variant={
-                                    userVote === null ? 'outline' : 'ghost'
-                                }
-                                disabled={userVote !== null}
+                                variant={hasVoted ? 'ghost' : 'outline'}
+                                disabled={hasVoted}
                                 onClick={() => {
                                     const href = `/petitions/${props.id}`;
 
@@ -192,14 +199,14 @@ export default function PetitionCard(props: {
                                               `/login?next=${encodeURIComponent(href)}`,
                                           );
                                 }}>
-                                {userVote === null ? 'VOTE' : 'VOTED'}
+                                {hasVoted ? 'VOTED' : 'VOTE'}
                             </Button>
                         </>
                     ) : props.mode === 'own' ? (
                         <>
                             <div className={'flex flex-row gap-6 mx-2'}>
                                 <div className={'flex flex-row gap-2'}>
-                                    {userVote === 1 ? (
+                                    {localUserVote === 1 ? (
                                         <ThumbsUpIconSolid
                                             className={'w-5 h-5 text-green-500'}
                                         />
@@ -212,7 +219,7 @@ export default function PetitionCard(props: {
                                     {props.upvotes}
                                 </div>
                                 <div className={'flex flex-row gap-2'}>
-                                    {userVote === -1 ? (
+                                    {localUserVote === -1 ? (
                                         <ThumbsDownIconSolid
                                             className={'w-5 h-5 text-red-500'}
                                         />

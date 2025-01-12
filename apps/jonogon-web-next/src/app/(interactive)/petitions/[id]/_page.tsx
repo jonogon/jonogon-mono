@@ -44,15 +44,20 @@ export default function Petition() {
         data: petition,
         refetch,
         isLoading,
-    } = trpc.petitions.get.useQuery({
-        id: petition_id!!,
-    });
+    } = trpc.petitions.get.useQuery(
+        {
+            id: petition_id!!,
+        },
+        {
+            enabled: isAuthenticated !== null,
+        },
+    );
 
     const {openShareModal} = useSocialShareStore();
 
     const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
 
-    const [userVote, setUserVote] = useState(0);
+    const [userVote, setUserVote] = useState<number | null>(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showSuggestedPetitionsModal, setShowSuggestedPetitionsModal] =
         useState(false);
@@ -65,10 +70,10 @@ export default function Petition() {
     }, [isSubmitted]);
 
     useEffect(() => {
-        if (petition) {
-            setUserVote(petition?.extras.user_vote ?? 0);
+        if (petition?.extras.user_vote !== undefined) {
+            setUserVote(petition.extras.user_vote);
         }
-    }, [petition]);
+    }, [petition?.extras.user_vote]);
 
     const thumbsUpMutation = trpc.petitions.vote.useMutation({
         onSuccess: () => setShowSuggestedPetitionsModal(true),
@@ -86,7 +91,7 @@ export default function Petition() {
             return;
         }
 
-        if (userVote == 1) {
+        if (userVote === 1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
             });
@@ -111,7 +116,7 @@ export default function Petition() {
             return;
         }
 
-        if (userVote == -1) {
+        if (userVote === -1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
             });
@@ -514,7 +519,7 @@ export default function Petition() {
                         intent={'success'}
                         size={'lg'}
                         className="flex-1 w-full"
-                        disabled={isFlagged}
+                        disabled={isFlagged || userVote === null}
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
@@ -544,7 +549,7 @@ export default function Petition() {
                         }
                         intent={'default'}
                         className="flex-1 w-full"
-                        disabled={isFlagged}
+                        disabled={isFlagged || userVote === null}
                         size={'lg'}
                         onClick={clickThumbsDown}>
                         <ThumbsDown

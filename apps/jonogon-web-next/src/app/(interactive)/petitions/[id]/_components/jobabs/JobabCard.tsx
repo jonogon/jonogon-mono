@@ -109,18 +109,18 @@ export default function JobabCard({
     const imageAttachments = attachments.filter((a) => a.type === 'image');
     const fileAttachments = attachments.filter((a) => a.type === 'file');
 
-    const [voted, setVoted] = useState(!!user_vote);
+    const [userVote, setUserVote] = useState(!!user_vote);
     const [totalVotes, setTotalVotes] = useState(vote_count);
     const [isVoting, setIsVoting] = useState(false);
 
     const utils = trpc.useUtils();
     const voteMutation = trpc.jobabs.vote.useMutation({
         onMutate: () => {
-            setVoted(true);
+            setUserVote(true);
             setTotalVotes((prev) => prev + 1);
         },
         onError: () => {
-            setVoted(false);
+            setUserVote(false);
             setTotalVotes((prev) => prev - 1);
             toast({
                 title: 'Error',
@@ -144,11 +144,11 @@ export default function JobabCard({
 
     const clearVoteMutation = trpc.jobabs.clearVote.useMutation({
         onMutate: () => {
-            setVoted(false);
+            setUserVote(false);
             setTotalVotes((prev) => prev - 1);
         },
         onError: () => {
-            setVoted(true);
+            setUserVote(true);
             setTotalVotes((prev) => prev + 1);
             toast({
                 title: 'Error',
@@ -297,7 +297,7 @@ export default function JobabCard({
         setIsVoting(true);
 
         try {
-            if (voted) {
+            if (userVote) {
                 await clearVoteMutation.mutateAsync({
                     jobab_id: id,
                 });
@@ -382,6 +382,10 @@ export default function JobabCard({
         setTotalVotes(vote_count);
     }, [vote_count]);
 
+    useEffect(() => {
+        setUserVote(!!user_vote);
+    }, [user_vote]);
+
     const [allComments, setAllComments] = useState<Comment[]>([]);
 
     useEffect(() => {
@@ -462,6 +466,9 @@ export default function JobabCard({
             selfDataResponse.meta.token.is_user_moderator ||
             selfDataResponse.data.id === created_by);
 
+    useEffect(() => {
+        console.log('User Vote', user_vote);
+    }, [user_vote]);
     return (
         <div className="flex gap-3">
             <div className="w-1 bg-red-500 rounded-full" />
@@ -642,15 +649,15 @@ export default function JobabCard({
                     <div className="flex items-center gap-4">
                         <button
                             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                                voted
+                                userVote
                                     ? 'bg-green-50 text-green-600 hover:bg-green-100'
                                     : 'hover:bg-neutral-100 text-neutral-600'
                             }`}
                             onClick={voteJobab}
                             disabled={isVoting}>
                             <ThumbsUp
-                                className={`w-5 h-5 transition-transform ${voted ? 'scale-110' : ''} ${isVoting ? 'opacity-50' : ''}`}
-                                fill={voted ? 'currentColor' : 'none'}
+                                className={`w-5 h-5 transition-transform ${userVote ? 'scale-110' : ''} ${isVoting ? 'opacity-50' : ''}`}
+                                fill={userVote ? 'currentColor' : 'none'}
                             />
                             <span
                                 className={`font-medium text-sm sm:text-base ${isVoting ? 'opacity-50' : ''}`}>
