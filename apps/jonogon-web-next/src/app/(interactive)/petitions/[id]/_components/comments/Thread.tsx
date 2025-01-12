@@ -83,7 +83,7 @@ export default function CommentThread() {
     };
 
     return (
-        <div className="mt-8">
+        <div className="mt-8" id="comments">
             <p className="font-bold">{totalCount?.data?.count ?? 0} comments</p>
             {isAuthenticated ? (
                 <RootInputBox
