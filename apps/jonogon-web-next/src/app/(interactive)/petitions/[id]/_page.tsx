@@ -418,7 +418,7 @@ export default function Petition() {
 
                     {petition?.data.status === 'formalized' ? (
                         <div className={'w-full my-4'}>
-                            <p
+                            <div
                                 className={
                                     'font-semibold text-black px-1 flex items-center flex-row space-x-4'
                                 }>
@@ -451,7 +451,7 @@ export default function Petition() {
                                         -টা Vote দরকার
                                     </span>{' '}
                                 </div>
-                            </p>
+                            </div>
                         </div>
                     ) : null}
 
@@ -519,7 +519,7 @@ export default function Petition() {
                         intent={'success'}
                         size={'lg'}
                         className="flex-1 w-full"
-                        disabled={isFlagged || userVote === null}
+                        disabled={isFlagged}
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
@@ -549,7 +549,7 @@ export default function Petition() {
                         }
                         intent={'default'}
                         className="flex-1 w-full"
-                        disabled={isFlagged || userVote === null}
+                        disabled={isFlagged}
                         size={'lg'}
                         onClick={clickThumbsDown}>
                         <ThumbsDown

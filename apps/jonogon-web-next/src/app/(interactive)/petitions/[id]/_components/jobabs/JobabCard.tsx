@@ -466,9 +466,6 @@ export default function JobabCard({
             selfDataResponse.meta.token.is_user_moderator ||
             selfDataResponse.data.id === created_by);
 
-    useEffect(() => {
-        console.log('User Vote', user_vote);
-    }, [user_vote]);
     return (
         <div className="flex gap-3">
             <div className="w-1 bg-red-500 rounded-full" />
