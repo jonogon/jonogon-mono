@@ -1176,8 +1176,8 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                     rows={5}
                                 />
                             </div>
-                            <Separator />
                             <AttachmentQueue />
+                            <Separator />
 
                             <div className="flex justify-end gap-2">
                                 <DialogClose asChild>

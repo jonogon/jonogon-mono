@@ -95,7 +95,7 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                             {`${toBengaliNumber(jobabsData?.total || 0)} জবাবs`}
                         </h3>
                     </div>
-                    <p className="text-neutral-600 text-sm font-serif">
+                    <p className="text-neutral-500 text-sm font-serif">
                         Responses from official bodies and expert opinions
                     </p>
                 </div>

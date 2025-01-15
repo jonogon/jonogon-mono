@@ -117,13 +117,6 @@ function CommentItem({
         onReply(replyingTo === commentId ? null : commentId);
     };
 
-    const handleSubmitReply = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            onReplySubmit(commentId);
-        }
-    };
-
     const toggleReplies = () => {
         setShowReplies(!showReplies);
     };
@@ -154,7 +147,7 @@ function CommentItem({
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <span className="text-xs text-neutral-500 cursor-default">
-                                            {relativeTime}
+                                            {relativeTime} ago
                                         </span>
                                     </TooltipTrigger>
                                     <TooltipContent>
