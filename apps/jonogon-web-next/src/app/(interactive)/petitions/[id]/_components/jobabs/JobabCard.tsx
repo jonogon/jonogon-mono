@@ -9,6 +9,7 @@ import {
     SendHorizontal,
     MessageSquare,
     MoreVertical,
+    Pencil,
 } from 'lucide-react';
 import {useAuthState} from '@/auth/token-manager';
 import {trpc} from '@/trpc/client';
@@ -51,8 +52,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {JobabForm} from '@/components/admin/JobabForm';
 
-type JobabCardProps = JobabInterface;
+type JobabCardProps = JobabInterface & {
+    petition_id: number;
+};
 
 export default function JobabCard({
     id,
@@ -67,6 +71,7 @@ export default function JobabCard({
     attachments,
     respondent_id,
     created_by,
+    petition_id,
 }: JobabCardProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [commentText, setCommentText] = useState('');
@@ -466,6 +471,10 @@ export default function JobabCard({
             selfDataResponse.meta.token.is_user_moderator ||
             selfDataResponse.data.id === created_by);
 
+    const isAdmin = !!selfDataResponse?.meta.token.is_user_admin;
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
     return (
         <div className="flex gap-3">
             <div className="w-1 bg-red-500 rounded-full" />
@@ -538,14 +547,43 @@ export default function JobabCard({
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {isAdmin && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() =>
+                                                setIsEditModalOpen(true)
+                                            }>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Edit জবাব</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
                         {canDeleteJobab && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={handleDeleteJobab}>
-                                <Trash className="h-4 w-4" />
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={handleDeleteJobab}>
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Delete জবাব</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                         <div className="px-3 py-1.5 border rounded-md border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2 shadow-sm">
                             <span className="font-medium">
@@ -826,6 +864,26 @@ export default function JobabCard({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {/* Edit Modal */}
+                {isAdmin && (
+                    <JobabForm
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        petitionId={petition_id}
+                        mode="edit"
+                        jobabId={id}
+                        initialData={{
+                            title: title || '',
+                            description: description || '',
+                            respondentId: respondent_id.toString(),
+                            sourceType: source_type,
+                            sourceUrl: source_url || '',
+                            respondedAt: new Date(responded_at),
+                            attachments,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

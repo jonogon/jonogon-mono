@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -55,12 +55,25 @@ import {
     SOCIAL_NETWORKS,
     SocialNetwork,
     SocialAccount,
+    JobabSourceType,
+    JobabAttachment,
 } from '@/app/(interactive)/petitions/[id]/_components/jobabs/types';
 
 interface JobabFormProps {
     isOpen: boolean;
     onClose: () => void;
     petitionId: number;
+    mode?: 'create' | 'edit';
+    jobabId?: number;
+    initialData?: {
+        title: string;
+        description: string;
+        respondentId: string;
+        sourceType: JobabSourceType;
+        sourceUrl: string;
+        respondedAt: Date;
+        attachments: JobabAttachment[];
+    };
 }
 
 const respondentLabels = {
@@ -125,7 +138,14 @@ const jobabSchema = z.object({
     respondedAt: z.date().optional(),
 });
 
-export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
+export function JobabForm({
+    isOpen,
+    onClose,
+    petitionId,
+    mode = 'create',
+    jobabId,
+    initialData,
+}: JobabFormProps) {
     const isAuthenticated = useAuthState();
     const {data: selfDataResponse} = trpc.users.getSelf.useQuery(undefined, {
         enabled: !!isAuthenticated,
@@ -134,13 +154,15 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         'organization' | 'expert'
     >('organization');
     const [showNewRespondent, setShowNewRespondent] = useState(false);
-    const [date, setDate] = useState<Date | undefined>(undefined);
+    const [date, setDate] = useState<Date | undefined>(
+        initialData?.respondedAt,
+    );
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        respondentId: '',
-        sourceType: 'jonogon_direct' as const,
-        sourceUrl: '',
+        title: initialData?.title || '',
+        description: initialData?.description || '',
+        respondentId: initialData?.respondentId || '',
+        sourceType: initialData?.sourceType || ('jonogon_direct' as const),
+        sourceUrl: initialData?.sourceUrl || '',
         newRespondentName: '',
         newRespondentBio: '',
         newRespondentWebsite: '',
@@ -192,6 +214,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
     });
 
     const [attachmentQueue, setAttachmentQueue] = useState<File[]>([]);
+    const [attachmentsToRemove, setAttachmentsToRemove] = useState<number[]>(
+        [],
+    );
 
     const resetForm = () => {
         setFormData({
@@ -207,6 +232,7 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         });
         setDate(undefined);
         setAttachmentQueue([]);
+        setAttachmentsToRemove([]);
         setShowNewRespondent(false);
         setImageFile(null);
         setPreviewUrl(null);
@@ -224,33 +250,64 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
     const utils = trpc.useUtils();
 
-    const {mutate: createJobab, isLoading} = trpc.jobabs.create.useMutation({
-        onSuccess: async (response) => {
-            // Upload attachments after jobab is created
-            if (attachmentQueue.length > 0) {
-                for (const file of attachmentQueue) {
-                    await uploadAttachment({
-                        jobabId: Number(response.data.id),
-                        file,
-                    });
+    const {mutate: createJobab, isLoading: isCreating} =
+        trpc.jobabs.create.useMutation({
+            onSuccess: async (response) => {
+                // Upload attachments after jobab is created
+                if (attachmentQueue.length > 0 && response.data?.id) {
+                    for (const file of attachmentQueue) {
+                        await uploadAttachment({
+                            jobabId: Number(response.data.id),
+                            file,
+                        });
+                    }
                 }
-            }
 
-            // Invalidate the jobabs list query to trigger a refetch
-            utils.jobabs.list.invalidate({
-                petition_id: petitionId,
-                limit: 10,
-                offset: 0,
-            });
+                // Invalidate all jobabs list queries
+                utils.jobabs.list.invalidate();
 
-            toast({
-                title: 'Success',
-                description: `জবাব has been successfully added${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
-            });
-            resetForm();
-            onClose();
-        },
-    });
+                toast({
+                    title: 'Success',
+                    description: `জবাব has been successfully added${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
+                });
+                resetForm();
+                onClose();
+            },
+            onError: (error) => {
+                toast({
+                    title: 'Error',
+                    description: error.message || 'Failed to create জবাব',
+                    variant: 'destructive',
+                });
+            },
+        });
+
+    const {mutate: updateJobab, isLoading: isUpdating} =
+        trpc.jobabs.update.useMutation({
+            onSuccess: async () => {
+                // Invalidate all jobabs list queries
+                utils.jobabs.list.invalidate();
+
+                // Also invalidate the specific jobab
+                if (jobabId) {
+                    utils.jobabs.get.invalidate({id: jobabId});
+                }
+
+                toast({
+                    title: 'Success',
+                    description: `জবাব has been successfully updated${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
+                });
+                resetForm();
+                onClose();
+            },
+            onError: (error) => {
+                toast({
+                    title: 'Error',
+                    description: error.message || 'Failed to update জবাব',
+                    variant: 'destructive',
+                });
+            },
+        });
 
     const {mutate: uploadAttachment} = useMutation({
         mutationFn: async ({jobabId, file}: {jobabId: number; file: File}) => {
@@ -309,14 +366,43 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         },
     });
 
+    const {mutate: removeAttachment, isLoading: isRemovingAttachment} =
+        trpc.jobabs.removeAttachment.useMutation({
+            onSuccess: () => {
+                // Invalidate the specific jobab to refresh attachments
+                if (jobabId) {
+                    utils.jobabs.get.invalidate({id: jobabId});
+                }
+                toast({
+                    title: 'Success',
+                    description: 'Attachment removed successfully',
+                });
+            },
+            onError: (error) => {
+                toast({
+                    title: 'Error',
+                    description: error.message || 'Failed to remove attachment',
+                    variant: 'destructive',
+                });
+            },
+        });
+
+    const handleRemoveAttachment = (attachmentId: number) => {
+        setAttachmentsToRemove((prev) => [...prev, attachmentId]);
+    };
+
     const currentLabel = respondentLabels[respondentType];
 
     const handleRespondentTypeChange = (val: string) => {
-        setRespondentType(val as 'organization' | 'expert');
+        const newType = val as 'organization' | 'expert';
+        setRespondentType(newType);
+        // Clear the selected respondent when switching types
         setFormData((prev) => ({
             ...prev,
             respondentId: '',
         }));
+        // Close the combobox if it's open
+        setComboboxOpen(false);
     };
 
     const addSocialAccount = () => {
@@ -451,14 +537,15 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!validateForm() || !date) return;
 
+        // Create a UTC date at noon
         const utcDate = new Date(
             Date.UTC(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate(),
+                date.getUTCFullYear(),
+                date.getUTCMonth(),
+                date.getUTCDate(),
                 12,
                 0,
                 0,
@@ -466,15 +553,35 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
             ),
         );
 
-        createJobab({
-            petition_id: petitionId,
-            respondent_id: Number(formData.respondentId),
+        const commonData = {
             title: formData.title || undefined,
             description: formData.description || undefined,
             source_type: formData.sourceType,
             source_url: formData.sourceUrl || undefined,
             responded_at: utcDate.toISOString(),
-        });
+            respondent_id: Number(formData.respondentId),
+        };
+
+        if (mode === 'edit' && jobabId) {
+            // First remove any attachments marked for deletion
+            for (const attachmentId of attachmentsToRemove) {
+                await removeAttachment({
+                    jobab_id: jobabId,
+                    attachment_id: attachmentId,
+                });
+            }
+
+            // Then update the jobab
+            updateJobab({
+                id: jobabId,
+                ...commonData,
+            });
+        } else {
+            createJobab({
+                petition_id: petitionId,
+                ...commonData,
+            });
+        }
     };
 
     const ResponsiveCombobox = () => {
@@ -627,7 +734,10 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                     <span>Attachments</span>
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">
-                            {attachmentQueue.length} files
+                            {(initialData?.attachments?.length || 0) -
+                                attachmentsToRemove.length +
+                                attachmentQueue.length}{' '}
+                            files
                         </span>
                         <Input
                             type="file"
@@ -662,15 +772,54 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                     </div>
                 </Label>
 
-                {attachmentQueue.length > 0 && (
+                {((initialData?.attachments &&
+                    initialData.attachments.length > 0) ||
+                    attachmentQueue.length > 0) && (
                     <div className="relative px-8">
                         <Carousel
                             opts={{align: 'start', loop: false}}
                             className="w-full max-w-[calc(100vw-4rem)]">
                             <CarouselContent>
+                                {/* Show existing attachments that are not marked for removal */}
+                                {initialData?.attachments
+                                    ?.filter(
+                                        (file) =>
+                                            !attachmentsToRemove.includes(
+                                                file.id,
+                                            ),
+                                    )
+                                    .map((file) => (
+                                        <CarouselItem
+                                            key={file.id}
+                                            className="basis-[140px] md:basis-[160px]">
+                                            <div className="relative group flex items-center gap-1 bg-card rounded-lg p-1.5 border text-sm mr-1">
+                                                {getFileTypeIcon(file.filename)}
+                                                <div className="w-[80px] min-w-0">
+                                                    <p className="truncate">
+                                                        {file.filename}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Existing
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() =>
+                                                        handleRemoveAttachment(
+                                                            file.id,
+                                                        )
+                                                    }>
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                {/* Show new attachments in queue */}
                                 {attachmentQueue.map((file, index) => (
                                     <CarouselItem
-                                        key={index}
+                                        key={`new-${index}`}
                                         className="basis-[140px] md:basis-[160px]">
                                         <div className="relative group flex items-center gap-1 bg-card rounded-lg p-1.5 border text-sm mr-1">
                                             {getFileTypeIcon(file.name)}
@@ -703,7 +852,10 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                     </CarouselItem>
                                 ))}
                             </CarouselContent>
-                            {attachmentQueue.length > 3 && (
+                            {(initialData?.attachments?.length || 0) -
+                                attachmentsToRemove.length +
+                                attachmentQueue.length >
+                                3 && (
                                 <>
                                     <CarouselPrevious
                                         variant="outline"
@@ -722,11 +874,44 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
         );
     };
 
+    const isSubmitting = isCreating || isUpdating;
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    };
+
+    // Restore initial values when form opens in edit mode
+    useEffect(() => {
+        if (isOpen && mode === 'edit' && initialData) {
+            // Find the selected respondent to determine its type
+            const selectedRespondent = respondents?.data?.find(
+                (r) => r.id === initialData.respondentId,
+            );
+
+            if (selectedRespondent) {
+                setRespondentType(selectedRespondent.type);
+            }
+
+            setFormData({
+                ...formData,
+                title: initialData.title,
+                description: initialData.description,
+                respondentId: initialData.respondentId,
+                sourceType: initialData.sourceType,
+                sourceUrl: initialData.sourceUrl || '',
+            });
+            setDate(initialData.respondedAt);
+        }
+    }, [isOpen, mode, initialData]);
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="max-w-xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
-                    <DialogTitle>Add New জবাব</DialogTitle>
+                    <DialogTitle>
+                        {mode === 'edit' ? 'Edit জবাব' : 'Add New জবাব'}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-2 overflow-y-auto flex-1 pr-6 -mr-6">
@@ -1181,14 +1366,16 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
 
                             <div className="flex justify-end gap-2">
                                 <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleClose}>
+                                        Cancel
+                                    </Button>
                                 </DialogClose>
                                 <Button
-                                    onClick={(e) => {
-                                        handleSubmit();
-                                    }}
+                                    onClick={handleSubmit}
                                     disabled={Boolean(
-                                        isLoading ||
+                                        isSubmitting ||
                                             !formData.respondentId ||
                                             !formData.title ||
                                             !formData.description ||
@@ -1199,7 +1386,9 @@ export function JobabForm({isOpen, onClose, petitionId}: JobabFormProps) {
                                                     formData.sourceUrl,
                                                 )),
                                     )}>
-                                    Add Response
+                                    {mode === 'edit'
+                                        ? 'Update Response'
+                                        : 'Add Response'}
                                 </Button>
                             </div>
                         </>

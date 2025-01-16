@@ -134,7 +134,7 @@ export const createJobab = protectedProcedure
                         date.getUTCFullYear(),
                         date.getUTCMonth(),
                         date.getUTCDate(),
-                        0,
+                        12,
                         0,
                         0,
                         0,
@@ -240,7 +240,24 @@ export const updateJobab = protectedProcedure
                 ])
                 .optional(),
             source_url: z.string().url().optional(),
-            responded_at: z.date().optional(),
+            respondent_id: z.number().optional(),
+            responded_at: z
+                .string()
+                .transform((str) => {
+                    const date = new Date(str);
+                    return new Date(
+                        Date.UTC(
+                            date.getUTCFullYear(),
+                            date.getUTCMonth(),
+                            date.getUTCDate(),
+                            12,
+                            0,
+                            0,
+                            0,
+                        ),
+                    );
+                })
+                .optional(),
         }),
     )
     .mutation(async ({ctx, input}) => {
