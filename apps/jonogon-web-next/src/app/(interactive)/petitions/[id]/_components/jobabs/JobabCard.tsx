@@ -690,8 +690,8 @@ export default function JobabCard({
                             </CarouselContent>
                             {imageAttachments.length > 1 && (
                                 <>
-                                    <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2" />
-                                    <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2" />
+                                    <CarouselPrevious className="absolute left-3 top-1/2 -translate-y-1/2" />
+                                    <CarouselNext className="absolute right-3 top-1/2 -translate-y-1/2" />
                                 </>
                             )}
                         </Carousel>
