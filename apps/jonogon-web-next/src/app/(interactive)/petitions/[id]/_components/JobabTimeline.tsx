@@ -12,6 +12,7 @@ import {Separator} from '@/components/ui/separator';
 import {Button} from '@/components/ui/button';
 import {useEffect, useState} from 'react';
 import {toBengaliNumber} from '@/lib/numberConverter';
+import {JobabForm} from '@/components/admin/JobabForm';
 
 interface JobabTimelineProps {
     petitionId: number;
@@ -39,6 +40,16 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [allJobabs, setAllJobabs] = useState<JobabResponse[]>([]);
+    const [editJobabData, setEditJobabData] = useState<{
+        id: number;
+        title: string | null;
+        description: string | null;
+        respondent_id: number;
+        source_type: JobabSourceType;
+        source_url: string | null;
+        responded_at: string;
+        attachments: JobabAttachment[];
+    } | null>(null);
 
     const {data: jobabsData, isLoading} = trpc.jobabs.list.useQuery(
         {
@@ -105,7 +116,11 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                 ) : (
                     <div className="space-y-6">
                         {jobabs.map((jobab) => (
-                            <JobabCard key={jobab.id} {...jobab} />
+                            <JobabCard
+                                key={jobab.id}
+                                {...jobab}
+                                onEdit={setEditJobabData}
+                            />
                         ))}
                         {hasMore && (
                             <>
@@ -131,6 +146,25 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                 )}
             </div>
             <Separator />
+
+            {editJobabData && (
+                <JobabForm
+                    isOpen={!!editJobabData}
+                    onClose={() => setEditJobabData(null)}
+                    petitionId={petitionId}
+                    mode="edit"
+                    jobabId={editJobabData.id}
+                    initialData={{
+                        title: editJobabData.title || '',
+                        description: editJobabData.description || '',
+                        respondentId: editJobabData.respondent_id.toString(),
+                        sourceType: editJobabData.source_type,
+                        sourceUrl: editJobabData.source_url || '',
+                        respondedAt: new Date(editJobabData.responded_at),
+                        attachments: editJobabData.attachments,
+                    }}
+                />
+            )}
         </>
     );
 }

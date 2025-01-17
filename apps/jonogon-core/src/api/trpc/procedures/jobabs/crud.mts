@@ -130,15 +130,13 @@ export const createJobab = protectedProcedure
             responded_at: z.string().transform((str) => {
                 const date = new Date(str);
                 return new Date(
-                    Date.UTC(
-                        date.getUTCFullYear(),
-                        date.getUTCMonth(),
-                        date.getUTCDate(),
-                        12,
-                        0,
-                        0,
-                        0,
-                    ),
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate(),
+                    12,
+                    0,
+                    0,
+                    0,
                 );
             }),
             attachments: z
@@ -241,22 +239,25 @@ export const updateJobab = protectedProcedure
                 .optional(),
             source_url: z.string().url().optional(),
             respondent_id: z.number().optional(),
-            responded_at: z
-                .string()
-                .transform((str) => {
-                    const date = new Date(str);
-                    return new Date(
-                        Date.UTC(
-                            date.getUTCFullYear(),
-                            date.getUTCMonth(),
-                            date.getUTCDate(),
-                            12,
-                            0,
-                            0,
-                            0,
-                        ),
-                    );
-                })
+            responded_at: z.string().transform((str) => {
+                const date = new Date(str);
+                return new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate(),
+                    12,
+                    0,
+                    0,
+                    0,
+                );
+            }),
+            attachments: z
+                .array(
+                    z.object({
+                        filename: z.string(),
+                        attachment: z.string(),
+                    }),
+                )
                 .optional(),
         }),
     )
@@ -268,13 +269,26 @@ export const updateJobab = protectedProcedure
             });
         }
 
-        const {id, ...updateData} = input;
+        const {id, attachments, ...updateData} = input;
 
         await ctx.services.postgresQueryBuilder
             .updateTable('jobabs')
             .set(updateData)
             .where('id', '=', `${id}`)
             .execute();
+
+        // Handle new attachments if provided
+        if (attachments?.length) {
+            await ctx.services.postgresQueryBuilder
+                .insertInto('jobab_attachments')
+                .values(
+                    attachments.map((attachment) => ({
+                        jobab_id: id,
+                        ...attachment,
+                    })),
+                )
+                .execute();
+        }
 
         return {
             message: 'Jobab updated successfully',

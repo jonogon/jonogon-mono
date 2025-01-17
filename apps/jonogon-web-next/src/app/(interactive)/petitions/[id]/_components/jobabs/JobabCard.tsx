@@ -52,10 +52,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {JobabForm} from '@/components/admin/JobabForm';
 
 type JobabCardProps = JobabInterface & {
     petition_id: number;
+    onEdit?: (jobabData: {
+        id: number;
+        title: string | null;
+        description: string | null;
+        respondent_id: number;
+        source_type: JobabSourceType;
+        source_url: string | null;
+        responded_at: string;
+        attachments: JobabAttachment[];
+    }) => void;
 };
 
 export default function JobabCard({
@@ -72,6 +81,7 @@ export default function JobabCard({
     respondent_id,
     created_by,
     petition_id,
+    onEdit,
 }: JobabCardProps) {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [commentText, setCommentText] = useState('');
@@ -556,7 +566,16 @@ export default function JobabCard({
                                             size="icon"
                                             className="h-8 w-8"
                                             onClick={() =>
-                                                setIsEditModalOpen(true)
+                                                onEdit?.({
+                                                    id,
+                                                    title,
+                                                    description,
+                                                    respondent_id,
+                                                    source_type,
+                                                    source_url,
+                                                    responded_at,
+                                                    attachments,
+                                                })
                                             }>
                                             <Pencil className="h-4 w-4" />
                                         </Button>
@@ -864,26 +883,6 @@ export default function JobabCard({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-
-                {/* Edit Modal */}
-                {isAdmin && (
-                    <JobabForm
-                        isOpen={isEditModalOpen}
-                        onClose={() => setIsEditModalOpen(false)}
-                        petitionId={petition_id}
-                        mode="edit"
-                        jobabId={id}
-                        initialData={{
-                            title: title || '',
-                            description: description || '',
-                            respondentId: respondent_id.toString(),
-                            sourceType: source_type,
-                            sourceUrl: source_url || '',
-                            respondedAt: new Date(responded_at),
-                            attachments,
-                        }}
-                    />
-                )}
             </div>
         </div>
     );

@@ -352,7 +352,13 @@ export function JobabForm({
                 );
             }
 
-            return await response.json();
+            const result = await response.json();
+
+            // Invalidate queries after successful upload
+            utils.jobabs.list.invalidate();
+            utils.jobabs.get.invalidate({id: jobabId});
+
+            return result;
         },
         onError: (error) => {
             toast({
@@ -369,7 +375,8 @@ export function JobabForm({
     const {mutate: removeAttachment, isLoading: isRemovingAttachment} =
         trpc.jobabs.removeAttachment.useMutation({
             onSuccess: () => {
-                // Invalidate the specific jobab to refresh attachments
+                // Invalidate all relevant queries
+                utils.jobabs.list.invalidate();
                 if (jobabId) {
                     utils.jobabs.get.invalidate({id: jobabId});
                 }
@@ -540,17 +547,15 @@ export function JobabForm({
     const handleSubmit = async () => {
         if (!validateForm() || !date) return;
 
-        // Create a UTC date at noon
-        const utcDate = new Date(
-            Date.UTC(
-                date.getUTCFullYear(),
-                date.getUTCMonth(),
-                date.getUTCDate(),
-                12,
-                0,
-                0,
-                0,
-            ),
+        // Create date at noon in local time
+        const localDate = new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            12,
+            0,
+            0,
+            0,
         );
 
         const commonData = {
@@ -558,24 +563,56 @@ export function JobabForm({
             description: formData.description || undefined,
             source_type: formData.sourceType,
             source_url: formData.sourceUrl || undefined,
-            responded_at: utcDate.toISOString(),
+            responded_at: localDate.toISOString(),
             respondent_id: Number(formData.respondentId),
         };
 
         if (mode === 'edit' && jobabId) {
-            // First remove any attachments marked for deletion
-            for (const attachmentId of attachmentsToRemove) {
-                await removeAttachment({
-                    jobab_id: jobabId,
-                    attachment_id: attachmentId,
+            try {
+                // First remove any attachments marked for deletion
+                for (const attachmentId of attachmentsToRemove) {
+                    await removeAttachment({
+                        jobab_id: jobabId,
+                        attachment_id: attachmentId,
+                    });
+                }
+
+                // Then update the jobab
+                await updateJobab({
+                    id: jobabId,
+                    ...commonData,
+                });
+
+                // Finally, upload any new attachments
+                if (attachmentQueue.length > 0) {
+                    for (const file of attachmentQueue) {
+                        await uploadAttachment({
+                            jobabId: jobabId,
+                            file,
+                        });
+                    }
+                }
+
+                // Invalidate all relevant queries
+                utils.jobabs.list.invalidate();
+                utils.jobabs.get.invalidate({id: jobabId});
+
+                toast({
+                    title: 'Success',
+                    description: `জবাব has been successfully updated${attachmentQueue.length > 0 ? ' with attachments' : ''}`,
+                });
+                resetForm();
+                onClose();
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : 'Failed to update জবাব',
+                    variant: 'destructive',
                 });
             }
-
-            // Then update the jobab
-            updateJobab({
-                id: jobabId,
-                ...commonData,
-            });
         } else {
             createJobab({
                 petition_id: petitionId,
@@ -756,19 +793,12 @@ export function JobabForm({
                             }}
                             multiple
                         />
-                        <Button
-                            variant="outline"
-                            type="button"
-                            size="sm"
-                            className="h-8"
-                            onClick={() =>
-                                document
-                                    .getElementById('attachment-input')
-                                    ?.click()
-                            }>
-                            <UploadIcon className="h-4 w-4 mr-2" />
+                        <Label
+                            htmlFor="attachment-input"
+                            className="inline-flex h-8 items-center justify-center gap-2 rounded-md border border-input bg-background shadow-sm px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer">
+                            <UploadIcon className="h-4 w-4" />
                             Choose Files
-                        </Button>
+                        </Label>
                     </div>
                 </Label>
 
