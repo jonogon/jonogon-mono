@@ -965,7 +965,7 @@ export function JobabForm({
                                         <TabsTrigger
                                             key={key}
                                             value={key}
-                                            className="data-[state=active]:border-red-500 data-[state=active]:text-red-500 border-2 border-transparent py-3 hover:bg-accent/50 transition-colors">
+                                            className="data-[state=active]:border-red-500 data-[state=active]:text-red-500 border-2 border-transparent py-2 hover:bg-accent/50 transition-colors">
                                             <div className="flex flex-col items-center gap-2">
                                                 <Icon className="h-6 w-6" />
                                                 <div className="space-y-1 text-center">
@@ -1388,7 +1388,7 @@ export function JobabForm({
                                     }
                                     className="mt-2 bg-card text-card-foreground"
                                     placeholder="Enter the response content..."
-                                    rows={5}
+                                    rows={3}
                                 />
                             </div>
                             <AttachmentQueue />

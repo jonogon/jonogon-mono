@@ -86,7 +86,7 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
             } else {
                 setAllJobabs((prev) => [...prev, ...transformedData]);
             }
-            setHasMore(jobabsData.data.length === ITEMS_PER_PAGE);
+            setHasMore(jobabsData.total > offset + ITEMS_PER_PAGE);
         }
     }, [jobabsData?.data, offset, jobabsData?.total]);
 
