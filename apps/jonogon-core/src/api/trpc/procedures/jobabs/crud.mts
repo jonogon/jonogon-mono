@@ -127,18 +127,7 @@ export const createJobab = protectedProcedure
                 'press_release',
             ]),
             source_url: z.string().url().optional(),
-            responded_at: z.string().transform((str) => {
-                const date = new Date(str);
-                return new Date(
-                    date.getFullYear(),
-                    date.getMonth(),
-                    date.getDate(),
-                    12,
-                    0,
-                    0,
-                    0,
-                );
-            }),
+            responded_at: z.string(),
             attachments: z
                 .array(
                     z.object({
@@ -239,18 +228,7 @@ export const updateJobab = protectedProcedure
                 .optional(),
             source_url: z.string().url().optional(),
             respondent_id: z.number().optional(),
-            responded_at: z.string().transform((str) => {
-                const date = new Date(str);
-                return new Date(
-                    date.getFullYear(),
-                    date.getMonth(),
-                    date.getDate(),
-                    12,
-                    0,
-                    0,
-                    0,
-                );
-            }),
+            responded_at: z.string(),
             attachments: z
                 .array(
                     z.object({

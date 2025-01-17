@@ -62,7 +62,7 @@ export interface JobabFormData {
     respondentId: string;
     sourceType: JobabSourceType;
     sourceUrl: string;
-    respondedAt: Date;
+    respondedAt: string;
 }
 
 export interface JobabFormErrors {

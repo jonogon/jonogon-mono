@@ -71,7 +71,7 @@ interface JobabFormProps {
         respondentId: string;
         sourceType: JobabSourceType;
         sourceUrl: string;
-        respondedAt: Date;
+        respondedAt: string;
         attachments: JobabAttachment[];
     };
 }
@@ -154,7 +154,7 @@ export function JobabForm({
         'organization' | 'expert'
     >('organization');
     const [showNewRespondent, setShowNewRespondent] = useState(false);
-    const [date, setDate] = useState<Date | undefined>(
+    const [date, setDate] = useState(
         initialData?.respondedAt,
     );
     const [formData, setFormData] = useState({
@@ -547,23 +547,13 @@ export function JobabForm({
     const handleSubmit = async () => {
         if (!validateForm() || !date) return;
 
-        // Create date at noon in local time
-        const localDate = new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate(),
-            12,
-            0,
-            0,
-            0,
-        );
 
         const commonData = {
             title: formData.title || undefined,
             description: formData.description || undefined,
             source_type: formData.sourceType,
             source_url: formData.sourceUrl || undefined,
-            responded_at: localDate.toISOString(),
+            responded_at: date,
             respondent_id: Number(formData.respondentId),
         };
 
