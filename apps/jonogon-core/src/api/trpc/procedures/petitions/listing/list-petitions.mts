@@ -8,6 +8,7 @@ import {sql} from 'kysely';
 import {jsonArrayFrom} from 'kysely/helpers/postgres';
 import {protectedProcedure} from '../../../middleware/protected.mjs';
 import {removeStopwords, eng, ben} from 'stopword';
+import {requireAuth} from '../../../../utility/auth-utils.js';
 
 export const listPetitions = publicProcedure
     .input(
@@ -84,18 +85,17 @@ export const listPetitions = publicProcedure
                         }),
                     ).let((query) => {
                         if (input.filter === 'own') {
-                            if (!ctx.auth?.user_id) {
-                                throw new TRPCError({
-                                    code: 'UNAUTHORIZED',
-                                    message:
-                                        'must-be-logged-in-to-view-own-petitions',
-                                });
-                            }
+                            // check if user is logged in
+                            requireAuth(
+                                ctx,
+                                undefined,
+                                'Must be logged in to view own petitions',
+                            );
 
                             return query.where(
                                 'petitions.created_by',
                                 '=',
-                                `${ctx.auth.user_id}`,
+                                `${ctx.auth?.user_id}`,
                             );
                         }
 
@@ -108,8 +108,8 @@ export const listPetitions = publicProcedure
                                   input.filter === 'own'
                                       ? 'petitions.created_at'
                                       : input.filter === 'request'
-                                      ? 'petitions.submitted_at'
-                                      : 'petitions.formalized_at',
+                                        ? 'petitions.submitted_at'
+                                        : 'petitions.formalized_at',
                                   input.order,
                               )
                             : query.orderBy(
@@ -194,6 +194,21 @@ export const listPetitions = publicProcedure
                 'result_with_comment_count.petition_comment_count',
                 'votes.vote as user_vote',
                 'first_attachments.attachment as attachment',
+                (db) => 
+                    jsonArrayFrom(
+                        db.selectFrom('jobabs')
+                            .leftJoin('respondents', 'respondents.id', 'jobabs.respondent_id')
+                            .selectAll('jobabs')
+                            .select([
+                                'respondents.name as respondent_name',
+                                'respondents.img as respondent_img',
+                                'respondents.id as respondent_id',
+                            ])
+                            .whereRef('jobabs.petition_id', '=', 'petitions.id')
+                            .where('jobabs.deleted_at', 'is', null)
+                            .orderBy('jobabs.created_at', 'asc') // get the first jobab
+                            .limit(1)
+                    ).as('jobab')
             ]);
 
         const data =
@@ -203,16 +218,16 @@ export const listPetitions = publicProcedure
                           input.filter === 'own'
                               ? 'petitions.created_at'
                               : input.filter === 'request'
-                              ? 'petitions.submitted_at'
-                              : 'petitions.formalized_at',
+                                ? 'petitions.submitted_at'
+                                : 'petitions.formalized_at',
                           input.order,
                       )
                       .execute()
                 : input.sort === 'score'
-                ? await query.orderBy('log_score', input.order).execute()
-                : await query
-                      .orderBy('petition_upvote_count', input.order)
-                      .execute();
+                  ? await query.orderBy('log_score', input.order).execute()
+                  : await query
+                        .orderBy('petition_upvote_count', input.order)
+                        .execute();
 
         // Fetch unvoted formalized petitions count
         let unvotedFormalizedPetitionsCount = 0;
@@ -277,6 +292,12 @@ export const listPetitions = publicProcedure
                                   petition.attachment,
                               )
                             : null,
+                        jobab: petition.jobab?.[0] ? {
+                            ...petition.jobab[0],
+                            respondent_img_url: petition.jobab[0].respondent_img
+                                ? await ctx.services.fileStorage.getFileURL(petition.jobab[0].respondent_img)
+                                : null
+                        } : null,
                     },
                     extras: {
                         user_vote: petition.user_vote,

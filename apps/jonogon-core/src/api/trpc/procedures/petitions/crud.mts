@@ -149,9 +149,13 @@ export const createPetition = protectedProcedure
                 !input
                     ? {
                           created_by: ctx.auth.user_id,
+                          score: 0,
+                          log_score: 0,
                       }
                     : {
                           created_by: ctx.auth.user_id,
+                          score: 0,
+                          log_score: 0,
                           ...pick(input.loggedOutDraft, [
                               'title',
                               'location',

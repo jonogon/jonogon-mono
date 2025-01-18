@@ -7,8 +7,9 @@ export const runtime = 'edge';
 import {ImageCarousel} from '@/app/(interactive)/petitions/[id]/_components/ImageCarousel';
 import {useAuthState} from '@/auth/token-manager';
 import {Button} from '@/components/ui/button';
+import {Separator} from '@/components/ui/separator';
 import {trpc} from '@/trpc/client';
-import {Share2} from 'lucide-react';
+import {Share2, ThumbsDown, ThumbsUp, MessageSquare} from 'lucide-react';
 import {useParams, useRouter, useSearchParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import Markdown from 'react-markdown';
@@ -18,11 +19,12 @@ import {useSocialShareStore} from '@/store/useSocialShareStore';
 import {PetitionShareModal} from './_components/PetitionShareModal';
 import {SocialShareSheet} from './_components/SocialShareSheet';
 
-import {ThumbsDown, ThumbsUp} from 'lucide-react';
 import CommentThread from './_components/comments/Thread';
 import SuggestedPetitions from './_components/SuggestedPetitions';
 
 import {useToast} from '@/components/ui/use-toast';
+import {JobabForm} from '@/components/admin/JobabForm';
+import JobabTimeline from './_components/JobabTimeline';
 
 export default function Petition() {
     const utils = trpc.useUtils();
@@ -41,18 +43,28 @@ export default function Petition() {
         data: petition,
         refetch,
         isLoading,
-    } = trpc.petitions.get.useQuery({
-        id: petition_id!!,
+    } = trpc.petitions.get.useQuery(
+        {
+            id: petition_id!!,
+        },
+        {
+            enabled: isAuthenticated !== null,
+        },
+    );
+
+    const {data: commentCount} = trpc.comments.totalCount.useQuery({
+        petition_id: petition_id,
     });
 
     const {openShareModal} = useSocialShareStore();
 
     const isSubmitted = Boolean(searchParams.get('status') === 'submitted');
 
-    const [userVote, setUserVote] = useState(0);
+    const [userVote, setUserVote] = useState<number | null>(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showSuggestedPetitionsModal, setShowSuggestedPetitionsModal] =
         useState(false);
+    const [showJobabForm, setShowJobabForm] = useState(false);
 
     useEffect(() => {
         if (isSubmitted) {
@@ -61,10 +73,10 @@ export default function Petition() {
     }, [isSubmitted]);
 
     useEffect(() => {
-        if (petition) {
-            setUserVote(petition?.extras.user_vote ?? 0);
+        if (petition?.extras.user_vote !== undefined) {
+            setUserVote(petition.extras.user_vote);
         }
-    }, [petition]);
+    }, [petition?.extras.user_vote]);
 
     const thumbsUpMutation = trpc.petitions.vote.useMutation({
         onSuccess: () => setShowSuggestedPetitionsModal(true),
@@ -82,7 +94,7 @@ export default function Petition() {
             return;
         }
 
-        if (userVote == 1) {
+        if (userVote === 1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
             });
@@ -107,7 +119,7 @@ export default function Petition() {
             return;
         }
 
-        if (userVote == -1) {
+        if (userVote === -1) {
             await clearVoteMutation.mutateAsync({
                 petition_id: petition_id!!,
             });
@@ -228,49 +240,60 @@ export default function Petition() {
                                     </span>
                                 ) : null}
                                 {status === 'approved' ? (
-                                    <Button
-                                        size={'sm'}
-                                        intent={'success'}
-                                        onClick={() => {
-                                            const confirmed = window.confirm(
-                                                '⚠️⚠️⚠️ You sure you wanna elevate to this some next level shizz? ⚠️⚠️⚠️',
-                                            );
+                                    <>
+                                        <Button
+                                            size={'sm'}
+                                            intent={'success'}
+                                            onClick={() =>
+                                                setShowJobabForm(true)
+                                            }>
+                                            Add জবাব
+                                        </Button>
+                                        <Button
+                                            size={'sm'}
+                                            intent={'success'}
+                                            onClick={() => {
+                                                const confirmed =
+                                                    window.confirm(
+                                                        '⚠️⚠️⚠️ You sure you wanna elevate to this some next level shizz? ⚠️⚠️⚠️',
+                                                    );
 
-                                            if (!confirmed) {
-                                                return;
-                                            }
+                                                if (!confirmed) {
+                                                    return;
+                                                }
 
-                                            const target = window.prompt(
-                                                '🎯🎯🎯 Set the target number of up-votes required to elevate to authorities. 🎯🎯🎯',
-                                                '1000',
-                                            );
-
-                                            if (!target) {
-                                                return;
-                                            }
-
-                                            const parsed = Number(target);
-
-                                            if (
-                                                !(
-                                                    parsed > 0 &&
-                                                    parsed < Infinity
-                                                )
-                                            ) {
-                                                window.alert(
-                                                    'Invalid target number.',
+                                                const target = window.prompt(
+                                                    '🎯🎯🎯 Set the target number of up-votes required to elevate to authorities. 🎯🎯🎯',
+                                                    '1000',
                                                 );
-                                                return;
-                                            }
 
-                                            formalize({
-                                                petition_id:
-                                                    Number(petition_id),
-                                                upvote_target: parsed,
-                                            });
-                                        }}>
-                                        Formalize
-                                    </Button>
+                                                if (!target) {
+                                                    return;
+                                                }
+
+                                                const parsed = Number(target);
+
+                                                if (
+                                                    !(
+                                                        parsed > 0 &&
+                                                        parsed < Infinity
+                                                    )
+                                                ) {
+                                                    window.alert(
+                                                        'Invalid target number.',
+                                                    );
+                                                    return;
+                                                }
+
+                                                formalize({
+                                                    petition_id:
+                                                        Number(petition_id),
+                                                    upvote_target: parsed,
+                                                });
+                                            }}>
+                                            Formalize
+                                        </Button>
+                                    </>
                                 ) : null}
                                 {status === 'submitted' ||
                                 status === 'rejected' ? (
@@ -404,7 +427,7 @@ export default function Petition() {
 
                     {petition?.data.status === 'formalized' ? (
                         <div className={'w-full my-4'}>
-                            <p
+                            <div
                                 className={
                                     'font-semibold text-black px-1 flex items-center flex-row space-x-4'
                                 }>
@@ -437,7 +460,7 @@ export default function Petition() {
                                         -টা Vote দরকার
                                     </span>{' '}
                                 </div>
-                            </p>
+                            </div>
                         </div>
                     ) : null}
 
@@ -488,12 +511,13 @@ export default function Petition() {
                             ))}
                     </div>
                 )}
+                <JobabTimeline petitionId={Number(petition_id)} />
                 <CommentThread />
             </div>
-            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-4">
+            <div className="fixed bottom-0 left-0 w-full py-2 bg-background z-20 px-2 sm:px-4 border-t">
                 <div
                     className={
-                        'w-full mx-auto max-w-screen-sm flex flex-row space-x-2'
+                        'w-full mx-auto max-w-screen-sm flex flex-row items-center gap-1 sm:gap-2'
                     }>
                     <Button
                         variant={
@@ -503,17 +527,19 @@ export default function Petition() {
                         }
                         intent={'success'}
                         size={'lg'}
-                        className="flex-1 w-full"
+                        className="flex-1"
                         disabled={isFlagged}
                         onClick={clickThumbsUp}>
                         {status === 'formalized' ? (
                             <>
-                                <p className="ml-2">{upvoteCount} — VOTE</p>
+                                <p className="ml-1 text-sm sm:text-base">
+                                    {upvoteCount} — VOTE
+                                </p>
                             </>
                         ) : (
                             <>
                                 <ThumbsUp
-                                    size={20}
+                                    size={18}
                                     fill={
                                         userVote === 1
                                             ? '#000'
@@ -521,8 +547,10 @@ export default function Petition() {
                                               ? '#fff'
                                               : '#28c45c'
                                     }
-                                />{' '}
-                                <p className="ml-2">{upvoteCount}</p>
+                                />
+                                <p className="ml-1 text-sm sm:text-base">
+                                    {upvoteCount}
+                                </p>
                             </>
                         )}
                     </Button>
@@ -533,12 +561,12 @@ export default function Petition() {
                                 : 'outline'
                         }
                         intent={'default'}
-                        className="flex-1 w-full"
+                        className="flex-1"
                         disabled={isFlagged}
                         size={'lg'}
                         onClick={clickThumbsDown}>
                         <ThumbsDown
-                            size={20}
+                            size={18}
                             fill={
                                 userVote === -1
                                     ? '#000'
@@ -546,8 +574,34 @@ export default function Petition() {
                                       ? '#e03c3c'
                                       : '#fff'
                             }
-                        />{' '}
-                        <p className="ml-2">{downvoteCount}</p>
+                        />
+                        <p className="ml-1 text-sm sm:text-base">
+                            {downvoteCount}
+                        </p>
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        className="flex items-center gap-1 sm:gap-2 text-stone-800 px-2 sm:px-3"
+                        onClick={() => {
+                            const commentSection =
+                                document.getElementById('comments');
+                            if (commentSection) {
+                                commentSection.scrollIntoView({
+                                    behavior: 'smooth',
+                                });
+                            }
+                        }}>
+                        <MessageSquare size={18} />
+                        <span className="text-sm sm:text-base">
+                            {commentCount?.data?.count ?? 0}
+                        </span>
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        className="flex items-center gap-1 sm:gap-2 text-stone-800 px-2 sm:px-3"
+                        onClick={() => openShareModal()}>
+                        <Share2 size={18} />
+                        <span className="text-sm sm:text-base">Share</span>
                     </Button>
                 </div>
 
@@ -570,6 +624,11 @@ export default function Petition() {
 
                 <SocialShareSheet />
             </div>
+            <JobabForm
+                isOpen={showJobabForm}
+                onClose={() => setShowJobabForm(false)}
+                petitionId={Number(petition_id)}
+            />
         </>
     );
 }

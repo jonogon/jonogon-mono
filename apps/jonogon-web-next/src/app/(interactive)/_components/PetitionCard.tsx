@@ -5,7 +5,7 @@ import {
     HandThumbUpIcon as ThumbsUpIconSolid,
     HandThumbDownIcon as ThumbsDownIconSolid,
 } from '@heroicons/react/24/solid';
-
+import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {FaRegComment as CommentIconOutline} from 'react-icons/fa';
 
 import {
@@ -17,6 +17,8 @@ import {useAuthState} from '@/auth/token-manager';
 import {formatDate} from '@/lib/date';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {useRelativeTime} from '@/lib/useRelativeTime';
 
 export default function PetitionCard(props: {
     id: string;
@@ -26,6 +28,7 @@ export default function PetitionCard(props: {
     target: string;
     title: string;
     attachment: string;
+    jobab: any;
 
     status: string;
 
@@ -40,14 +43,66 @@ export default function PetitionCard(props: {
     mode: 'request' | 'formalized' | 'own' | 'flagged';
 }) {
     const isAuthenticated = useAuthState();
+    // Keep vote state exactly as received from backend
+    const [localUserVote, setLocalUserVote] = useState<number | null>(
+        props.userVote,
+    );
+
+    // Simple helper for vote state
+    const hasVoted = isAuthenticated === true && localUserVote !== null;
+
+    useEffect(() => {
+        // Only update when props.userVote changes
+        setLocalUserVote(props.userVote);
+    }, [props.userVote]);
 
     const router = useRouter();
-    const totalVotes = props.upvotes + props.downvotes;
-
-    const userVote = props.userVote;
 
     const achievement = props.upvotes / Number(props.upvoteTarget);
     const achievementPercentage = Math.round(achievement * 100);
+    const ResponseCard = () => {
+        const relativeTime = useRelativeTime(props.jobab.responded_at)
+        return (
+            <div className="my-6 mx-4 rounded-lg overflow-hidden">
+                <div className="bg-red-50 p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Avatar className="h-12 w-12 shrink-0">
+                                <AvatarImage
+                                    className="border-4 rounded-full w-12 h-12"
+                                    src={(
+                                        props.jobab.respondent_img_url ??
+                                        `https://static.jonogon.org/placeholder-images/${((Number(props.jobab.respondent_id ?? 0) + 1) % 11) + 1}.jpg`
+                                    ).replace(
+                                        '$CORE_HOSTNAME',
+                                        window.location.hostname,
+                                    )}
+                                    alt={props.jobab.respondent_name ?? 'Respondent'}
+                                />
+                                <AvatarFallback>
+                                    <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
+                                </AvatarFallback>
+                            </Avatar>
+                        <div>
+                            <h3 className="font-semibold text-red-500">
+                                {props.jobab.respondent_name }
+                            </h3>
+                            <p className="text-sm text-red-400 capitalize">
+                                {props.jobab.source_type.replace(/_/g, ' ')}
+                            </p>
+                        </div>
+                    </div>
+                        <span className="text-sm text-red-400">
+                            { relativeTime } ago
+                        </span>
+                    </div>
+                    <p className="mt-3 text-red-500 truncate italic">
+                        {props.jobab.description}
+                    </p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <Link href={`/petitions/${props.id}`}>
@@ -56,12 +111,12 @@ export default function PetitionCard(props: {
                     <CardTitle
                         className={'flex flex-row items-stretch space-x-4'}>
                         <div className={'flex-1'}>
-                            <div
+                            <h2
                                 className={
                                     'leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle break-words overflow-hidden text-ellipsis'
                                 }>
                                 {props.title}
-                            </div>
+                            </h2>
                             <div
                                 className={
                                     'font-normal text-base text-neutral-500 pt-1'
@@ -93,7 +148,7 @@ export default function PetitionCard(props: {
                 <CardFooter className="flex items-center justify-between p-2 px-4 border-t border-t-background">
                     {props.mode === 'formalized' ? (
                         <>
-                            <p
+                            <div
                                 className={
                                     'font-semibold text-red-600 px-1 flex items-center flex-row'
                                 }>
@@ -119,13 +174,11 @@ export default function PetitionCard(props: {
                                         -টা Vote দরকার
                                     </span>{' '}
                                 </div>
-                            </p>
+                            </div>
                             <Button
                                 size={'sm'}
-                                variant={
-                                    userVote === null ? 'outline' : 'ghost'
-                                }
-                                disabled={userVote !== null}
+                                variant={hasVoted ? 'ghost' : 'outline'}
+                                disabled={hasVoted}
                                 onClick={() => {
                                     const href = `/petitions/${props.id}`;
 
@@ -135,111 +188,70 @@ export default function PetitionCard(props: {
                                               `/login?next=${encodeURIComponent(href)}`,
                                           );
                                 }}>
-                                {userVote === null ? 'VOTE' : 'VOTED'}
+                                {hasVoted ? 'VOTED' : 'VOTE'}
                             </Button>
                         </>
-                    ) : props.mode === 'request' ? (
-                        <>
-                            <div className={'flex flex-row gap-6 px-1'}>
-                                <div className={'flex flex-row gap-2'}>
-                                    {userVote === 1 ? (
+                    ) : (
+                        <div className="flex justify-between align-middle gap-2 w-full">
+                            <div className="flex gap-6">
+                                <div className="flex items-center gap-1">
+                                    {localUserVote === 1 ? (
                                         <ThumbsUpIconSolid
-                                            className={'w-5 h-5 text-green-500'}
+                                            className="w-5 h-5 text-green-500"
                                         />
                                     ) : (
                                         <ThumbsUpIconOutline
-                                            className={'w-5 h-5 text-green-500'}
+                                            className="w-5 h-5 text-green-500"
                                         />
                                     )}
 
                                     {props.upvotes}
                                 </div>
-                                <div className={'flex flex-row gap-2'}>
-                                    {userVote === -1 ? (
+                                <div className="flex items-center gap-1">
+                                    {localUserVote === -1 ? (
                                         <ThumbsDownIconSolid
-                                            className={'w-5 h-5 text-red-500'}
+                                            className="w-5 h-5 text-red-500"
                                         />
                                     ) : (
                                         <ThumbsDownIconOutline
-                                            className={'w-5 h-5 text-red-500'}
+                                            className="w-5 h-5 text-red-500"
                                         />
                                     )}
 
                                     {props.downvotes}
                                 </div>
-                                <div className="text-stone-500 flex flex-row gap-2 mx-1 items-center">
-                                    <CommentIconOutline className={'w-5 h-5'} />
-                                    <div className="flex flex-row gap-1">
-                                        {props.comments}{' '}
-                                        <span className="hidden sm:block">
-                                            Comments
-                                        </span>
-                                    </div>
+                                <div className="flex items-center gap-1">
+                                    <CommentIconOutline className={'w-5 h-5 text-gray-500'} />
+                                    <span className="hidden sm:block">
+                                        {props.comments}{' '}Comments
+                                    </span>
                                 </div>
                             </div>
-                            <Button
-                                size={'sm'}
-                                variant={
-                                    userVote === null ? 'outline' : 'ghost'
-                                }
-                                disabled={userVote !== null}
-                                onClick={() => {
-                                    const href = `/petitions/${props.id}`;
-
-                                    isAuthenticated
-                                        ? router.push(href)
-                                        : router.push(
-                                              `/login?next=${encodeURIComponent(href)}`,
-                                          );
-                                }}>
-                                {userVote === null ? 'VOTE' : 'VOTED'}
-                            </Button>
-                        </>
-                    ) : props.mode === 'own' ? (
-                        <>
-                            <div className={'flex flex-row gap-6 mx-2'}>
-                                <div className={'flex flex-row gap-2'}>
-                                    {userVote === 1 ? (
-                                        <ThumbsUpIconSolid
-                                            className={'w-5 h-5 text-green-500'}
-                                        />
-                                    ) : (
-                                        <ThumbsUpIconOutline
-                                            className={'w-5 h-5 text-green-500'}
-                                        />
-                                    )}
-
-                                    {props.upvotes}
-                                </div>
-                                <div className={'flex flex-row gap-2'}>
-                                    {userVote === -1 ? (
-                                        <ThumbsDownIconSolid
-                                            className={'w-5 h-5 text-red-500'}
-                                        />
-                                    ) : (
-                                        <ThumbsDownIconOutline
-                                            className={'w-5 h-5 text-red-500'}
-                                        />
-                                    )}
-
-                                    {props.downvotes}
-                                </div>
-                                <div className="text-stone-500 flex flex-row gap-2 mx-1 items-center">
-                                    <CommentIconOutline className={'w-5 h-5'} />
-                                    <div className="flex flex-row gap-1">
-                                        {props.comments}{' '}
-                                        <span className="hidden sm:block">
-                                            Comments
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className={'font-mono text-sm'}>
+                            {props.mode === 'own' ?
+                                (<div className="font-mono text-sm">
                                 STATUS: {props.status}
-                            </div>
-                        </>
-                    ) : null}
-                </CardFooter>
+                                </div>) : (
+                                <Button
+                                    size={'sm'}
+                                    variant={hasVoted ? 'ghost' : 'outline'}
+                                    disabled={hasVoted}
+                                    onClick={() => {
+                                        const href = `/petitions/${props.id}`;
+
+                                        isAuthenticated
+                                            ? router.push(href)
+                                            : router.push(
+                                                `/login?next=${encodeURIComponent(href)}`,
+                                            );
+                                    }}>
+                                    {hasVoted ? 'VOTED' : 'VOTE'}
+                                </Button>
+                            )
+                        }
+                    </div>
+                )}
+            </CardFooter>
+            {props.jobab && <div>{ResponseCard()}</div>}
             </Card>
         </Link>
     );

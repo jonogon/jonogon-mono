@@ -4,17 +4,15 @@ import {nanoid} from 'nanoid';
 import {logger} from '../../../../logger.mjs';
 import {Request, Response} from 'express';
 import {env} from '../../../../env.mjs';
+import {requireAuth} from '../../../utility/auth-utils.js';
 
 export function createProfilePictureHandler(createContext: TContextCreator) {
     return async (req: Request, res: Response) => {
         try {
             const ctx = await createContext({req, res});
 
-            if (!ctx.auth?.user_id) {
-                return res.status(401).json({
-                    message: 'must be logged in to set a profile picture',
-                });
-            }
+            // check if user is logged in
+            requireAuth(ctx, res, 'must be logged in to set a profile picture');
 
             if (!req.body) {
                 return res.status(400).json({
@@ -41,7 +39,7 @@ export function createProfilePictureHandler(createContext: TContextCreator) {
                 .set({
                     picture: fileKey,
                 })
-                .where('id', '=', `${ctx.auth.user_id}`)
+                .where('id', '=', `${ctx.auth?.user_id}`)
                 .executeTakeFirst();
 
             if (env.NODE_ENV === 'development') {

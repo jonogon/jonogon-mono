@@ -59,7 +59,15 @@ export const vote = protectedProcedure
                 .executeTakeFirst();
 
             if (petition) {
-                const { logScore, newScore } = calculateVoteVelocity(petition?.approved_at, petition.score, input.vote);
+                const approvedAt =
+                    petition.approved_at instanceof Date
+                        ? petition.approved_at
+                        : new Date();
+                const {logScore, newScore} = calculateVoteVelocity(
+                    approvedAt,
+                    petition.score,
+                    input.vote,
+                );
                 await ctx.services.postgresQueryBuilder
                     .updateTable('petitions')
                     .set({ score: newScore, log_score: logScore })
