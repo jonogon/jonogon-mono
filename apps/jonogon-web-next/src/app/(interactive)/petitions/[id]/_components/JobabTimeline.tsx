@@ -160,7 +160,7 @@ export default function JobabTimeline({petitionId}: JobabTimelineProps) {
                         respondentId: editJobabData.respondent_id.toString(),
                         sourceType: editJobabData.source_type,
                         sourceUrl: editJobabData.source_url || '',
-                        respondedAt: new Date(editJobabData.responded_at),
+                        respondedAt: editJobabData.responded_at,
                         attachments: editJobabData.attachments,
                     }}
                 />

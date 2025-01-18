@@ -154,8 +154,8 @@ export function JobabForm({
         'organization' | 'expert'
     >('organization');
     const [showNewRespondent, setShowNewRespondent] = useState(false);
-    const [date, setDate] = useState(
-        initialData?.respondedAt,
+    const [date, setDate] = useState<Date | undefined>(
+        initialData?.respondedAt ? new Date(initialData.respondedAt) : undefined
     );
     const [formData, setFormData] = useState({
         title: initialData?.title || '',
@@ -553,7 +553,7 @@ export function JobabForm({
             description: formData.description || undefined,
             source_type: formData.sourceType,
             source_url: formData.sourceUrl || undefined,
-            responded_at: date,
+            responded_at: date.toISOString(),
             respondent_id: Number(formData.respondentId),
         };
 
@@ -921,7 +921,7 @@ export function JobabForm({
                 sourceType: initialData.sourceType,
                 sourceUrl: initialData.sourceUrl || '',
             });
-            setDate(initialData.respondedAt);
+            setDate(initialData.respondedAt ? new Date(initialData.respondedAt) : undefined);
         }
     }, [isOpen, mode, initialData]);
 
