@@ -83,6 +83,7 @@ export function createRespondentImageHandler(createContext: TContextCreator) {
             logger.error('error uploading respondent image', error);
             res.status(500).json({
                 message: 'INTERNAL SERVER ERROR',
+                error,
             });
         }
     };
