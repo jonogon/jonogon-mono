@@ -19,7 +19,12 @@ import {
     removeAttachment,
 } from '../procedures/jobabs/crud.mjs';
 import {listJobabs} from '../procedures/jobabs/listings.mjs';
-import {clearVote, vote} from '../procedures/jobabs/voting.mjs';
+import {
+    clearVote,
+    vote,
+    commentVote,
+    clearCommentVote,
+} from '../procedures/jobabs/voting.mjs';
 
 export const jobabRouter = router({
     // CRUD
@@ -47,4 +52,6 @@ export const jobabRouter = router({
     // voting
     vote: vote,
     clearVote: clearVote,
+    commentVote: commentVote,
+    clearCommentVote: clearCommentVote,
 });
