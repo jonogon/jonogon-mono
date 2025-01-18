@@ -243,6 +243,7 @@ export default function Petition() {
                                     <>
                                         <Button
                                             size={'sm'}
+                                            intent={'success'}
                                             onClick={() =>
                                                 setShowJobabForm(true)
                                             }>
