@@ -27,6 +27,14 @@ export const listJobabs = publicProcedure
             .where('deleted_at', 'is', null)
             .where('petition_id', '=', `${input.petition_id}`)
             .executeTakeFirst();
+        
+        // If no jobabs exist, return empty data
+        if (!totalCount || Number(totalCount.count) === 0) {
+            return {
+                data: [],
+                total: 0,
+            };
+        }
 
         const query = ctx.services.postgresQueryBuilder
             .selectFrom('jobabs')
@@ -153,6 +161,14 @@ export const getAllJobabs = publicProcedure
             .where('deleted_at', 'is', null)
             .executeTakeFirst();
 
+        // If no jobabs exist, return early
+        if (!totalCount || Number(totalCount.count) === 0) {
+            return {
+                data: [],
+                total: 0,
+            };
+        }
+
         // vote counts for sorting
         const voteCountsQuery = ctx.services.postgresQueryBuilder
             .selectFrom('jobab_votes')
@@ -160,7 +176,6 @@ export const getAllJobabs = publicProcedure
             .where('vote', '=', 1)
             .where('nullified_at', 'is', null)
             .groupBy('jobab_id');
-        
 
         let baseQuery = ctx.services.postgresQueryBuilder
             .selectFrom('jobabs')
@@ -188,15 +203,18 @@ export const getAllJobabs = publicProcedure
             baseQuery = baseQuery.orderBy('jobabs.responded_at', input.order);
         } else if (input.sort === 'votes') {
             baseQuery = baseQuery
-                .orderBy('vote_counts.vote_count', input.order === 'desc' ? 'asc' : 'desc')
-                .orderBy('jobabs.responded_at', 'desc')
+                .orderBy(
+                    'vote_counts.vote_count',
+                    input.order === 'desc' ? 'asc' : 'desc',
+                )
+                .orderBy('jobabs.responded_at', 'desc');
         }
-        
+
         const jobabs = await baseQuery
             .limit(input.limit)
             .offset(input.offset)
             .execute();
-        
+
         const jobabIds = jobabs.map((jobab) => jobab.id);
 
         // Get vote counts for final display
