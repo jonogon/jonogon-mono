@@ -194,6 +194,21 @@ export const listPetitions = publicProcedure
                 'result_with_comment_count.petition_comment_count',
                 'votes.vote as user_vote',
                 'first_attachments.attachment as attachment',
+                (db) => 
+                    jsonArrayFrom(
+                        db.selectFrom('jobabs')
+                            .leftJoin('respondents', 'respondents.id', 'jobabs.respondent_id')
+                            .selectAll('jobabs')
+                            .select([
+                                'respondents.name as respondent_name',
+                                'respondents.img as respondent_img',
+                                'respondents.id as respondent_id',
+                            ])
+                            .whereRef('jobabs.petition_id', '=', 'petitions.id')
+                            .where('jobabs.deleted_at', 'is', null)
+                            .orderBy('jobabs.created_at', 'asc') // get the first jobab
+                            .limit(1)
+                    ).as('jobab')
             ]);
 
         const data =
@@ -277,6 +292,12 @@ export const listPetitions = publicProcedure
                                   petition.attachment,
                               )
                             : null,
+                        jobab: petition.jobab?.[0] ? {
+                            ...petition.jobab[0],
+                            respondent_img_url: petition.jobab[0].respondent_img
+                                ? await ctx.services.fileStorage.getFileURL(petition.jobab[0].respondent_img)
+                                : null
+                        } : null,
                     },
                     extras: {
                         user_vote: petition.user_vote,
