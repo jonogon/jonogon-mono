@@ -18,7 +18,7 @@ import {
     softDeleteJobab,
     removeAttachment,
 } from '../procedures/jobabs/crud.mjs';
-import {listJobabs} from '../procedures/jobabs/listings.mjs';
+import {getAllJobabs, listJobabs} from '../procedures/jobabs/listings.mjs';
 import {
     clearVote,
     vote,
@@ -37,6 +37,7 @@ export const jobabRouter = router({
 
     // listings
     list: listJobabs,
+    getAllJobabs: getAllJobabs,
 
     // comments
     countAllComments: countAllComments,
