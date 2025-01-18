@@ -167,6 +167,7 @@ const PetitionList = () => {
                                 }
                                 comments={Number(p.data.petition_comment_count)}
                                 upvoteTarget={Number(p.data.upvote_target) ?? 0}
+                                jobab={p.data.jobab || null}
                             />
                             {type === 'request' &&
                             sort === 'votes' &&
