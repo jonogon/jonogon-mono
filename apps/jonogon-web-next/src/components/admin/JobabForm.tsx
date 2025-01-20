@@ -656,17 +656,20 @@ export function JobabForm({
     const RespondentList = () => {
         const [search, setSearch] = useState('');
 
-        const filteredRespondents = respondents?.data?.filter(
-            (r) =>
-                r.type === respondentType &&
-                (search
-                    ? r.name.toLowerCase().includes(search.toLowerCase())
-                    : true),
+        const {data: respondents} = trpc.respondents.list.useQuery(
+            {
+                type: respondentType,
+                search: search || undefined,
+                limit: search ? 100 : 5
+            },
+            {
+                enabled: !!respondentType,
+            }
         );
-
-        const displayRespondents = search
-            ? filteredRespondents
-            : filteredRespondents?.slice(0, 5);
+        
+        const displayRespondents = respondents?.data?.filter(
+            (r) => r.type === respondentType
+        );
 
         return (
             <Command className="w-full md:min-w-[480px]">
