@@ -65,8 +65,8 @@ export default function PetitionCard(props: {
         return (
             <div className="my-6 mx-4 rounded-lg overflow-hidden">
                 <div className="bg-red-50 p-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                    <div className="flex justify-between items-center flex-wrap md:flex-nowrap">
+                        <div className="flex gap-2">
                             <Avatar className="h-12 w-12 shrink-0">
                                 <AvatarImage
                                     className="border-4 rounded-full w-12 h-12"
@@ -83,7 +83,7 @@ export default function PetitionCard(props: {
                                     <div className="bg-border rounded-full animate-pulse h-12 w-12"></div>
                                 </AvatarFallback>
                             </Avatar>
-                        <div>
+                        <div className="word-break basis-96">
                             <h3 className="font-semibold text-red-500">
                                 {props.jobab.respondent_name }
                             </h3>
@@ -92,9 +92,9 @@ export default function PetitionCard(props: {
                             </p>
                         </div>
                     </div>
-                        <span className="text-sm text-red-400">
-                            { relativeTime } ago
-                        </span>
+                    <span className="text-sm text-red-400 basis-28 text-left sm:text-right">
+                        { relativeTime } ago
+                    </span>
                     </div>
                     <p className="mt-3 text-red-500 truncate italic">
                         {props.jobab.description}

@@ -15,6 +15,7 @@ export const respondentRouter = router({
                 type: z.enum(['organization', 'expert']).optional(),
                 limit: z.number().min(1).max(100).default(10),
                 offset: z.number().min(0).default(0),
+                search: z.string().optional(),
             }),
         )
         .query(async ({ctx, input}) => {
@@ -35,6 +36,10 @@ export const respondentRouter = router({
 
             if (input.type) {
                 query.where('type', '=', input.type);
+            }
+
+            if (input.search) {
+                query.where('name', 'ilike', `%${input.search}%`);
             }
 
             const respondents = await query.execute();
