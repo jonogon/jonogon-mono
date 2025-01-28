@@ -97,7 +97,7 @@ export default function PetitionCard(props: {
                     </span>
                     </div>
                     <p className="mt-3 text-red-500 truncate italic">
-                        {props.jobab.description}
+                        {props.jobab.title}
                     </p>
                 </div>
             </div>
