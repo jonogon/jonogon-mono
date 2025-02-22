@@ -29,7 +29,7 @@ export default function DabiAdminPage() {
     ? Math.ceil(results.pagination.total / itemsPerPage) 
     : 0;
 
-  const getStatus = (petition) => {
+  const getStatus = (petition: any) => {
     if (petition.approved_at) {
       return 'APPROVED'
     }
