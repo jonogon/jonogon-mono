@@ -190,3 +190,90 @@ export const formalize = protectedProcedure
             message: 'formalized',
         };
     });
+
+export const adminPetitionList = protectedProcedure
+    .input(
+        z.object({
+            search: z.string().optional(),
+            status: z
+                .enum(['PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD'])
+                .optional(),
+            flagged: z.boolean().optional(),
+            limit: z.number().min(1).max(500).default(30),
+            offset: z.number().min(0).default(0),
+        }),
+    )
+    .query(async ({ ctx, input }) => {
+        const { search, status, flagged, limit, offset } = input;
+
+        const petitions = ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .selectAll()
+            .innerJoin('users', 'users.id', 'petitions.created_by')
+            .select([
+                'users.name as user_name'
+            ])
+            .where('petitions.deleted_at', 'is', null);
+        
+        if (search) {
+            petitions.where('petitions.title', 'ilike', `%${search}%`);
+        }
+
+        if (status === 'PENDING') {
+            petitions
+                .where('petitions.approved_at', 'is', null)
+                .where('petitions.rejected_at', 'is', null)
+                .where('petitions.hold_at', 'is', null)
+                .where('petitions.submitted_at', 'is not', null);
+        } else if (status === 'APPROVED') {
+            petitions.where('petitions.approved_at', 'is not', null);
+        } else if (status === 'REJECTED') {
+            petitions.where('petitions.rejected_at', 'is not', null);
+        } else if (status === 'ON_HOLD') {
+            petitions.where('petitions.hold_at', 'is not', null);
+        }
+
+        if (typeof flagged === 'boolean') {
+            petitions.where(
+                'petitions.flagged_at',
+                flagged ? 'is not' : 'is',
+                null,
+            );
+        }
+
+        const totalCount = await petitions
+            .select((eb) => eb.fn.countAll().as('count'))
+            .executeTakeFirst();
+        
+        const results = await petitions
+            .orderBy('petitions.created_at', 'desc')
+            .limit(limit)
+            .offset(offset)
+            .execute();
+        
+        return {
+            data: results.map((petition) => ({
+                id: petition.id,
+                title: petition.title,
+                description: petition.description,
+                location: petition.location,
+                target: petition.target,
+                created_at: petition.created_at,
+                created_by: petition.created_by,
+                submitted_at: petition.submitted_at,
+                approved_at: petition.approved_at,
+                rejected_at: petition.rejected_at,
+                rejection_reason: petition.rejection_reason,
+                hold_at: petition.hold_at,
+                hold_reason: petition.hold_reason,
+                flagged_at: petition.flagged_at,
+                flagged_reason: petition.flagged_reason,
+                user_name: petition.user_name,
+            })),
+            pagination: {
+                total: Number(totalCount?.count || 0),
+                offset,
+                limit,
+            },
+        };
+    });

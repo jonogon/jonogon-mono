@@ -92,6 +92,8 @@ export interface Petitions {
     rejection_reason: string | null;
     flagged_at: Timestamp | null;
     flagged_reason: string | null;
+    hold_at: Timestamp | null;
+    hold_reason: string | null;
     submitted_at: Timestamp | null;
     target: string | null;
     title: string | null;
