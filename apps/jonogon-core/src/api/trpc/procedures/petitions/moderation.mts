@@ -241,8 +241,10 @@ export const adminPetitionList = protectedProcedure
             );
         }
 
-        const totalCount = await petitions
-            .select((eb) => eb.fn.countAll().as('count'))
+        const totalCount = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .where('petitions.deleted_at', 'is', null)
+            .select(({fn}) => [fn.count('id').as('count')])
             .executeTakeFirst();
         
         const results = await petitions
