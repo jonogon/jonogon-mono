@@ -9,7 +9,7 @@ import {useAuthState} from '@/auth/token-manager';
 export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [petitions, setPetitions] = useState<any[]>([]);
-  const itemsPerPage = 20;
+  const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
   
   const { data: results } = trpc.petitions.getPetitions.useQuery(
@@ -56,7 +56,9 @@ export default function DabiAdminPage() {
             />
           </div>
         </div>
-        
+        <h4 className="text-red-500 mb-4 text-lg font-bold">
+         {results?.pagination?.total  || 0} Dabis Available
+        </h4>
         <div className="space-y-4">
           {petitions.map((petition) => (
             <DabiCard 
@@ -91,7 +93,7 @@ export default function DabiAdminPage() {
                   onClick={() => setCurrentPage(pageNumber)}
                   className={`px-4 py-2 rounded ${
                     currentPage === pageNumber 
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-red-500 text-primary-foreground' 
                       : 'bg-card hover:bg-accent'
                   }`}
                 >
@@ -106,7 +108,7 @@ export default function DabiAdminPage() {
                   onClick={() => setCurrentPage(totalPages)}
                   className={`px-4 py-2 rounded ${
                     currentPage === totalPages 
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-red-500 text-primary-foreground' 
                       : 'bg-card hover:bg-accent'
                   }`}
                 >
@@ -115,7 +117,6 @@ export default function DabiAdminPage() {
               </>
             )}
           </div>
-
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}

@@ -21,8 +21,8 @@ export default function AdminLayout({children}) {
                 onClick={() =>
                   router.push('/mod/dabi')
                 }
-                className={`flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer ${pathname === '/mod/dabi'
-                    ? 'bg-background'
+                className={`flex justify-between items-center p-2 hover:bg-red-100 hover:text-black rounded cursor-pointer ${pathname === '/mod/dabi'
+                    ? 'bg-red-500 text-white'
                     : ''
                 }`}>
                 <span>দাবি</span>
@@ -31,9 +31,9 @@ export default function AdminLayout({children}) {
                 onClick={() =>
                   router.push('/mod/jobab')
                 }
-                className={`flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer ${
+                className={`flex justify-between items-center p-2 hover:bg-red-100 hover:text-black rounded cursor-pointer ${
                   pathname === '/mod/jobab'
-                      ? 'bg-background'
+                      ? 'bg-red-500 text-white'
                       : ''
                 }`}>
                 <span>জবাব</span>
