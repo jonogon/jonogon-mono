@@ -99,6 +99,7 @@ export interface Petitions {
     title: string | null;
     updated_at: Generated<Timestamp>;
     upvote_target: number | null;
+    category_id: Int8 | null;
     score: number;
     log_score: number;
 }
@@ -111,6 +112,14 @@ export interface PetitionVotes {
     updated_at: Generated<Timestamp>;
     user_id: Int8;
     vote: number;
+}
+
+export interface Category {
+    id: Generated<Int8>;
+    name: string;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
 }
 
 export interface Pgmigrations {
