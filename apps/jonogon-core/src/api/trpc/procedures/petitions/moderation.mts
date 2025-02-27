@@ -1,6 +1,7 @@
 import {protectedProcedure} from '../../middleware/protected.mjs';
 import {z} from 'zod';
 import {calculateNoveltyBoost} from '../../../utility/feed-algorithm.mjs';
+import { requireModeratorOrAdmin } from '../../../utility/auth-utils.js';
 import {TRPCError} from '@trpc/server';
 
 export const approve = protectedProcedure
@@ -196,7 +197,7 @@ export const adminPetitionList = protectedProcedure
         z.object({
             search: z.string().optional(),
             status: z
-                .enum(['PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD'])
+                .enum(['PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD', 'FLAGGED'])
                 .optional(),
             flagged: z.boolean().optional(),
             limit: z.number().min(1).max(500).default(30),
@@ -204,14 +205,33 @@ export const adminPetitionList = protectedProcedure
         }),
     )
     .query(async ({ ctx, input }) => {
+        requireModeratorOrAdmin(
+            ctx,
+            undefined,
+            'You do not have permission to access data',
+        );
         const { search, status, flagged, limit, offset } = input;
 
         const petitions = ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
-            .selectAll()
             .innerJoin('users', 'users.id', 'petitions.created_by')
             .select([
-                'users.name as user_name'
+                'petitions.id',
+                'petitions.title',
+                'petitions.description',
+                'petitions.location',
+                'petitions.target',
+                'petitions.created_at',
+                'petitions.created_by',
+                'petitions.submitted_at',
+                'petitions.approved_at',
+                'petitions.rejected_at',
+                'petitions.rejection_reason',
+                'petitions.hold_at',
+                'petitions.hold_reason',
+                'petitions.flagged_at',
+                'petitions.flagged_reason',
+                'users.name as user_name',
             ])
             .where('petitions.deleted_at', 'is', null);
         
