@@ -1,25 +1,37 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ArrowUp, Clock, Link2, Check, X } from "lucide-react";
+import { Flag, FlagOff, Clock, Link2, Check, X } from "lucide-react";
 
 interface DabiProps {
+  id: string;
   title: string;
   author: string;
   date: string;
   description: string;
   target: string;
   status: string;
+  handleStatus: Function;
 }
 
 export default function DabiCard({
+  id,
   title,
   author,
   date,
   description,
   target,
-  status
+  status,
+  handleStatus
 }: DabiProps) {
+  const setStatus = (status: string) => {
+    const dabi = {
+      id,
+      status,
+      title
+    }
+    handleStatus(dabi)
+  }
   return (
     <Card className="mb-4">
       <CardContent className="pt-6">
@@ -32,17 +44,30 @@ export default function DabiCard({
         <p className="text-gray-700 mb-4 truncate italic">{description || 'No description'}</p>
         <div className="flex items-center justify-end">
           <div className="flex space-x-2">
+            {status !== 'FLAGGED' &&
+              <Button variant="ghost" size="icon" onClick={() => setStatus('APPROVE')}>
+                <Check className="w-4 h-4 text-green-500" />
+              </Button>
+            }
+            {status === 'APPROVED' && 
+              <Button variant="ghost" size="icon">
+                <Link2 className="w-4 h-4 text-blue-500" onClick={() => setStatus('FLAG')}/>
+              </Button>
+            }
+            {(status !== 'APPROVED' && status !== 'FLAGGED') && (
+              <>
+                <Button variant="ghost" size="icon">
+                  <Clock className="w-4 h-4 text-orange-500" onClick={() => setStatus('ON_HOLD')} />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setStatus('REJECT')}>
+                  <X className="w-4 h-4 text-red-500" />
+                </Button>
+              </>
+            )}
             <Button variant="ghost" size="icon">
-              <Check className="w-4 h-4 text-green-500" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <X className="w-4 h-4 text-red-500" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Clock className="w-4 h-4 text-orange-500" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Link2 className="w-4 h-4 text-blue-500" />
+              {status === 'FLAGGED' ? (
+                <FlagOff className="w-4 h-4 text-orange-500" onClick={() => setStatus('UNFLAG')} />
+              ): <Flag className="w-4 h-4 text-orange-500" onClick={() => setStatus('FLAG')} />}
             </Button>
           </div>
         </div>
