@@ -20,6 +20,8 @@ export const approve = protectedProcedure
                 rejection_reason: null,
                 flagged_at: null,
                 flagged_reason: null,
+                hold_at: null,
+                hold_reason: null,
                 formalized_at: null,
 
                 approved_at: new Date(),
@@ -67,7 +69,7 @@ export const reject = protectedProcedure
         if (petition?.approved_at) {
             throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: 'Voting is not allowed on flagged petitions.',
+                message: 'Petition is already approved, cannot be rejected',
             });
         }
 
@@ -77,6 +79,8 @@ export const reject = protectedProcedure
                 approved_at: null,
                 flagged_at: null,
                 flagged_reason: null,
+                hold_reason: null,
+                hold_at: null,
                 formalized_at: null,
 
                 rejected_at: new Date(),
@@ -121,6 +125,8 @@ export const flag = protectedProcedure
                 rejected_at: null, // Reset the rejected_at timestamp
                 rejection_reason: null, // Reset the rejection_reason
                 formalized_at: null, // Reset the formalized_at timestamp
+                hold_reason: null,
+                hold_at: null,
 
                 flagged_at: input.flagged ? null : new Date(), // Set the current timestamp
                 flagged_reason: input.flagged ? null : input.reason, // Set the reason for flagging
@@ -149,6 +155,49 @@ export const flag = protectedProcedure
         };
     });
 
+export const hold = protectedProcedure
+    .input(
+        z.object({
+            petition_id: z.number(),
+            reason: z.string(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        const result = await ctx.services.postgresQueryBuilder
+            .updateTable('petitions')
+            .set({
+                approved_at: null,
+                flagged_at: null,
+                flagged_reason: null,
+                rejected_at: null,
+                rejection_reason: null,
+                formalized_at: null,
+
+                hold_at: new Date(),
+                hold_reason: input.reason,
+                moderated_by: ctx.auth.user_id,
+            })
+            .where('id', '=', `${input.petition_id}`)
+            .returning(['id', 'created_by'])
+            .executeTakeFirst();
+
+        if (result) {
+            await ctx.services.postgresQueryBuilder
+                .insertInto('notifications')
+                .values({
+                    user_id: result.created_by,
+                    type: 'petition_rejected',
+                    actor_user_id: ctx.auth.user_id,
+                    petition_id: input.petition_id,
+                })
+                .executeTakeFirst();
+        }
+
+        return {
+            input,
+            message: 'rejected',
+        };
+    });
 export const formalize = protectedProcedure
     .input(
         z.object({
