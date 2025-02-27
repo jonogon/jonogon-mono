@@ -5,14 +5,17 @@ import {trpc} from '@/trpc/client';
 import DabiCard from '@/components/admin/DabiCard';
 import { Input } from "@/components/ui/input";
 import {useAuthState} from '@/auth/token-manager';
+import DabiStatusDialog from '@/components/admin/DabiStatusDialog';
 
 export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [petitions, setPetitions] = useState<any[]>([]);
+  const [showDialog, setDialogVisibility] = useState(false);
+  const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string}>({})
   const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
   
-  const { data: results } = trpc.petitions.getPetitions.useQuery(
+  const { data: results, refetch } = trpc.petitions.getPetitions.useQuery(
     { 
       offset: (currentPage - 1) * itemsPerPage,
       limit: itemsPerPage
@@ -30,16 +33,29 @@ export default function DabiAdminPage() {
     : 0;
 
   const getStatus = (petition: any) => {
-    if (petition.approved_at) {
-      return 'APPROVED'
-    }
     if (petition.flagged_at) {
       return 'FLAGGED'
+    }
+    if (petition.hold_at) {
+      return 'ON HOLD'
     }
     if (petition.rejected_at) {
       return 'REJECTED'
     }
+    if (petition.approved_at) {
+      return 'APPROVED'
+    }
     return 'PENDING'
+  }
+
+  const getSelectedDabi = (petition: any) => {
+    setSelectedDabi(petition)
+    setDialogVisibility(true)
+  }
+
+  const closeStatusDialog = () => {
+    setDialogVisibility(false)
+    refetch()
   }
 
   return (
@@ -63,12 +79,14 @@ export default function DabiAdminPage() {
           {petitions.map((petition) => (
             <DabiCard 
               key={`${petition.id}-${petition.title}`}
+              id={petition.id}
               title={petition.title}
               author={petition.user_name}
               date={new Date(petition.created_at).toDateString()}
               description={petition.description}
               target={petition.target}
               status={getStatus(petition)}
+              handleStatus={(dabi: any) => getSelectedDabi(dabi)}
             />
           ))}
         </div>
@@ -126,6 +144,13 @@ export default function DabiAdminPage() {
           </button>
         </div>
       </div>
+      <DabiStatusDialog
+        open={showDialog}
+        id={selectedDabi.id ?? ''}
+        title={selectedDabi.title ?? ''}
+        status={selectedDabi.status ?? ''}
+        handleClose={closeStatusDialog}
+      />
     </div>
   );
 }
