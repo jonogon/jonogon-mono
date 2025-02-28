@@ -8,11 +8,18 @@ export const approve = protectedProcedure
     .input(
         z.object({
             petition_id: z.number(),
+            category_id: z.number().optional(),
         }),
     )
     .mutation(async ({input, ctx}) => {
         // set initial score when the petition appears on feed
-        const {logScore, newScore} = calculateNoveltyBoost();
+        const { logScore, newScore } = calculateNoveltyBoost();
+        const petition = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select(['approved_at'])
+            .where('id', '=', `${input.petition_id}`)
+            .executeTakeFirst();
+        
         const result = await ctx.services.postgresQueryBuilder
             .updateTable('petitions')
             .set({
@@ -24,10 +31,11 @@ export const approve = protectedProcedure
                 hold_reason: null,
                 formalized_at: null,
 
-                approved_at: new Date(),
+                approved_at: petition?.approved_at ? petition.approved_at : new Date(),
                 moderated_by: ctx.auth.user_id,
                 score: newScore,
                 log_score: logScore,
+                category_id: input.category_id,
             })
             .where('id', '=', `${input.petition_id}`)
             .returning(['id', 'created_by'])
@@ -264,6 +272,7 @@ export const adminPetitionList = protectedProcedure
         const petitions = ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
             .innerJoin('users', 'users.id', 'petitions.created_by')
+            .leftJoin('categories', 'categories.id', 'petitions.category_id')
             .select([
                 'petitions.id',
                 'petitions.title',
@@ -281,6 +290,8 @@ export const adminPetitionList = protectedProcedure
                 'petitions.flagged_at',
                 'petitions.flagged_reason',
                 'users.name as user_name',
+                'categories.id as category_id',
+                'categories.name as category_name',
             ])
             .where('petitions.deleted_at', 'is', null);
         
@@ -340,6 +351,7 @@ export const adminPetitionList = protectedProcedure
                 flagged_at: petition.flagged_at,
                 flagged_reason: petition.flagged_reason,
                 user_name: petition.user_name,
+                category: { id: Number(petition.category_id), name: petition.category_name }
             })),
             pagination: {
                 total: Number(totalCount?.count || 0),
