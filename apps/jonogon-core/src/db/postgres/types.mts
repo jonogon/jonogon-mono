@@ -243,5 +243,5 @@ export interface DB {
     jobab_votes: JobabVotes;
     jobab_comments: JobabComments;
     jobab_comment_votes: JobabCommentVotes;
-    category: Category
+    categories: Category
 }

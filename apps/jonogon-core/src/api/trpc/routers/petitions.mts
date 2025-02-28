@@ -6,6 +6,8 @@ import {
     reject,
     hold,
     adminPetitionList,
+    createCategory,
+    adminCategoryList,
 } from '../procedures/petitions/moderation.mjs';
 import {clearVote, vote} from '../procedures/petitions/voting.mjs';
 import {
@@ -57,4 +59,6 @@ export const petitionRouter = router({
     hold: hold,
     flag: flag,
     getPetitions: adminPetitionList,
+    createCategory: createCategory,
+    adminCategoryList: adminCategoryList,
 });

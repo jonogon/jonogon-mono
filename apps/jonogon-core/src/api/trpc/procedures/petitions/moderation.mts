@@ -358,12 +358,12 @@ export const adminCategoryList = protectedProcedure
         );
 
         const categories = await ctx.services.postgresQueryBuilder
-            .selectFrom('category')
+            .selectFrom('categories')
             .select(['id', 'name', 'created_at'])
             .where('deleted_at', 'is', null)
             .orderBy('name')
             .execute();
-
+        console.log(categories)
         return categories;
     });
 export const createCategory = protectedProcedure
@@ -380,7 +380,7 @@ export const createCategory = protectedProcedure
         );
 
         const result = await ctx.services.postgresQueryBuilder
-            .insertInto('category')
+            .insertInto('categories')
             .values({
                 name: input.name,
             })
