@@ -8,15 +8,31 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from "@/components/ui/label"
+import {Input} from '@/components/ui/input';
 import {trpc} from '@/trpc/client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface DabiStatus {
   open: boolean,
   handleClose: () => void,
+  updateCategoryList: (response: { id: string; name: string }) => void,
   id: string,
   status: string,
   title: string,
+  petitionCategory: Object,
+  categoryList: Array<{id: string, name: string}>
 }
 
 export default function DabiStatusDialog({
@@ -24,9 +40,22 @@ export default function DabiStatusDialog({
   id,
   status,
   title,
+  petitionCategory,
+  categoryList,
   handleClose,
+  updateCategoryList
 }: DabiStatus) {
   const utils = trpc.useUtils();
+  const [reasonText, setReason] = useState('')
+  const [showCategories, setVisibility] = useState(false)
+  const [showCategoryPopup, setPopupStatus] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState({})
+  const inputRef = useRef(null)
+  
+  useEffect(() => {
+    setSelectedCategory(petitionCategory)
+  }, [petitionCategory])
+
   const approveMutation = trpc.petitions.approve.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
@@ -58,7 +87,7 @@ export default function DabiStatusDialog({
   const updateStatus = () => {
     const petitionId= Number(id)
     if (status === 'APPROVE') {
-      approveMutation.mutate({ petition_id: petitionId })
+      approveMutation.mutate({ petition_id: petitionId, category_id: Number(selectedCategory?.id) })
     } else if (status === 'REJECT') {
       rejectMutation.mutate({ petition_id: petitionId, reason: reasonText })
     } else if (status === 'FLAG' || status === 'UNFLAG') {
@@ -67,7 +96,73 @@ export default function DabiStatusDialog({
       onHold.mutate({ petition_id: petitionId, reason: reasonText })
     }
   }
-  const [reasonText, setReason] = useState('')
+  const CategoryList = () => {
+    const createCategory = trpc.petitions.createCategory.useMutation({
+      onSuccess: async (response) => {
+        setPopupStatus(false)
+        updateCategoryList(response)
+      },
+    });
+    return (
+      <div>
+        <Popover open={showCategories} onOpenChange={setVisibility}>
+          <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={showCategories}
+            className="w-[200px] justify-between"
+          >
+            {selectedCategory?.name || 'Select Category'}
+          </Button>
+        </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0"> 
+          <Command>
+            <CommandInput placeholder="Search Category" />
+            <CommandList>
+                <CommandEmpty>No Results Found</CommandEmpty>
+                {categoryList?.map((category) => (
+                  <CommandItem
+                    value={category.name}
+                    key={category.id}
+                    onSelect={() => {
+                        setSelectedCategory(category)
+                        setVisibility(false)
+                      }
+                    }
+                  >
+                    { category.name }
+                  </CommandItem>
+                ))}
+            </CommandList>
+          </Command>
+          </PopoverContent>
+        </Popover>
+        <Popover open={showCategoryPopup} onOpenChange={setPopupStatus}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="ml-4">+</Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full" >
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <h4 className="font-medium leading-none">Add New Category</h4>
+              </div>
+              <Input
+                ref={inputRef}
+                id="width"
+                className="col-span-2 h-8"
+              />
+              <Button
+                onClick={() => {
+                  const val = inputRef.current?.value
+                  createCategory.mutate({ name: val })
+                }}
+                className="w-full">Create</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+  )}
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
@@ -94,6 +189,11 @@ export default function DabiStatusDialog({
                 className="bg-card text-card-foreground focus-visible:ring-transparent focus-visible:shadow-none border-red-400"
                 onChange={(e) => setReason(e.target.value)}
               />
+            </div>
+          )}
+          {status === 'APPROVE' && (
+            <div>
+              <CategoryList />
             </div>
           )}
         </div>

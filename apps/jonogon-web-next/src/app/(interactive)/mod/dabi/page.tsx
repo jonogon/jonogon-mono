@@ -11,7 +11,8 @@ export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [petitions, setPetitions] = useState<any[]>([]);
   const [showDialog, setDialogVisibility] = useState(false);
-  const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string}>({})
+  const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string; category?: any}>({})
+  const [categoryList, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
   
@@ -27,6 +28,15 @@ export default function DabiAdminPage() {
       }
     }
   );
+  const { data: categories } = trpc.petitions.adminCategoryList.useQuery(undefined, {
+    enabled: !!isAuthenticated,
+    onSuccess: (data) => {
+      setCategories(data.map(category => ({
+        id: category.id,
+        name: category.name
+      })))
+    }
+  })
 
   const totalPages = results?.pagination?.total 
     ? Math.ceil(results.pagination.total / itemsPerPage) 
@@ -48,8 +58,12 @@ export default function DabiAdminPage() {
     return 'PENDING'
   }
 
-  const getSelectedDabi = (petition: any) => {
-    setSelectedDabi(petition)
+  const getSelectedDabi = (petition: any, category: Object) => {
+    const petitionData = {
+      ...petition,
+      category
+    }
+    setSelectedDabi(petitionData)
     setDialogVisibility(true)
   }
 
@@ -86,7 +100,7 @@ export default function DabiAdminPage() {
               description={petition.description}
               target={petition.target}
               status={getStatus(petition)}
-              handleStatus={(dabi: any) => getSelectedDabi(dabi)}
+              handleStatus={(dabi: any) => getSelectedDabi(dabi, petition.category)}
             />
           ))}
         </div>
@@ -149,7 +163,10 @@ export default function DabiAdminPage() {
         id={selectedDabi.id ?? ''}
         title={selectedDabi.title ?? ''}
         status={selectedDabi.status ?? ''}
+        petitionCategory={selectedDabi.category}
+        categoryList={categoryList}
         handleClose={closeStatusDialog}
+        updateCategoryList={(category: { id: string; name: string }) => setCategories([...categoryList, category])}
       />
     </div>
   );
