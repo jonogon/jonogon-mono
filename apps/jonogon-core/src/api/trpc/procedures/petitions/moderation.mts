@@ -348,3 +348,44 @@ export const adminPetitionList = protectedProcedure
             },
         };
     });
+
+export const adminCategoryList = protectedProcedure
+    .query(async ({ ctx }) => {
+        requireModeratorOrAdmin(
+            ctx,
+            undefined,
+            'You do not have permission to access data',
+        );
+
+        const categories = await ctx.services.postgresQueryBuilder
+            .selectFrom('category')
+            .select(['id', 'name', 'created_at'])
+            .where('deleted_at', 'is', null)
+            .orderBy('name')
+            .execute();
+
+        return categories;
+    });
+export const createCategory = protectedProcedure
+    .input(
+        z.object({
+            name: z.string(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        requireModeratorOrAdmin(
+            ctx,
+            undefined,
+            'You do not have permission to create categories'
+        );
+
+        const result = await ctx.services.postgresQueryBuilder
+            .insertInto('category')
+            .values({
+                name: input.name,
+            })
+            .returning(['id', 'name', 'created_at'])
+            .executeTakeFirst();
+
+        return result;
+    });
