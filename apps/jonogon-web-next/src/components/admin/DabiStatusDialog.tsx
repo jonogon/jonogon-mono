@@ -31,7 +31,7 @@ interface DabiStatus {
   id: string,
   status: string,
   title: string,
-  petitionCategory: Object,
+  petitionCategory: {id: string; name: string},
   categoryList: Array<{id: string, name: string}>
 }
 
@@ -49,8 +49,8 @@ export default function DabiStatusDialog({
   const [reasonText, setReason] = useState('')
   const [showCategories, setVisibility] = useState(false)
   const [showCategoryPopup, setPopupStatus] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState({})
-  const inputRef = useRef(null)
+  const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string} | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   
   useEffect(() => {
     setSelectedCategory(petitionCategory)
@@ -100,7 +100,9 @@ export default function DabiStatusDialog({
     const createCategory = trpc.petitions.createCategory.useMutation({
       onSuccess: async (response) => {
         setPopupStatus(false)
-        updateCategoryList(response)
+        if (response) {
+          updateCategoryList({ id: response.id, name: response.name })
+        }
       },
     });
     return (
@@ -154,7 +156,7 @@ export default function DabiStatusDialog({
               />
               <Button
                 onClick={() => {
-                  const val = inputRef.current?.value
+                  const val = inputRef.current?.value || ''
                   createCategory.mutate({ name: val })
                 }}
                 className="w-full">Create</Button>

@@ -11,7 +11,7 @@ export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [petitions, setPetitions] = useState<any[]>([]);
   const [showDialog, setDialogVisibility] = useState(false);
-  const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string; category?: any}>({})
+  const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string; category?: {id: string; name: string}}>({})
   const [categoryList, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
@@ -163,7 +163,7 @@ export default function DabiAdminPage() {
         id={selectedDabi.id ?? ''}
         title={selectedDabi.title ?? ''}
         status={selectedDabi.status ?? ''}
-        petitionCategory={selectedDabi.category}
+        petitionCategory={selectedDabi.category || { id: '', name: '' }}
         categoryList={categoryList}
         handleClose={closeStatusDialog}
         updateCategoryList={(category: { id: string; name: string }) => setCategories([...categoryList, category])}
