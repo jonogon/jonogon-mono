@@ -79,6 +79,10 @@ export default function DabiAdminPage() {
     refetch()
   }
 
+  const reasonText = (petition: any) => {
+    return (petition.rejection_reason || petition.hold_reason || petition.flagged_reason)
+  }
+
   return (
     <div className="p-8 overflow-auto">
       <div className="max-w-5xl mx-auto">
@@ -107,6 +111,7 @@ export default function DabiAdminPage() {
               description={petition.description}
               target={petition.target}
               status={getStatus(petition)}
+              reason={reasonText(petition)}
               handleStatus={(dabi: any) => getSelectedDabi(dabi, petition.category)}
               openJobabForm={() => getSelectedDabiForJobabForm(petition)}
             />

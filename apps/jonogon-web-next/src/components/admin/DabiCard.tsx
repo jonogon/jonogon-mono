@@ -11,6 +11,7 @@ interface DabiProps {
   description: string;
   target: string;
   status: string;
+  reason: string;
   handleStatus: Function;
   openJobabForm: Function;
 }
@@ -23,6 +24,7 @@ export default function DabiCard({
   description,
   target,
   status,
+  reason,
   handleStatus,
   openJobabForm
 }: DabiProps) {
@@ -81,6 +83,14 @@ export default function DabiCard({
             </Button>
           </div>
         </div>
+        {reason &&
+          <>
+            <hr />
+            <p className="p-2 bg-red-50 text-red-400 mt-4 rounded-md text-sm">
+              Reason: {reason}
+            </p>
+          </>
+        }
       </CardContent>
     </Card>
   )
