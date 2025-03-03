@@ -293,7 +293,8 @@ export const adminPetitionList = protectedProcedure
                 'categories.id as category_id',
                 'categories.name as category_name',
             ])
-            .where('petitions.deleted_at', 'is', null);
+            .where('petitions.deleted_at', 'is', null)
+            .where('petitions.submitted_at', 'is not', null)
         
         if (search) {
             petitions.where('petitions.title', 'ilike', `%${search}%`);
@@ -324,6 +325,7 @@ export const adminPetitionList = protectedProcedure
         const totalCount = await ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
             .where('petitions.deleted_at', 'is', null)
+            .where('petitions.submitted_at', 'is not', null)
             .select(({fn}) => [fn.count('id').as('count')])
             .executeTakeFirst();
         
@@ -375,7 +377,6 @@ export const adminCategoryList = protectedProcedure
             .where('deleted_at', 'is', null)
             .orderBy('name')
             .execute();
-        console.log(categories)
         return categories;
     });
 export const createCategory = protectedProcedure
