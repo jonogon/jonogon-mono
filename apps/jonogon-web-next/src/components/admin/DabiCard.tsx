@@ -12,6 +12,7 @@ interface DabiProps {
   target: string;
   status: string;
   handleStatus: Function;
+  openJobabForm: Function;
 }
 
 export default function DabiCard({
@@ -22,7 +23,8 @@ export default function DabiCard({
   description,
   target,
   status,
-  handleStatus
+  handleStatus,
+  openJobabForm
 }: DabiProps) {
   const setStatus = (status: string) => {
     const dabi = {
@@ -42,7 +44,15 @@ export default function DabiCard({
         <div className="text-sm text-gray-500 mb-2">By {author} • {date}</div>
         <p className="text-red-400 mb-2">{target}</p>
         <p className="text-gray-700 mb-4 truncate italic">{description || 'No description'}</p>
-        <div className="flex items-center justify-end">
+        <div className={`flex items-center ${status === 'APPROVED' ? 'justify-between' : 'justify-end'}`}>
+          {status === 'APPROVED' &&
+            <Button
+              onClick={() => openJobabForm()}
+              variant="outline"
+            >
+              <span className="text-red-500">Add Official Jobab</span>
+            </Button>
+          }
           <div className="flex space-x-2">
             {status !== 'FLAGGED' &&
               <Button variant="ghost" size="icon" onClick={() => setStatus('APPROVE')}>

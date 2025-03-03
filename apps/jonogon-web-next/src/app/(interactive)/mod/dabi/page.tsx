@@ -6,6 +6,7 @@ import DabiCard from '@/components/admin/DabiCard';
 import { Input } from "@/components/ui/input";
 import {useAuthState} from '@/auth/token-manager';
 import DabiStatusDialog from '@/components/admin/DabiStatusDialog';
+import { JobabForm } from '@/components/admin/JobabForm';
 
 export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -13,6 +14,7 @@ export default function DabiAdminPage() {
   const [showDialog, setDialogVisibility] = useState(false);
   const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string; category?: {id: string; name: string}}>({})
   const [categoryList, setCategories] = useState<Array<{ id: string; name: string }>>([])
+  const [showJobabForm, setJobabFormVisibility] = useState(false)
   const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
   
@@ -67,6 +69,11 @@ export default function DabiAdminPage() {
     setDialogVisibility(true)
   }
 
+  const getSelectedDabiForJobabForm = (petition: any) => {
+    setSelectedDabi(petition)
+    setJobabFormVisibility(true)
+  }
+
   const closeStatusDialog = () => {
     setDialogVisibility(false)
     refetch()
@@ -101,6 +108,7 @@ export default function DabiAdminPage() {
               target={petition.target}
               status={getStatus(petition)}
               handleStatus={(dabi: any) => getSelectedDabi(dabi, petition.category)}
+              openJobabForm={() => getSelectedDabiForJobabForm(petition)}
             />
           ))}
         </div>
@@ -167,6 +175,11 @@ export default function DabiAdminPage() {
         categoryList={categoryList}
         handleClose={closeStatusDialog}
         updateCategoryList={(category: { id: string; name: string }) => setCategories([...categoryList, category])}
+      />
+      <JobabForm
+        isOpen={showJobabForm}
+        onClose={() => setJobabFormVisibility(false)}
+        petitionId={Number(selectedDabi?.id)}
       />
     </div>
   );
