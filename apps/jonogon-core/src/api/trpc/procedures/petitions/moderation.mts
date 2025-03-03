@@ -254,9 +254,9 @@ export const adminPetitionList = protectedProcedure
         z.object({
             search: z.string().optional(),
             status: z
-                .enum(['PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD', 'FLAGGED'])
+                .enum(['PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD'])
                 .optional(),
-            flagged: z.boolean().optional(),
+            flagged: z.boolean().nullable().optional(),
             limit: z.number().min(1).max(500).default(30),
             offset: z.number().min(0).default(0),
         }),
@@ -269,7 +269,7 @@ export const adminPetitionList = protectedProcedure
         );
         const { search, status, flagged, limit, offset } = input;
 
-        const petitions = ctx.services.postgresQueryBuilder
+        let petitions = ctx.services.postgresQueryBuilder
             .selectFrom('petitions')
             .innerJoin('users', 'users.id', 'petitions.created_by')
             .leftJoin('categories', 'categories.id', 'petitions.category_id')
@@ -297,37 +297,32 @@ export const adminPetitionList = protectedProcedure
             .where('petitions.submitted_at', 'is not', null)
         
         if (search) {
-            petitions.where('petitions.title', 'ilike', `%${search}%`);
+            petitions = petitions.where('petitions.title', 'ilike', `%${search}%`);
         }
 
         if (status === 'PENDING') {
-            petitions
+            petitions = petitions
                 .where('petitions.approved_at', 'is', null)
                 .where('petitions.rejected_at', 'is', null)
                 .where('petitions.hold_at', 'is', null)
                 .where('petitions.submitted_at', 'is not', null);
         } else if (status === 'APPROVED') {
-            petitions.where('petitions.approved_at', 'is not', null);
+            petitions = petitions.where('petitions.approved_at', 'is not', null);
         } else if (status === 'REJECTED') {
-            petitions.where('petitions.rejected_at', 'is not', null);
+            petitions = petitions.where('petitions.rejected_at', 'is not', null);
         } else if (status === 'ON_HOLD') {
-            petitions.where('petitions.hold_at', 'is not', null);
+            petitions = petitions.where('petitions.hold_at', 'is not', null);
         }
 
         if (typeof flagged === 'boolean') {
-            petitions.where(
+            petitions = petitions.where(
                 'petitions.flagged_at',
                 flagged ? 'is not' : 'is',
                 null,
             );
         }
 
-        const totalCount = await ctx.services.postgresQueryBuilder
-            .selectFrom('petitions')
-            .where('petitions.deleted_at', 'is', null)
-            .where('petitions.submitted_at', 'is not', null)
-            .select(({fn}) => [fn.count('id').as('count')])
-            .executeTakeFirst();
+        
         
         const results = await petitions
             .orderBy('petitions.created_at', 'desc')
@@ -356,7 +351,7 @@ export const adminPetitionList = protectedProcedure
                 category: { id: Number(petition.category_id), name: petition.category_name }
             })),
             pagination: {
-                total: Number(totalCount?.count || 0),
+                total: results.length || 0,
                 offset,
                 limit,
             },
