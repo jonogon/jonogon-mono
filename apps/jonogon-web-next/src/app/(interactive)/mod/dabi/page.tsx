@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import {useAuthState} from '@/auth/token-manager';
 import DabiStatusDialog from '@/components/admin/DabiStatusDialog';
 import { JobabForm } from '@/components/admin/JobabForm';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 export default function DabiAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,13 +22,19 @@ export default function DabiAdminPage() {
   const [selectedDabi, setSelectedDabi] = useState<{id?: string; title?: string; status?: string; category?: {id: string; name: string}}>({})
   const [categoryList, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const [showJobabForm, setJobabFormVisibility] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterQuery, setFilterQuery] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | 'ON_HOLD' | 'ALL'>('ALL')
+  const [flagged, setFlagged] = useState<boolean | null>(null)
   const itemsPerPage = 30;
   const isAuthenticated = useAuthState();
   
   const { data: results, refetch } = trpc.petitions.getPetitions.useQuery(
     { 
       offset: (currentPage - 1) * itemsPerPage,
-      limit: itemsPerPage
+      limit: itemsPerPage,
+      search: searchQuery,
+      status: filterQuery === 'ALL' ? undefined : filterQuery,
+      flagged: flagged
     },
     { 
       enabled: !!isAuthenticated,
@@ -69,6 +82,20 @@ export default function DabiAdminPage() {
     setDialogVisibility(true)
   }
 
+  type PetitionStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ON_HOLD' | 'ALL' | 'FLAGGED';
+
+  const handleStatusChange = (status: PetitionStatus): void => {
+    if (status === 'FLAGGED') {
+      setFlagged(true)
+    } else if (status !== 'ALL') {
+      setFilterQuery(status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ON_HOLD')
+      setFlagged(null)
+    } else {
+      setFilterQuery('ALL')
+      setFlagged(null)
+    }
+  }
+
   const getSelectedDabiForJobabForm = (petition: any) => {
     setSelectedDabi(petition)
     setJobabFormVisibility(true)
@@ -91,9 +118,30 @@ export default function DabiAdminPage() {
             Dabi Moderation
           </h1>
           <div className="flex items-center space-x-4">
+            <Select onValueChange={handleStatusChange}>
+              <SelectTrigger className="bg-card border-stone-200 w-[180px] ring-0 focus:ring-0">
+                <SelectValue placeholder={filterQuery} />
+              </SelectTrigger>
+              <SelectContent>
+                {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'ON_HOLD', 'FLAGGED'].map((status) => (
+                  <SelectItem
+                    key={status}
+                    value={status}
+                  >
+                    {status.replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input 
-              className="w-64 bg-card border-stone-200" 
-              placeholder="Search Dabi" 
+              className="w-64 bg-card border-stone-200"
+              placeholder="Search Dabi"
+              onChange={(e) => {
+                const timeoutId = setTimeout(() => {
+                  setSearchQuery(e.target.value)
+                }, 500);
+                return () => clearTimeout(timeoutId);
+              }}
             />
           </div>
         </div>
