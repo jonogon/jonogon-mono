@@ -103,9 +103,10 @@ export default function DabiStatusDialog({
       flagMutation.mutate({ petition_id: petitionId, reason: reasonText, flagged: status === 'UNFLAG' })
     } else if (status === 'ON_HOLD') {
       onHold.mutate({ petition_id: petitionId, reason: reasonText })
-    } else if (status === 'LINK') {
-      linkPetition.mutate({ petition_id: petitionId, andolon_id: Number(selectedAndolon?.id) })
     }
+  }
+  const updateAndonlonLinkStatus = (link: boolean) => {
+    linkPetition.mutate({ petition_id: Number(id), andolon_id: Number(selectedAndolon?.id), link })
   }
   const CategoryList = () => {
     const createCategory = trpc.petitions.createCategory.useMutation({
@@ -216,12 +217,15 @@ export default function DabiStatusDialog({
           {status === 'LINK' && (
             <AndolonLinkForm
               handleSelected={(andolon) => setSelectedAndolon(andolon)}
+              unlinkPetition={() => updateAndonlonLinkStatus(false)}
             />
           )}
         </div>
         <Button
           variant="outline"
-          onClick={() => updateStatus()}
+          onClick={() => status === 'LINK'
+            ? updateAndonlonLinkStatus(true) : updateStatus()
+          }
         >
           Confirm
         </Button>

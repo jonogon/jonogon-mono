@@ -14,9 +14,12 @@ import { Button } from '@/components/ui/button';
 import { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import {trpc} from '@/trpc/client';
+import { Trash2Icon } from 'lucide-react';
 
 
-export default function AndolonLinkForm({ handleSelected }: { handleSelected: (andolon: { id: string, name: string }) => void }) {
+export default function AndolonLinkForm(
+  { handleSelected, unlinkPetition }:
+    { handleSelected: (andolon: { id: string, name: string }) => void, unlinkPetition: () => void }) {
   const [showAndolonList, setVisibility] = useState(false)
   const [showAndolonPopup, setPopupStatus] = useState(false)
   const [selectedAndolon, setSelectedAndolon] = useState<{ id: string, name: string } | null>(null)
@@ -120,9 +123,15 @@ export default function AndolonLinkForm({ handleSelected }: { handleSelected: (a
               petitionList.map((petition) => (
                 <li
                   key={petition.id}
-                  className="text-gray-500 text-sm"
+                  className="text-gray-500 text-sm mb-2"
                 >
-                  {petition.title}
+                  <div className="flex justify-between">
+                    <span>{petition.title}</span>
+                    <Trash2Icon
+                      className="cursor-pointer text-red-400"
+                      onClick={unlinkPetition}
+                    />
+                  </div>
                 </li>
               )
             )}

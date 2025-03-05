@@ -461,19 +461,20 @@ export const linkPetition = protectedProcedure
     z.object({
         petition_id: z.number(),
         andolon_id: z.number(),
+        link: z.boolean(),
     }),
 )
 .mutation(async ({input, ctx}) => {
     requireModeratorOrAdmin(
         ctx,
         undefined,
-        'You do not have permission to set andolon'
+        'You do not have permission to link/unlink petition'
     );
 
     const result = await ctx.services.postgresQueryBuilder
         .updateTable('petitions')
         .set({
-            andolon_id: input.andolon_id,
+            andolon_id: input.link ? input.andolon_id : null,
         })
         .where('id', '=', `${input.petition_id}`)
         .returning(['id', 'title'])
