@@ -397,3 +397,87 @@ export const createCategory = protectedProcedure
 
         return result;
     });
+
+export const createAndolon = protectedProcedure
+    .input(
+        z.object({
+            name: z.string(),
+        }),
+    )
+    .mutation(async ({input, ctx}) => {
+        requireModeratorOrAdmin(
+            ctx,
+            undefined,
+            'You do not have permission to create andolon'
+        );
+
+        const result = await ctx.services.postgresQueryBuilder
+            .insertInto('andolon')
+            .values({
+                name: input.name,
+            })
+            .returning(['id', 'name', 'created_at'])
+            .executeTakeFirst();
+
+        return result;
+    })
+
+export const getAdminAndolonList = protectedProcedure
+    .query(async ({ctx}) => {
+        const andolons = await ctx.services.postgresQueryBuilder
+            .selectFrom('andolon')
+            .select(['id', 'name', 'created_at'])
+            .where('deleted_at', 'is', null)
+            .orderBy('created_at', 'desc')
+            .execute();
+        return andolons;
+    });
+
+export const getAndolonPetitions = protectedProcedure
+    .input(
+        z.object({
+            andolon_id: z.number(),
+        }),
+    )
+    .query(async ({input, ctx}) => {
+        const petitions = await ctx.services.postgresQueryBuilder
+            .selectFrom('petitions')
+            .select([
+                'id',
+                'title',
+            ])
+            .where('andolon_id', '=', String(input.andolon_id))
+            .where('deleted_at', 'is', null)
+            .orderBy('created_at', 'desc')
+            .execute()
+
+        return {
+            data: petitions,
+        };
+    });
+
+export const linkPetition = protectedProcedure
+.input(
+    z.object({
+        petition_id: z.number(),
+        andolon_id: z.number(),
+    }),
+)
+.mutation(async ({input, ctx}) => {
+    requireModeratorOrAdmin(
+        ctx,
+        undefined,
+        'You do not have permission to set andolon'
+    );
+
+    const result = await ctx.services.postgresQueryBuilder
+        .updateTable('petitions')
+        .set({
+            andolon_id: input.andolon_id,
+        })
+        .where('id', '=', `${input.petition_id}`)
+        .returning(['id', 'title'])
+        .executeTakeFirst();
+
+    return result;
+});

@@ -8,6 +8,10 @@ import {
     adminPetitionList,
     createCategory,
     adminCategoryList,
+    createAndolon,
+    getAdminAndolonList,
+    getAndolonPetitions,
+    linkPetition,
 } from '../procedures/petitions/moderation.mjs';
 import {clearVote, vote} from '../procedures/petitions/voting.mjs';
 import {
@@ -61,4 +65,8 @@ export const petitionRouter = router({
     getPetitions: adminPetitionList,
     createCategory: createCategory,
     adminCategoryList: adminCategoryList,
+    andolonList: getAdminAndolonList,
+    andolonPetitions: getAndolonPetitions,
+    createAndolon: createAndolon,
+    linkPetition,
 });
