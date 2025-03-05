@@ -273,6 +273,7 @@ export const adminPetitionList = protectedProcedure
             .selectFrom('petitions')
             .innerJoin('users', 'users.id', 'petitions.created_by')
             .leftJoin('categories', 'categories.id', 'petitions.category_id')
+            .leftJoin('andolon', 'andolon.id', 'petitions.andolon_id')
             .select([
                 'petitions.id',
                 'petitions.title',
@@ -292,6 +293,8 @@ export const adminPetitionList = protectedProcedure
                 'users.name as user_name',
                 'categories.id as category_id',
                 'categories.name as category_name',
+                'andolon.id as andolon_id',
+                'andolon.name as andolon_name'
             ])
             .where('petitions.deleted_at', 'is', null)
             .where('petitions.submitted_at', 'is not', null)
@@ -348,7 +351,8 @@ export const adminPetitionList = protectedProcedure
                 flagged_at: petition.flagged_at,
                 flagged_reason: petition.flagged_reason,
                 user_name: petition.user_name,
-                category: { id: Number(petition.category_id), name: petition.category_name }
+                category: petition.category_id ? { id: Number(petition.category_id), name: petition.category_name } : null,
+                andolon: petition.andolon_id ? { id: Number(petition.andolon_id), name: petition.andolon_name } : null
             })),
             pagination: {
                 total: results.length || 0,
