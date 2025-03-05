@@ -19,7 +19,7 @@ import { Trash2Icon } from 'lucide-react';
 
 export default function AndolonLinkForm(
   { handleSelected, unlinkPetition }:
-    { handleSelected: (andolon: { id: string, name: string }) => void, unlinkPetition: () => void }) {
+    { handleSelected: (andolon: { id: string, name: string }) => void, unlinkPetition: (id: number) => void }) {
   const [showAndolonList, setVisibility] = useState(false)
   const [showAndolonPopup, setPopupStatus] = useState(false)
   const [selectedAndolon, setSelectedAndolon] = useState<{ id: string, name: string } | null>(null)
@@ -129,7 +129,7 @@ export default function AndolonLinkForm(
                     <span>{petition.title}</span>
                     <Trash2Icon
                       className="cursor-pointer text-red-400"
-                      onClick={unlinkPetition}
+                      onClick={() => unlinkPetition(Number(petition.id))}
                     />
                   </div>
                 </li>

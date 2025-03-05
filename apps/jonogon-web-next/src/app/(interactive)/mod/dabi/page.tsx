@@ -101,9 +101,11 @@ export default function DabiAdminPage() {
     setJobabFormVisibility(true)
   }
 
-  const closeStatusDialog = () => {
+  const closeStatusDialog = (fetchList: boolean) => {
     setDialogVisibility(false)
-    refetch()
+    if (fetchList) {
+      refetch()
+    }
   }
 
   const reasonText = (petition: any) => {
@@ -226,7 +228,7 @@ export default function DabiAdminPage() {
         status={selectedDabi.status ?? ''}
         petitionCategory={selectedDabi.category || { id: '', name: '' }}
         categoryList={categoryList}
-        handleClose={closeStatusDialog}
+        handleClose={(fetchList) => closeStatusDialog(fetchList)}
         updateCategoryList={(category: { id: string; name: string }) => setCategories([...categoryList, category])}
       />
       <JobabForm

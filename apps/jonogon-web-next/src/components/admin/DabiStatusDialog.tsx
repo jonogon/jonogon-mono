@@ -27,7 +27,7 @@ import AndolonLinkForm from './AndolonLinkForm';
 
 interface DabiStatus {
   open: boolean,
-  handleClose: () => void,
+  handleClose: (refetch: boolean) => void,
   updateCategoryList: (response: { id: string; name: string }) => void,
   id: string,
   status: string,
@@ -61,35 +61,34 @@ export default function DabiStatusDialog({
   const approveMutation = trpc.petitions.approve.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
-      handleClose()
+      handleClose(true)
     },
   })
 
   const rejectMutation = trpc.petitions.reject.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
-      handleClose()
+      handleClose(true)
     },
   })
 
   const flagMutation = trpc.petitions.flag.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
-      handleClose()
+      handleClose(true)
     },
   })
 
   const onHold = trpc.petitions.hold.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
-      handleClose()
+      handleClose(true)
     },
   })
 
   const linkPetition = trpc.petitions.linkPetition.useMutation({
     onSuccess: async () => {
       await utils.petitions.get.invalidate({ id })
-      handleClose()
     }
   })
 
@@ -105,8 +104,11 @@ export default function DabiStatusDialog({
       onHold.mutate({ petition_id: petitionId, reason: reasonText })
     }
   }
-  const updateAndonlonLinkStatus = (link: boolean) => {
-    linkPetition.mutate({ petition_id: Number(id), andolon_id: Number(selectedAndolon?.id), link })
+  const updateAndonlonLinkStatus = (link: boolean, petition_id: number) => {
+    linkPetition.mutate({ petition_id, andolon_id: Number(selectedAndolon?.id), link })
+    if (link) {
+      handleClose(true)
+    }
   }
   const CategoryList = () => {
     const createCategory = trpc.petitions.createCategory.useMutation({
@@ -178,7 +180,7 @@ export default function DabiStatusDialog({
       </div>
   )}
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={() => handleClose(false)}>
       <DialogContent
         onInteractOutside={(e) => {
           e.preventDefault();
@@ -217,14 +219,14 @@ export default function DabiStatusDialog({
           {status === 'LINK' && (
             <AndolonLinkForm
               handleSelected={(andolon) => setSelectedAndolon(andolon)}
-              unlinkPetition={() => updateAndonlonLinkStatus(false)}
+              unlinkPetition={(petition_id) => updateAndonlonLinkStatus(false, petition_id)}
             />
           )}
         </div>
         <Button
           variant="outline"
           onClick={() => status === 'LINK'
-            ? updateAndonlonLinkStatus(true) : updateStatus()
+            ? updateAndonlonLinkStatus(true, Number(id)) : updateStatus()
           }
         >
           Confirm
