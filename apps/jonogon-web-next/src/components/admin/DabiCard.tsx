@@ -63,7 +63,7 @@ export default function DabiCard({
             }
             {status === 'APPROVED' && 
               <Button variant="ghost" size="icon">
-                <Link2 className="w-4 h-4 text-blue-500" onClick={() => setStatus('FLAG')}/>
+                <Link2 className="w-4 h-4 text-blue-500" onClick={() => setStatus('LINK')}/>
               </Button>
             }
             {(status !== 'APPROVED' && status !== 'FLAGGED') && (

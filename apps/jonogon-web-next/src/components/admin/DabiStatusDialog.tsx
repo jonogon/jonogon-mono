@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import AndolonLinkForm from './AndolonLinkForm';
 
 interface DabiStatus {
   open: boolean,
@@ -49,7 +50,8 @@ export default function DabiStatusDialog({
   const [reasonText, setReason] = useState('')
   const [showCategories, setVisibility] = useState(false)
   const [showCategoryPopup, setPopupStatus] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string} | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<{ id: string, name: string } | null>(null)
+  const [selectedAndolon, setSelectedAndolon] = useState<{ id: string; name: string; } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   
   useEffect(() => {
@@ -84,6 +86,13 @@ export default function DabiStatusDialog({
     },
   })
 
+  const linkPetition = trpc.petitions.linkPetition.useMutation({
+    onSuccess: async () => {
+      await utils.petitions.get.invalidate({ id })
+      handleClose()
+    }
+  })
+
   const updateStatus = () => {
     const petitionId= Number(id)
     if (status === 'APPROVE') {
@@ -94,6 +103,8 @@ export default function DabiStatusDialog({
       flagMutation.mutate({ petition_id: petitionId, reason: reasonText, flagged: status === 'UNFLAG' })
     } else if (status === 'ON_HOLD') {
       onHold.mutate({ petition_id: petitionId, reason: reasonText })
+    } else if (status === 'LINK') {
+      linkPetition.mutate({ petition_id: petitionId, andolon_id: Number(selectedAndolon?.id) })
     }
   }
   const CategoryList = () => {
@@ -174,15 +185,19 @@ export default function DabiStatusDialog({
       >
         <DialogHeader>
           <DialogTitle>
-            Update Dabi Status
+            {status === 'LINK' ? 'Link Dabi': 'Update Dabi Status'}
           </DialogTitle>
           <Separator />
         </DialogHeader>
-        <h4 className="font-bold text-red-500 text-center">Are you sure you want to set this to { status } ?</h4>
+        {status !== 'LINK' && 
+          <h4 className="font-bold text-red-500 text-center">Are you sure you want to set this to { status } ?</h4>
+        }
         <div className="space-y-4">
           <h4 className="text-lg font-semibold">{title}</h4>
-          <span className="text-red-500">New Status: { status }</span>
-          {status !== 'APPROVE' && (
+          {status !== 'LINK' && 
+            <span className="text-red-500">New Status: { status }</span>
+          }
+          {status !== 'APPROVE' && status !== 'LINK' && (
             <div>
               <Label htmlFor="reason">Reason</Label>
               <Textarea
@@ -197,6 +212,11 @@ export default function DabiStatusDialog({
             <div>
               <CategoryList />
             </div>
+          )}
+          {status === 'LINK' && (
+            <AndolonLinkForm
+              handleSelected={(andolon) => setSelectedAndolon(andolon)}
+            />
           )}
         </div>
         <Button
