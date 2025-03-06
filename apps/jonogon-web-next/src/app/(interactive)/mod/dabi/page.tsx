@@ -113,13 +113,13 @@ export default function DabiAdminPage() {
   }
 
   return (
-    <div className="p-8 overflow-auto">
+    <div className="md:p-8 p-4 overflow-auto">
       <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between flex-wrap items-center mb-6">
           <h1 className="text-2xl font-bold">
             Dabi Moderation
           </h1>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row md:items-center items-start gap-4 md:space-x-4">
             <Select onValueChange={handleStatusChange}>
               <SelectTrigger className="bg-card border-stone-200 w-[180px] ring-0 focus:ring-0">
                 <SelectValue placeholder={filterQuery} />
