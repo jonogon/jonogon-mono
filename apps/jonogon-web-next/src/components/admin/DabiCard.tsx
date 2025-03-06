@@ -29,18 +29,20 @@ export default function DabiCard({
   handleStatus,
   openJobabForm
 }: DabiProps) {
-  const setStatus = (status: string) => {
+  const setStatus = (status: string, event: React.MouseEvent<HTMLButtonElement>) => {
     const dabi = {
       id,
       status,
       title
     }
+    event.preventDefault();
+    event.stopPropagation();
     handleStatus(dabi)
   }
   return (
     <Link href={`/petitions/${id}`} target='_blank'>  
       <Card className="mb-4">
-        <CardContent className="pt-6">
+        <CardContent className="md:p-6 p-4 pt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold mb-2 truncate">{title}</h2>
             <span>{status}</span>
@@ -51,7 +53,11 @@ export default function DabiCard({
           <div className={`flex items-center ${status === 'APPROVED' ? 'justify-between' : 'justify-end'}`}>
             {status === 'APPROVED' &&
               <Button
-                onClick={() => openJobabForm()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openJobabForm()
+                }}
                 variant="outline"
               >
                 <span className="text-red-500">Add Official Jobab</span>
@@ -59,29 +65,32 @@ export default function DabiCard({
             }
             <div className="flex space-x-2">
               {status !== 'FLAGGED' &&
-                <Button variant="ghost" size="icon" onClick={() => setStatus('APPROVE')}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => setStatus('APPROVE', e)}>
                   <Check className="w-4 h-4 text-green-500" />
                 </Button>
               }
               {status === 'APPROVED' && 
                 <Button variant="ghost" size="icon">
-                  <Link2 className="w-4 h-4 text-blue-500" onClick={() => setStatus('LINK')}/>
+                  <Link2 className="w-4 h-4 text-blue-500" onClick={(e) => setStatus('LINK', e)}/>
                 </Button>
               }
               {(status !== 'APPROVED' && status !== 'FLAGGED') && (
                 <>
                   <Button variant="ghost" size="icon">
-                    <Clock className="w-4 h-4 text-orange-500" onClick={() => setStatus('ON_HOLD')} />
+                    <Clock className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('ON_HOLD', e)} />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setStatus('REJECT')}>
+                  <Button variant="ghost" size="icon" onClick={(e) => setStatus('REJECT', e)}>
                     <X className="w-4 h-4 text-red-500" />
                   </Button>
                 </>
               )}
               <Button variant="ghost" size="icon">
                 {status === 'FLAGGED' ? (
-                  <FlagOff className="w-4 h-4 text-orange-500" onClick={() => setStatus('UNFLAG')} />
-                ): <Flag className="w-4 h-4 text-orange-500" onClick={() => setStatus('FLAG')} />}
+                  <FlagOff className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('UNFLAG', e)} />
+                ): <Flag className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('FLAG', e)} />}
               </Button>
             </div>
           </div>
