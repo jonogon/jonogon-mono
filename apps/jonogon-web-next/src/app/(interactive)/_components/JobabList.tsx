@@ -30,7 +30,7 @@ export default function JobabList() {
     return (
       <div>
         <div className={'text-center text-lg font-semibold p-5'}>
-            No জবাবs found
+          No জবাবs found
         </div>
       </div>
     );
@@ -43,10 +43,10 @@ export default function JobabList() {
           <Card className="hover:shadow-md transition-shadow mb-4">
             <CardHeader className="p-4">
               <CardTitle className="flex flex-col space-y-2">
-                <h2 className="leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle
+                <span className="leading-[1.1] font-bold font-serif text-xl md:text-2xl align-middle
                 break-words overflow-hidden text-ellipsis">
                   {jobab.title}
-                </h2>
+                </span>
                 <div className="flex items-center space-x-2 text-sm text-neutral-500">
                   <span>{jobab.respondent_name}</span>
                   <span>•</span>
