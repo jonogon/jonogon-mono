@@ -162,6 +162,8 @@ export default function DabiAdminPage() {
               target={petition.target}
               status={getStatus(petition)}
               reason={reasonText(petition)}
+              categoryName={petition.category?.name}
+              andolonName={petition.andolon?.name}
               handleStatus={(dabi: any) => getSelectedDabi(dabi, petition.category)}
               openJobabForm={() => getSelectedDabiForJobabForm(petition)}
             />
