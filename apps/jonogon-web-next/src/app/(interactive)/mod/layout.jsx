@@ -1,14 +1,25 @@
-"use client";
+'use client';
+
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
+import { trpc } from '@/trpc/client';
+import { useAuthState } from '@/auth/token-manager';
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const isAuthenticated = useAuthState()
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
+
+  const { data: selfResponse } = trpc.users.getSelf.useQuery(undefined, {
+    enabled: !!isAuthenticated,
+  })
+
+  const isAdmin = !!selfResponse?.meta.token.is_user_admin
+  const isMod = !!selfResponse?.meta.token.is_user_moderator
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -76,9 +87,11 @@ export default function AdminLayout({ children }) {
       </div>
 
       {/* main content */}
-      <div className="flex-1 ml-0 md:ml-64 bg-background min-h-screen mt-20">
-        {children}
-      </div>
+      {isAdmin && isMod && (
+        <div className="flex-1 ml-0 md:ml-64 bg-background min-h-screen mt-20">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
