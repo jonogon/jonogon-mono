@@ -73,24 +73,28 @@ export default function DabiCard({
                 </Button>
               }
               {status === 'APPROVED' && 
-                <Button variant="ghost" size="icon">
-                  <Link2 className="w-4 h-4 text-blue-500" onClick={(e) => setStatus('LINK', e)}/>
+                <Button variant="ghost" size="icon" onClick={(e) => setStatus('LINK', e)}>
+                  <Link2 className="w-4 h-4 text-blue-500"/>
                 </Button>
               }
               {(status !== 'APPROVED' && status !== 'FLAGGED') && (
                 <>
-                  <Button variant="ghost" size="icon">
-                    <Clock className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('ON_HOLD', e)} />
+                  <Button variant="ghost" size="icon" onClick={(e) => setStatus('ON_HOLD', e)}>
+                    <Clock className="w-4 h-4 text-orange-500" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={(e) => setStatus('REJECT', e)}>
                     <X className="w-4 h-4 text-red-500" />
                   </Button>
                 </>
               )}
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => setStatus(status === 'FLAGGED' ? 'UNFLAG' : 'FLAG', e)}
+              >
                 {status === 'FLAGGED' ? (
-                  <FlagOff className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('UNFLAG', e)} />
-                ): <Flag className="w-4 h-4 text-orange-500" onClick={(e) => setStatus('FLAG', e)} />}
+                  <FlagOff className="w-4 h-4 text-orange-500" />
+                ): <Flag className="w-4 h-4 text-orange-500" />}
               </Button>
             </div>
           </div>
