@@ -105,10 +105,16 @@ export default function DabiStatusDialog({
     }
   }
   const updateAndonlonLinkStatus = (link: boolean, petition_id: number) => {
-    linkPetition.mutate({ petition_id, andolon_id: Number(selectedAndolon?.id), link })
-    if (link) {
-      handleClose(true)
-    }
+    linkPetition.mutate(
+      { petition_id, andolon_id: Number(selectedAndolon?.id), link },
+      {
+        onSuccess: () => {
+          if (link) {
+            handleClose(true)
+          }
+        }
+      }
+    )
   }
   const CategoryList = () => {
     const createCategory = trpc.petitions.createCategory.useMutation({
