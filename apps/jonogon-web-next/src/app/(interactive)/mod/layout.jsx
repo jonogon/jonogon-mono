@@ -63,7 +63,7 @@ export default function AdminLayout({ children }) {
                   }
                 }}
                 className={`flex justify-between items-center p-2 hover:bg-red-100 hover:text-black rounded cursor-pointer ${pathname === '/mod/dabi'
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white'
                     : ''
                   }`}>
                 <span>দাবি</span>
@@ -76,7 +76,7 @@ export default function AdminLayout({ children }) {
                   }
                 }}
                 className={`flex justify-between items-center p-2 hover:bg-red-100 hover:text-black rounded cursor-pointer ${pathname === '/mod/jobab'
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-red-500 text-white hover:bg-red-500 hover:text-white'
                     : ''
                   }`}>
                 <span>জবাব</span>
