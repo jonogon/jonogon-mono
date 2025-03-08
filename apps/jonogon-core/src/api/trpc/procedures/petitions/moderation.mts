@@ -310,7 +310,9 @@ export const adminPetitionList = protectedProcedure
                 .where('petitions.hold_at', 'is', null)
                 .where('petitions.submitted_at', 'is not', null);
         } else if (status === 'APPROVED') {
-            petitions = petitions.where('petitions.approved_at', 'is not', null);
+            petitions = petitions
+                .where('petitions.approved_at', 'is not', null)
+                .where('petitions.flagged_at', 'is', null);
         } else if (status === 'REJECTED') {
             petitions = petitions.where('petitions.rejected_at', 'is not', null);
         } else if (status === 'ON_HOLD') {
@@ -325,8 +327,12 @@ export const adminPetitionList = protectedProcedure
             );
         }
 
-        
-        
+        // Add this count query before executing your main query
+        const countResults = await petitions
+            .clearLimit()
+            .clearOffset()
+            .execute();
+
         const results = await petitions
             .orderBy('petitions.created_at', 'desc')
             .limit(limit)
@@ -355,7 +361,7 @@ export const adminPetitionList = protectedProcedure
                 andolon: petition.andolon_id ? { id: Number(petition.andolon_id), name: petition.andolon_name } : null
             })),
             pagination: {
-                total: results.length || 0,
+                total: Number(countResults.length || 0) || 0,
                 offset,
                 limit,
             },

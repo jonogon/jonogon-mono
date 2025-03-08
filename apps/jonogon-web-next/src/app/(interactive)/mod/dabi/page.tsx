@@ -85,8 +85,10 @@ export default function DabiAdminPage() {
   type PetitionStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ON_HOLD' | 'ALL' | 'FLAGGED';
 
   const handleStatusChange = (status: PetitionStatus): void => {
+    setCurrentPage(1)
     if (status === 'FLAGGED') {
       setFlagged(true)
+      setFilterQuery('ALL')
     } else if (status !== 'ALL') {
       setFilterQuery(status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ON_HOLD')
       setFlagged(null)
