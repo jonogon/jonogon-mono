@@ -92,11 +92,15 @@ export interface Petitions {
     rejection_reason: string | null;
     flagged_at: Timestamp | null;
     flagged_reason: string | null;
+    hold_at: Timestamp | null;
+    hold_reason: string | null;
     submitted_at: Timestamp | null;
     target: string | null;
     title: string | null;
     updated_at: Generated<Timestamp>;
     upvote_target: number | null;
+    category_id: Int8 | null;
+    andolon_id: Int8 | null;
     score: number;
     log_score: number;
 }
@@ -109,6 +113,24 @@ export interface PetitionVotes {
     updated_at: Generated<Timestamp>;
     user_id: Int8;
     vote: number;
+}
+
+export interface Category {
+    id: Generated<Int8>;
+    name: string;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
+}
+
+export interface Andolon {
+    id: Generated<Int8>;
+    name: string;
+    image_url: string | null;
+    status: string | null;
+    created_at: Generated<Timestamp>;
+    updated_at: Generated<Timestamp>;
+    deleted_at: Timestamp | null;
 }
 
 export interface Pgmigrations {
@@ -232,4 +254,6 @@ export interface DB {
     jobab_votes: JobabVotes;
     jobab_comments: JobabComments;
     jobab_comment_votes: JobabCommentVotes;
+    categories: Category,
+    andolon: Andolon,
 }

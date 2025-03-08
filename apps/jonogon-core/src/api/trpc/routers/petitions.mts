@@ -4,6 +4,14 @@ import {
     flag,
     formalize,
     reject,
+    hold,
+    adminPetitionList,
+    createCategory,
+    adminCategoryList,
+    createAndolon,
+    getAdminAndolonList,
+    getAndolonPetitions,
+    linkPetition,
 } from '../procedures/petitions/moderation.mjs';
 import {clearVote, vote} from '../procedures/petitions/voting.mjs';
 import {
@@ -52,5 +60,13 @@ export const petitionRouter = router({
     approve: approve,
     reject: reject,
     formalize: formalize,
+    hold: hold,
     flag: flag,
+    getPetitions: adminPetitionList,
+    createCategory: createCategory,
+    adminCategoryList: adminCategoryList,
+    andolonList: getAdminAndolonList,
+    andolonPetitions: getAndolonPetitions,
+    createAndolon: createAndolon,
+    linkPetition,
 });
