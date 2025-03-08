@@ -1,10 +1,10 @@
 'use client';
 
-import {trpc} from '@/trpc/client';
-import Link from 'next/link';
+// import {trpc} from '@/trpc/client';
+// import Link from 'next/link';
 
 export default function Mod() {
-    const {data: pendingPetitionRequestResponse} =
+    /*const {data: pendingPetitionRequestResponse} =
         trpc.petitions.listPendingPetitionRequests.useQuery({page: 0});
 
     return (
@@ -29,5 +29,13 @@ export default function Mod() {
                 }) ?? []}
             </div>
         </div>
-    );
+    );*/
+  return (
+    <div className={'max-w-screen-sm mx-auto py-16 px-4'}>
+      <title>Moderation — জনগণ</title>
+      <h1 className={'text-3xl font-bold text-red-600 leading-0'}>
+        Jonogon Moderation Panel
+      </h1>
+    </div>
+  )
 }
